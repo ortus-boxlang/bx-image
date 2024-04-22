@@ -1,16 +1,16 @@
 {
-    "name":"@MODULE_NAME@",
+    "name":"BoxLang Image Library",
     "version":"@build.version@+@build.number@",
-    "location"  : "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/@MODULE_SLUG@/@build.version@/@MODULE_SLUG@-@build.version@.zip",
+    "location"  : "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/bx-image/@build.version@/bx-image-@build.version@.zip",
     "author":"Ortus Solutions",
-    "homepage":"https://github.com/boxlang-modules/@MODULE_SLUG@",
-    "documentation":"https://github.com/boxlang-modules/@MODULE_SLUG@",
+    "homepage":"https://github.com/boxlang-modules/bx-image",
+    "documentation":"https://github.com/boxlang-modules/bx-image",
     "repository":{
         "type":"git",
-        "URL":"https://github.com/boxlang-modules/@MODULE_SLUG@"
+        "URL":"https://github.com/boxlang-modules/bx-image"
     },
-    "bugs":"https://github.com/boxlang-modules/@MODULE_SLUG@/issues",
-    "slug":"@MODULE_SLUG@",
+    "bugs":"https://github.com/boxlang-modules/bx-image/issues",
+    "slug":"bx-image",
     "shortDescription":"Module template for BoxLang modules",
     "type":"boxlang-modules",
     "keywords":[
