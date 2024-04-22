@@ -1,4 +1,4 @@
-package com.ortussolutions.interceptors;
+package ortus.boxlang.image.interceptors;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,13 +1,12 @@
-package com.ortussolutions.components;
+package ortus.boxlang.image.bifs;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import ortus.boxlang.compiler.parser.BoxSourceType;
 import ortus.boxlang.runtime.BoxRuntime;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
@@ -15,7 +14,7 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ExampleComponentTest {
+public class ImageReadTest {
 
 	static BoxRuntime	instance;
 	IBoxContext			context;
@@ -33,14 +32,15 @@ public class ExampleComponentTest {
 		variables	= context.getScopeNearby( VariablesScope.name );
 	}
 
-	@DisplayName( "It can test the ExampleComponent" )
+	@DisplayName( "It can read a BoxImage" )
 	@Test
-	public void testExampleComponent() {
+	public void testExampleBIF() {
 		instance.executeSource( """
-		                        	<cfExampleComponent name="Ortus Solutions">
-		                        	<cfset result = getBoxContext().getBuffer().toString()>
-		                        """, context, BoxSourceType.CFTEMPLATE );
-		assertTrue( variables.getAsString( result ).contains( "Hello, world - from Ortus Solutions." ) );
+		                                          result = ImageRead( "src/test/resources/logo.png" );
+		                        width = result.getWidth();
+		                                          """, context );
+
+		assertInstanceOf( ortus.boxlang.image.BoxImage.class, variables.get( result ) );
 	}
 
 }

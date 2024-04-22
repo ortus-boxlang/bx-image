@@ -1,4 +1,4 @@
-package com.ortussolutions.config;
+package ortus.boxlang.image.config;
 
 import java.util.Optional;
 
