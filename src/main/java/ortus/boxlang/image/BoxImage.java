@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.imaging.ImageFormats;
 import org.apache.commons.imaging.Imaging;
 
+import javaxt.io.Image;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 
 public class BoxImage {
@@ -33,19 +34,19 @@ public class BoxImage {
 		COLORS.put( "yellow", Color.yellow );
 	}
 
-	private BufferedImage	imageData;
-	private Graphics		graphics;
-	private String			drawingColor	= "white";
+	private Graphics	graphics;
+	private Image		image;
+	private String		drawingColor	= "white";
 
 	public BoxImage( BufferedImage imageData ) {
-		this.imageData	= imageData;
+		this.image		= new Image( imageData );
 		this.graphics	= imageData.getGraphics();
 	}
 
 	public BoxImage write( String path ) {
 		// TODO determine format
 		try {
-			Imaging.writeImage( imageData, new File( path ), ImageFormats.PNG );
+			Imaging.writeImage( this.image.getBufferedImage(), new File( path ), ImageFormats.PNG );
 		} catch ( Exception e ) {
 			throw new BoxRuntimeException( "Unable to save image", e );
 		}
@@ -83,10 +84,10 @@ public class BoxImage {
 	}
 
 	public int getWidth() {
-		return this.imageData.getWidth();
+		return this.image.getWidth();
 	}
 
 	public int getHeight() {
-		return this.imageData.getHeight();
+		return this.image.getHeight();
 	}
 }

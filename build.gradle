@@ -22,6 +22,10 @@ ext {
 repositories {
     mavenLocal()
     mavenCentral()
+
+	maven {
+		url "https://www.javaxt.com/maven"
+	}
 }
 
 dependencies {
@@ -37,6 +41,7 @@ dependencies {
 	testImplementation "com.google.truth:truth:1.+"
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-imaging
 	implementation 'org.apache.commons:commons-imaging:1.0.0-alpha5'
+	implementation "javaxt:javaxt-core:2.1.8"
 
 }
 
