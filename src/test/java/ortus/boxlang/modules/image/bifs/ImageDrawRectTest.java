@@ -1,4 +1,4 @@
-package ortus.boxlang.image.bifs;
+package ortus.boxlang.modules.image.bifs;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
@@ -41,7 +41,7 @@ public class ImageDrawRectTest {
 		                        ImageWrite( result, "src/test/resources/logo-test.png" );
 		                                                            """, context );
 
-		assertInstanceOf( ortus.boxlang.image.BoxImage.class, variables.get( result ) );
+		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
 	}
 
 	@DisplayName( "It can draw a filled rectangle" )
@@ -54,7 +54,7 @@ public class ImageDrawRectTest {
 		                                 ImageWrite( result, "src/test/resources/logo-test.png" );
 		                                                                     """, context );
 
-		assertInstanceOf( ortus.boxlang.image.BoxImage.class, variables.get( result ) );
+		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
 	}
 
 	@DisplayName( "It can be called as a member method" )
@@ -67,7 +67,7 @@ public class ImageDrawRectTest {
 		                                       ImageWrite( result, "src/test/resources/logo-test-member.png" );
 		                                                                           """, context );
 
-		assertInstanceOf( ortus.boxlang.image.BoxImage.class, variables.get( result ) );
+		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
 	}
 
 }

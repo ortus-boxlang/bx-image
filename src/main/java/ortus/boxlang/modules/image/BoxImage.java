@@ -1,4 +1,4 @@
-package ortus.boxlang.image;
+package ortus.boxlang.modules.image;
 
 import java.awt.Color;
 import java.awt.Graphics;

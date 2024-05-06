@@ -1,4 +1,4 @@
-package ortus.boxlang.image.bifs;
+package ortus.boxlang.modules.image.bifs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

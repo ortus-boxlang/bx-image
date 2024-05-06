@@ -1,4 +1,4 @@
-package ortus.boxlang.image.bifs;
+package ortus.boxlang.modules.image.bifs;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import ortus.boxlang.image.BoxImage;
+import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.BoxRuntime;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;

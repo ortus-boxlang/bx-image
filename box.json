@@ -1,46 +1,48 @@
 {
-    "name":"BoxLang Image Library",
-    "version":"@build.version@+@build.number@",
-    "location"  : "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/bx-image/@build.version@/bx-image-@build.version@.zip",
-    "author":"Ortus Solutions",
-    "homepage":"https://github.com/boxlang-modules/bx-image",
-    "documentation":"https://github.com/boxlang-modules/bx-image",
-    "repository":{
-        "type":"git",
-        "URL":"https://github.com/boxlang-modules/bx-image"
-    },
-    "bugs":"https://github.com/boxlang-modules/bx-image/issues",
-    "slug":"bx-image",
-    "shortDescription":"Module template for BoxLang modules",
-    "type":"boxlang-modules",
-    "keywords":[
-        "boxlang"
-    ],
-    "private":false,
-    "license":[
-        {
-            "type":"Apache-2.0",
-            "URL":"https://www.apache.org/licenses/LICENSE-2.0"
-        }
-    ],
-	"devDependencies" 	:{
-		"commandbox-cfformat":"*",
-        "commandbox-docbox":"*",
-		"commandbox-dotenv":"*",
-        "commandbox-cfconfig":"*",
+	"name": "BoxLang Image Library",
+	"version": "@build.version@+@build.number@",
+	"location": "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/bx-image/@build.version@/bx-image-@build.version@.zip",
+	"author": "Ortus Solutions",
+	"homepage": "https://github.com/boxlang-modules/bx-image",
+	"documentation": "https://github.com/boxlang-modules/bx-image",
+	"repository": {
+		"type": "git",
+		"URL": "https://github.com/boxlang-modules/bx-image"
+	},
+	"bugs": "https://github.com/boxlang-modules/bx-image/issues",
+	"slug": "bx-image",
+	"shortDescription": "Module template for BoxLang modules",
+	"type": "boxlang-modules",
+	"keywords": ["boxlang"],
+	"boxlang": {
+		"minimumVersion": "1.0.0",
+		"moduleName": "image"
+	},
+	"private": false,
+	"license": [
+		{
+			"type": "Apache-2.0",
+			"URL": "https://www.apache.org/licenses/LICENSE-2.0"
+		}
+	],
+	"devDependencies": {
+		"commandbox-cfformat": "*",
+		"commandbox-docbox": "*",
+		"commandbox-dotenv": "*",
+		"commandbox-cfconfig": "*",
 		"testbox": "*"
 	},
-    "ignore": [
-        "**/.*",
-        "settings.gradle",
-        "gradlew.bat",
-        "gradlew",
-        "build.gradle",
-        "/src/**",
-        "gradle/**"
-    ],
-	"scripts":{
+	"ignore": [
+		"**/.*",
+		"settings.gradle",
+		"gradlew.bat",
+		"gradlew",
+		"build.gradle",
+		"/src/**",
+		"gradle/**"
+	],
+	"scripts": {
 		"setupTemplate": "task run taskFile=src/build/SetupTemplate.cfc",
-        "onRelease":"publish"
-    }
+		"onRelease": "publish"
+	}
 }

@@ -1,4 +1,4 @@
-package ortus.boxlang.image.components;
+package ortus.boxlang.modules.image.components;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

@@ -1,4 +1,4 @@
-package ortus.boxlang.image.bifs;
+package ortus.boxlang.modules.image.bifs;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
@@ -40,7 +40,7 @@ public class ImageReadTest {
 		                        width = result.getWidth();
 		                                          """, context );
 
-		assertInstanceOf( ortus.boxlang.image.BoxImage.class, variables.get( result ) );
+		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
 	}
 
 }

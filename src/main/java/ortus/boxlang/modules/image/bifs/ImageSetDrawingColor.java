@@ -1,9 +1,9 @@
-package ortus.boxlang.image.bifs;
+package ortus.boxlang.modules.image.bifs;
 
 import java.util.Set;
 
-import ortus.boxlang.image.BoxImage;
-import ortus.boxlang.image.ImageKeys;
+import ortus.boxlang.modules.image.BoxImage;
+import ortus.boxlang.modules.image.ImageKeys;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
