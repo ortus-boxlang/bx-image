@@ -14,7 +14,7 @@ import ortus.boxlang.runtime.types.BoxLangType;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
-@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "crop" )
+@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "negative" )
 public class ImageNegative extends BIF {
 
 	// TODO finish bordertypes

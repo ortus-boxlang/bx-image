@@ -2,8 +2,13 @@ package ortus.boxlang.modules.image;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,9 +43,57 @@ public class BoxImage {
 	private Image		image;
 	private String		drawingColor	= "white";
 
+	// TODO handle imageType
+	public BoxImage( int width, int height, ImageType imageType, String color ) {
+		this.image		= new Image( width, height );
+		this.graphics	= this.image.getBufferedImage().createGraphics();
+
+		this.setDrawingColor( color );
+		this.fillRect( 0, 0, width, height );
+		this.setDrawingColor( "black" );
+	}
+
+	public BoxImage( URI imageURI ) {
+		try {
+			if ( imageURI.toString().toLowerCase().startsWith( "http" ) ) {
+
+				this.image = new Image( imageURI.toURL().openStream() );
+
+			} else {
+				this.image = new Image( new FileInputStream( imageURI.toString() ) );
+			}
+		} catch ( MalformedURLException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch ( IOException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		this.graphics = this.image.getBufferedImage().createGraphics();
+	}
+
 	public BoxImage( BufferedImage imageData ) {
 		this.image		= new Image( imageData );
 		this.graphics	= imageData.createGraphics();
+	}
+
+	public BoxImage copy() {
+		BoxImage newImage = new BoxImage( getWidth(), getHeight(), ImageType.ARGB, "black" );
+
+		newImage.drawImage( this, 0, 0 );
+
+		return newImage;
+	}
+
+	public BoxImage drawImage( BoxImage image, int x, int y ) {
+		this.graphics.drawImage( image.getBufferedImage(), new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
+
+		return this;
+	}
+
+	public BufferedImage getBufferedImage() {
+		return this.image.getBufferedImage();
 	}
 
 	public BoxImage write( String path ) {
