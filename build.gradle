@@ -32,10 +32,12 @@ dependencies {
 	// Until BoxLang is published to Maven Central
 	// Look for it in the local build directory
 	// You must run `./gradle build -x test` in the BoxLang project
+    // compileOnly files( 'src/test/resources/libs/boxlang-websupport-1.0.0.jar' )
     compileOnly files( 'src/test/resources/libs/boxlang-1.0.0-all.jar' )
 
     // Testing Dependencies
-	testImplementation files( 'src/test/resources/libs/boxlang-1.0.0-all.jar' )
+    // compileOnly files( 'src/test/resources/libs/boxlang-websupport-1.0.0.jar' )
+    testImplementation files( 'src/test/resources/libs/boxlang-1.0.0-all.jar' )
     testImplementation "org.junit.jupiter:junit-jupiter:5.+"
 	testImplementation "org.mockito:mockito-core:5.+"
 	testImplementation "com.google.truth:truth:1.+"
@@ -190,10 +192,13 @@ task downloadBoxLang( type: Download ) {
 	doFirst {
 		file( "src/test/resources/libs" ).mkdirs()
 	}
-    // Configure the URL of the file to download
-    src "https://ortus-temp.s3.amazonaws.com/jericho/libs/boxlang-${boxlangVersion}-all.jar"
-    // Specify the destination directory for the downloaded file
-    dest "src/test/resources/libs/boxlang-${boxlangVersion}-all.jar"
+	// Configure the URLs of the files to download
+	src([
+		"https://downloads.ortussolutions.com/ortussolutions/boxlang/${boxlangVersion}/boxlang-${boxlangVersion}-all.jar"//,
+		// "https://downloads.ortussolutions.com/ortussolutions/boxlang-runtimes/boxlang-web-support/${boxlangVersion}/boxlang-web-support-${boxlangVersion}.jar"
+	])
+	// Specify the destination directories for the downloaded files
+	dest "src/test/resources/libs/"
     overwrite true
     onlyIfModified false
 }

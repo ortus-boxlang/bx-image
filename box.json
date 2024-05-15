@@ -11,7 +11,7 @@
 	},
 	"bugs": "https://github.com/boxlang-modules/bx-image/issues",
 	"slug": "bx-image",
-	"shortDescription": "Module template for BoxLang modules",
+	"shortDescription": "Boxlang Image processing module",
 	"type": "boxlang-modules",
 	"keywords": ["boxlang"],
 	"boxlang": {
@@ -19,6 +19,7 @@
 		"moduleName": "image"
 	},
 	"private": false,
+	"listed": false,
 	"license": [
 		{
 			"type": "Apache-2.0",
