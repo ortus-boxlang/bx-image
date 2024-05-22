@@ -19,6 +19,7 @@ public class ImageKeys {
 	public static final Key	filled		= Key.of( "filled" );
 	public static final Key	image1		= Key.of( "image1" );
 	public static final Key	image2		= Key.of( "image2" );
+	public static final Key	raised		= Key.of( "raised" );
 	public static final Key	startAngle	= Key.of( "startAngle" );
 	public static final Key	archAngle	= Key.of( "archAngle" );
 }

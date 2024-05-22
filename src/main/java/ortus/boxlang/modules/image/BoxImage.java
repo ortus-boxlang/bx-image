@@ -105,6 +105,32 @@ public class BoxImage {
 		return this;
 	}
 
+	public BoxImage drawBeveledRect( int x, int y, int width, int height, boolean raised, boolean filled ) {
+
+		this.drawRect( x, y, width, height, filled );
+
+		Color	originalColor	= this.graphics.getColor();
+		Color	highlight		= originalColor.brighter().brighter();
+		Color	shadow			= originalColor.darker().darker();
+
+		this.graphics.setColor( raised ? highlight : shadow );
+		// top
+		this.graphics.drawLine( x, y, x + width, y );
+		// left
+		this.graphics.drawLine( x, y, x, y + height );
+
+		this.graphics.setColor( raised ? shadow : highlight );
+
+		// right
+		this.graphics.drawLine( x + width, y, x + width, y + height );
+		// bottom
+		this.graphics.drawLine( x, y + height, x + width, y + height );
+
+		this.graphics.setColor( originalColor );
+
+		return this;
+	}
+
 	public BoxImage copy( int x, int y, int width, int height, int dx, int dy ) {
 		BoxImage newImage = new BoxImage( width, height, ImageType.ARGB, "black" );
 
