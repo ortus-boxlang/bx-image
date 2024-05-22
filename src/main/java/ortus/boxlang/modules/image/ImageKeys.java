@@ -22,4 +22,13 @@ public class ImageKeys {
 	public static final Key	raised		= Key.of( "raised" );
 	public static final Key	startAngle	= Key.of( "startAngle" );
 	public static final Key	archAngle	= Key.of( "archAngle" );
+
+	public static final Key	ctrlx1		= Key.of( "ctrlx1" );
+	public static final Key	ctrly1		= Key.of( "ctrly1" );
+	public static final Key	ctrlx2		= Key.of( "ctrlx2" );
+	public static final Key	ctrly2		= Key.of( "ctrly2" );
+	public static final Key	x1			= Key.of( "x1" );
+	public static final Key	y1			= Key.of( "y1" );
+	public static final Key	x2			= Key.of( "x2" );
+	public static final Key	y2			= Key.of( "y2" );
 }

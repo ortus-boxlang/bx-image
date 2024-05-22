@@ -3,6 +3,7 @@ package ortus.boxlang.modules.image;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.CubicCurve2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -101,6 +102,12 @@ public class BoxImage {
 		} else {
 			this.graphics.drawArc( x, y, width, height, startAngle, archAngle );
 		}
+
+		return this;
+	}
+
+	public BoxImage drawCubicCurve( int x1, int y1, int ctrlx1, int ctrly1, int ctrlx2, int ctrly2, int x2, int y2 ) {
+		this.graphics.draw( new CubicCurve2D.Double( x1, y1, ctrlx1, ctrly1, ctrlx2, ctrly2, x2, y2 ) );
 
 		return this;
 	}
