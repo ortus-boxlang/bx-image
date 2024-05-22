@@ -8,7 +8,6 @@ import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
 import ortus.boxlang.runtime.context.IBoxContext;
-import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
 import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
 import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.types.Argument;
@@ -16,21 +15,20 @@ import ortus.boxlang.runtime.types.BoxLangType;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
-@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "drawRect" )
-public class ImageDrawRect extends BIF {
+@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "clearRect" )
+public class ImageClearRect extends BIF {
 
 	/**
 	 * Constructor
 	 */
-	public ImageDrawRect() {
+	public ImageClearRect() {
 		super();
 		declaredArguments = new Argument[] {
 		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
 		    new Argument( true, "numeric", ImageKeys.x, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
 		    new Argument( true, "numeric", ImageKeys.y, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
 		    new Argument( true, "numeric", ImageKeys.width, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.height, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( false, "boolean", ImageKeys.filled, false, Set.of( Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", ImageKeys.height, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) )
 		};
 	}
 
@@ -45,12 +43,11 @@ public class ImageDrawRect extends BIF {
 		    ? ( BoxImage ) arguments.get( ImageKeys.name )
 		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
 
-		theImage.drawRect(
+		theImage.clearRect(
 		    IntegerCaster.cast( arguments.get( ImageKeys.x ) ),
 		    IntegerCaster.cast( arguments.get( ImageKeys.y ) ),
 		    IntegerCaster.cast( arguments.get( ImageKeys.width ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.height ) ),
-		    BooleanCaster.cast( arguments.get( ImageKeys.filled ) )
+		    IntegerCaster.cast( arguments.get( ImageKeys.height ) )
 		);
 
 		return theImage;

@@ -42,6 +42,7 @@ public class BoxImage {
 	private Graphics2D	graphics;
 	private Image		image;
 	private String		drawingColor	= "white";
+	private String		backgroundColor	= "white";
 
 	// TODO handle imageType
 	public BoxImage( int width, int height, ImageType imageType, String color ) {
@@ -74,8 +75,15 @@ public class BoxImage {
 	}
 
 	public BoxImage( BufferedImage imageData ) {
-		this.image		= new Image( imageData );
-		this.graphics	= imageData.createGraphics();
+		this.image = new Image( imageData );
+		this.cacheGraphics();
+	}
+
+	private void cacheGraphics() {
+		this.graphics = this.image.getBufferedImage().createGraphics();
+
+		this.setDrawingColor( this.drawingColor );
+		this.setBackgroundColor( this.backgroundColor );
 	}
 
 	public BoxImage copy() {
@@ -154,6 +162,12 @@ public class BoxImage {
 		return this;
 	}
 
+	public BoxImage clearRect( int x, int y, int width, int height ) {
+		graphics.clearRect( x, y, width, height );
+
+		return this;
+	}
+
 	public BoxImage drawRect( int x, int y, int width, int height, boolean filled ) {
 		if ( filled ) {
 			graphics.fillRect( x, y, width, height );
@@ -178,6 +192,16 @@ public class BoxImage {
 
 		if ( COLORS.containsKey( color.toLowerCase() ) ) {
 			graphics.setColor( COLORS.get( color.toLowerCase() ) );
+		}
+
+		return this;
+	}
+
+	public BoxImage setBackgroundColor( String color ) {
+		this.backgroundColor = color;
+
+		if ( COLORS.containsKey( color.toLowerCase() ) ) {
+			graphics.setBackground( COLORS.get( color.toLowerCase() ) );
 		}
 
 		return this;
