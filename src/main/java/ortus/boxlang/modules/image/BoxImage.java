@@ -190,4 +190,11 @@ public class BoxImage {
 	public int getHeight() {
 		return this.image.getHeight();
 	}
+
+	public BoxImage blur( Integer radius ) {
+
+		this.image.blur( radius.floatValue() );
+
+		return this;
+	}
 }
