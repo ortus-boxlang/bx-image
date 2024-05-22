@@ -9,6 +9,8 @@ public class ImageKeys {
 	public static final Key	color		= Key.of( "color" );
 	public static final Key	imageType	= Key.of( "imageType" );
 	public static final Key	x			= Key.of( "x" );
+	public static final Key	dx			= Key.of( "dx" );
+	public static final Key	dy			= Key.of( "dy" );
 	public static final Key	y			= Key.of( "y" );
 	public static final Key	width		= Key.of( "width" );
 	public static final Key	height		= Key.of( "height" );

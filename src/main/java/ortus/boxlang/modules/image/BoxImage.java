@@ -94,6 +94,18 @@ public class BoxImage {
 		return newImage;
 	}
 
+	public BoxImage copy( int x, int y, int width, int height, int dx, int dy ) {
+		BoxImage newImage = new BoxImage( width, height, ImageType.ARGB, "black" );
+
+		newImage.drawImage( this, -x, -y );
+
+		if ( dx != 0 || dy != 0 ) {
+			newImage.drawImage( this, dx, dy );
+		}
+
+		return newImage;
+	}
+
 	public BoxImage drawImage( BoxImage image, int x, int y ) {
 		this.graphics.drawImage( image.getBufferedImage(), new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
 
