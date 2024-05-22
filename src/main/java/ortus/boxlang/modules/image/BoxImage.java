@@ -94,6 +94,17 @@ public class BoxImage {
 		return newImage;
 	}
 
+	public BoxImage drawArc( int x, int y, int width, int height, int startAngle, int archAngle, boolean filled ) {
+
+		if ( filled ) {
+			this.graphics.fillArc( x, y, width, height, startAngle, archAngle );
+		} else {
+			this.graphics.drawArc( x, y, width, height, startAngle, archAngle );
+		}
+
+		return this;
+	}
+
 	public BoxImage copy( int x, int y, int width, int height, int dx, int dy ) {
 		BoxImage newImage = new BoxImage( width, height, ImageType.ARGB, "black" );
 
