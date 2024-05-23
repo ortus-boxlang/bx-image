@@ -17,6 +17,8 @@ import org.apache.commons.imaging.ImageFormats;
 import org.apache.commons.imaging.Imaging;
 
 import javaxt.io.Image;
+import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
+import ortus.boxlang.runtime.types.Array;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 
 public class BoxImage {
@@ -114,6 +116,24 @@ public class BoxImage {
 
 	public BoxImage drawLine( int x1, int y1, int x2, int y2 ) {
 		this.graphics.drawLine( x1, y1, x2, y2 );
+
+		return this;
+	}
+
+	public BoxImage drawLines( Array xCoords, Array yCoords, boolean isPolygon, boolean filled ) {
+		int[]	xPoints	= xCoords.stream().mapToInt( IntegerCaster::cast ).toArray();
+		int[]	yPoints	= yCoords.stream().mapToInt( IntegerCaster::cast ).toArray();
+
+		if ( !isPolygon ) {
+			this.graphics.drawPolyline( xPoints, yPoints, xCoords.size() );
+			return this;
+		}
+
+		if ( filled ) {
+			this.graphics.fillPolygon( xPoints, yPoints, xCoords.size() );
+		} else {
+			this.graphics.drawPolygon( xPoints, yPoints, xCoords.size() );
+		}
 
 		return this;
 	}

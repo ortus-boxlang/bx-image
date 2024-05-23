@@ -9,6 +9,8 @@ public class ImageKeys {
 	public static final Key	color		= Key.of( "color" );
 	public static final Key	imageType	= Key.of( "imageType" );
 	public static final Key	x			= Key.of( "x" );
+	public static final Key	xCoords		= Key.of( "xCoords" );
+	public static final Key	yCoords		= Key.of( "yCoords" );
 	public static final Key	dx			= Key.of( "dx" );
 	public static final Key	dy			= Key.of( "dy" );
 	public static final Key	y			= Key.of( "y" );
@@ -17,6 +19,7 @@ public class ImageKeys {
 	public static final Key	thickness	= Key.of( "thickness" );
 	public static final Key	borderType	= Key.of( "borderType" );
 	public static final Key	filled		= Key.of( "filled" );
+	public static final Key	isPolygon	= Key.of( "isPolygon" );
 	public static final Key	image1		= Key.of( "image1" );
 	public static final Key	image2		= Key.of( "image2" );
 	public static final Key	raised		= Key.of( "raised" );
