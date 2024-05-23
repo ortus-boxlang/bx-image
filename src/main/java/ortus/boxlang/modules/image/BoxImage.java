@@ -138,6 +138,17 @@ public class BoxImage {
 		return this;
 	}
 
+	public BoxImage drawOval( int x, int y, int width, int height, boolean filled ) {
+
+		if ( filled ) {
+			this.graphics.fillOval( x, y, width, height );
+		} else {
+			this.graphics.drawOval( x, y, width, height );
+		}
+
+		return this;
+	}
+
 	public BoxImage drawBeveledRect( int x, int y, int width, int height, boolean raised, boolean filled ) {
 
 		this.drawRect( x, y, width, height, filled );

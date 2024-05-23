@@ -8,28 +8,29 @@ import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
 import ortus.boxlang.runtime.context.IBoxContext;
-import ortus.boxlang.runtime.dynamic.casters.ArrayCaster;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
+import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
 import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.BoxLangType;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
-@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "drawLines" )
-public class ImageDrawLines extends BIF {
+@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "drawOval" )
+public class ImageDrawOval extends BIF {
 
 	/**
 	 * Constructor
 	 */
-	public ImageDrawLines() {
+	public ImageDrawOval() {
 		super();
 		declaredArguments = new Argument[] {
 		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "array", ImageKeys.xCoords, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "array", ImageKeys.yCoords, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( false, "numeric", ImageKeys.isPolygon, false ),
-		    new Argument( false, "numeric", ImageKeys.filled, false )
+		    new Argument( true, "numeric", ImageKeys.x, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", ImageKeys.y, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", ImageKeys.width, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", ImageKeys.height, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( false, "boolean", ImageKeys.filled, false )
 		};
 	}
 
@@ -44,10 +45,11 @@ public class ImageDrawLines extends BIF {
 		    ? ( BoxImage ) arguments.get( ImageKeys.name )
 		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
 
-		theImage.drawLines(
-		    ArrayCaster.cast( arguments.get( ImageKeys.xCoords ) ),
-		    ArrayCaster.cast( arguments.get( ImageKeys.yCoords ) ),
-		    BooleanCaster.cast( arguments.get( ImageKeys.isPolygon ) ),
+		theImage.drawOval(
+		    IntegerCaster.cast( arguments.get( ImageKeys.x ) ),
+		    IntegerCaster.cast( arguments.get( ImageKeys.y ) ),
+		    IntegerCaster.cast( arguments.get( ImageKeys.width ) ),
+		    IntegerCaster.cast( arguments.get( ImageKeys.height ) ),
 		    BooleanCaster.cast( arguments.get( ImageKeys.filled ) )
 		);
 
