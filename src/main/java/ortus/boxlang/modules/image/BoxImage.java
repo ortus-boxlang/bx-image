@@ -112,6 +112,12 @@ public class BoxImage {
 		return this;
 	}
 
+	public BoxImage drawLine( int x1, int y1, int x2, int y2 ) {
+		this.graphics.drawLine( x1, y1, x2, y2 );
+
+		return this;
+	}
+
 	public BoxImage drawBeveledRect( int x, int y, int width, int height, boolean raised, boolean filled ) {
 
 		this.drawRect( x, y, width, height, filled );
