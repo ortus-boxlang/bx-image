@@ -1,7 +1,9 @@
 package ortus.boxlang.modules.image;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.QuadCurve2D;
@@ -18,13 +20,19 @@ import org.apache.commons.imaging.ImageFormats;
 import org.apache.commons.imaging.Imaging;
 
 import javaxt.io.Image;
+import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
+import ortus.boxlang.runtime.dynamic.casters.CastAttempt;
 import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
 import ortus.boxlang.runtime.types.Array;
+import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 
 public class BoxImage {
 
-	public static final Map<String, Color> COLORS;
+	public static final Map<String, Color>	COLORS;
+	public static final String				DEFAULT_FONT_FAMILY	= Font.SANS_SERIF;
+	public static final int					DEFAULT_FONT_STYLE	= Font.PLAIN;
+	public static final int					DEFAULT_FONT_SIZE	= 10;
 
 	static {
 		COLORS = new HashMap<String, Color>();
@@ -141,6 +149,64 @@ public class BoxImage {
 
 	public BoxImage drawQuadraticCurve( int ctrlx1, int ctrly1, int x1, int y1, int x2, int y2 ) {
 		this.graphics.draw( new QuadCurve2D.Double( ctrlx1, ctrly1, x1, y1, x2, y2 ) );
+
+		return this;
+	}
+
+	public BoxImage drawText( String str, int x, int y ) {
+		this.graphics.drawString( str, x, y );
+		return this;
+	}
+
+	public BoxImage drawText( String str, int x, int y, IStruct fontConfig ) {
+		Map<TextAttribute, Object> attr = new HashMap<TextAttribute, Object>();
+
+		attr.put( TextAttribute.FONT, DEFAULT_FONT_FAMILY );
+		attr.put( TextAttribute.POSTURE, TextAttribute.POSTURE_REGULAR );
+		attr.put( TextAttribute.STRIKETHROUGH, false );
+		attr.put( TextAttribute.UNDERLINE, false );
+
+		String family = fontConfig.getAsString( ImageKeys.font );
+		if ( family != null ) {
+			attr.put( TextAttribute.FAMILY, family );
+		}
+
+		String style = fontConfig.getAsString( ImageKeys.style );
+		if ( style != null && !style.equalsIgnoreCase( "plain" ) ) {
+			if ( style.equalsIgnoreCase( "bold" ) ) {
+				attr.put( TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD );
+			} else if ( style.equalsIgnoreCase( "italic" ) ) {
+				attr.put( TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE );
+			} else if ( style.equalsIgnoreCase( "bolditalic" ) ) {
+				attr.put( TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD );
+				attr.put( TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE );
+			} else {
+				throw new BoxRuntimeException( "You must supply one of bold, italic, bolditalic, or plain as a font style" );
+			}
+		}
+
+		CastAttempt<Integer> size = IntegerCaster.attempt( fontConfig.get( ImageKeys.size ) );
+		if ( size.wasSuccessful() ) {
+			attr.put( TextAttribute.SIZE, size.get() );
+		}
+
+		CastAttempt<Boolean> strikeThrough = BooleanCaster.attempt( fontConfig.get( ImageKeys.strikeThrough ) );
+		if ( strikeThrough.wasSuccessful() ) {
+			attr.put( TextAttribute.STRIKETHROUGH, strikeThrough.get() );
+		}
+
+		CastAttempt<Boolean> underline = BooleanCaster.attempt( fontConfig.get( ImageKeys.underline ) );
+		if ( underline.wasSuccessful() && underline.get() ) {
+			attr.put( TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON );
+		}
+
+		Font currentFont = new Font( attr );
+
+		this.graphics.setFont( currentFont );
+
+		this.drawText( str, x, y );
+
+		this.graphics.setFont( null );
 
 		return this;
 	}
