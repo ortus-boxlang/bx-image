@@ -19,7 +19,7 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageDrawQuadraticCurveTest {
+public class ImageDrawRoundRectTest {
 
 	static BoxRuntime	instance;
 	IBoxContext			context;
@@ -37,15 +37,15 @@ public class ImageDrawQuadraticCurveTest {
 		variables	= context.getScopeNearby( VariablesScope.name );
 	}
 
-	@DisplayName( "It should draw a quadratic curve" )
+	@DisplayName( "It should draw a rect with rounded corners" )
 	@Test
-	public void testDrawOval() throws IOException {
-		String fileName = "logo-draw-quadratic.png";
+	public void testDrawRoundRect() throws IOException {
+		String fileName = "logo-draw-round-rect.png";
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageDrawQuadraticCurve( result, 50, 150, 200, 100, 50, 50 );
+		                        ImageDrawRoundRect( result, 50, 150, 200, 100, 10, 10 );
 		                        ImageWrite( result, "src/test/resources/%s" );
-		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
+		                        // ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
@@ -54,15 +54,15 @@ public class ImageDrawQuadraticCurveTest {
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
 	}
 
-	@DisplayName( "It should draw a filled oval" )
+	@DisplayName( "It should draw a filled rect with rounded corners" )
 	@Test
-	public void testDrawFilledOval() throws IOException {
-		String fileName = "logo-draw-oval-filled.png";
+	public void testDrawRoundRectFilled() throws IOException {
+		String fileName = "logo-draw-round-rect-filled.png";
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageDrawOval( result, 50, 50, 200, 100, true );
+		                        ImageDrawRoundRect( result, 50, 150, 200, 100, 10, 10, true );
 		                        ImageWrite( result, "src/test/resources/%s" );
-		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
+		                        // ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
@@ -71,16 +71,16 @@ public class ImageDrawQuadraticCurveTest {
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
 	}
 
-	@DisplayName( "It should draw an oval using a member function" )
+	@DisplayName( "It should be callable as a member function" )
 	@Test
-	public void testDrawOvalMember() throws IOException {
-		String fileName = "logo-draw-oval.png";
+	public void testDrawRoundRectMember() throws IOException {
+		String fileName = "logo-draw-round-rect-filled.png";
 		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        result.drawOval( 50, 50, 200, 100 );
-		                        ImageWrite( result, "src/test/resources/%s" );
-		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
-		                                          """.formatted( fileName, fileName ), context );
+		                                                      result = ImageRead( "src/test/resources/logo.png" );
+		                        result.drawRoundRect( 50, 150, 200, 100, 10, 10, true );
+		                                    ImageWrite( result, "src/test/resources/%s" );
+		                                    // ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                                      """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );

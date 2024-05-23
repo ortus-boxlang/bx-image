@@ -212,7 +212,6 @@ public class BoxImage {
 	}
 
 	public BoxImage drawOval( int x, int y, int width, int height, boolean filled ) {
-
 		if ( filled ) {
 			this.graphics.fillOval( x, y, width, height );
 		} else {
@@ -330,6 +329,16 @@ public class BoxImage {
 
 	public BoxImage clearRect( int x, int y, int width, int height ) {
 		graphics.clearRect( x, y, width, height );
+
+		return this;
+	}
+
+	public BoxImage drawRoundRect( int x, int y, int width, int height, int arcWidth, int arcHeight, boolean filled ) {
+		if ( filled ) {
+			graphics.fillRoundRect( x, y, width, height, arcWidth, arcHeight );
+		} else {
+			graphics.drawRoundRect( x, y, width, height, arcWidth, arcHeight );
+		}
 
 		return this;
 	}
