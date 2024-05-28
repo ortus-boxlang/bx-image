@@ -10,10 +10,10 @@ import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +26,7 @@ import ortus.boxlang.runtime.dynamic.casters.CastAttempt;
 import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
 import ortus.boxlang.runtime.types.Array;
 import ortus.boxlang.runtime.types.IStruct;
+import ortus.boxlang.runtime.types.Struct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 
 public class BoxImage {
@@ -67,6 +68,26 @@ public class BoxImage {
 		this.setDrawingColor( "black" );
 	}
 
+	public BoxImage( String imageURI ) {
+		try {
+			if ( imageURI.toString().toLowerCase().startsWith( "http" ) ) {
+
+				this.image = new Image( new URL( imageURI ).openStream() );
+
+			} else {
+				this.image = new Image( imageURI.toString() );
+			}
+		} catch ( MalformedURLException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch ( IOException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		this.graphics = this.image.getBufferedImage().createGraphics();
+	}
+
 	public BoxImage( URI imageURI ) {
 		try {
 			if ( imageURI.toString().toLowerCase().startsWith( "http" ) ) {
@@ -74,7 +95,7 @@ public class BoxImage {
 				this.image = new Image( imageURI.toURL().openStream() );
 
 			} else {
-				this.image = new Image( new FileInputStream( imageURI.toString() ) );
+				this.image = new Image( imageURI.toString() );
 			}
 		} catch ( MalformedURLException e ) {
 			// TODO Auto-generated catch block
@@ -97,6 +118,19 @@ public class BoxImage {
 
 		this.setDrawingColor( this.drawingColor );
 		this.setBackgroundColor( this.backgroundColor );
+	}
+
+	public IStruct getExifMetaData() {
+		IStruct								exifData	= new Struct();
+
+		java.util.HashMap<Integer, Object>	exif		= image.getExifTags();
+
+		Image								a			= new Image( "src/test/resources/test-images/test.png" );
+		// Image a = new Image( "src/test/resources/test-images/PXL_20240118_170530772.jpg" );
+
+		java.util.HashMap<Integer, Object>	exifA		= a.getExifTags();
+
+		return exifData;
 	}
 
 	public BoxImage copy() {
