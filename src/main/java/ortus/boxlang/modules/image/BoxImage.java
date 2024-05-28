@@ -7,6 +7,7 @@ import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.QuadCurve2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -323,6 +324,35 @@ public class BoxImage {
 
 		this.image		= next;
 		this.graphics	= g;
+
+		return this;
+	}
+
+	public BoxImage transpose( String transpose ) {
+		// TODO transfer colors and strokes
+		if ( transpose.equalsIgnoreCase( "vertical" ) ) {
+			AffineTransform tx = AffineTransform.getScaleInstance( 1, -1 );
+			tx.translate( 0, -this.image.getHeight() );
+			AffineTransformOp op = new AffineTransformOp( tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR );
+			this.image = new Image( op.filter( this.image.getBufferedImage(), null ) );
+			this.cacheGraphics();
+		} else if ( transpose.equalsIgnoreCase( "horizontal" ) ) {
+			AffineTransform tx = AffineTransform.getScaleInstance( -1, 1 );
+			tx.translate( -this.image.getWidth(), 0 );
+			AffineTransformOp op = new AffineTransformOp( tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR );
+			this.image = new Image( op.filter( this.image.getBufferedImage(), null ) );
+			this.cacheGraphics();
+		} else if ( transpose.equalsIgnoreCase( "diagonal" ) ) {
+			transpose( "90" ).transpose( "horizontal" );
+		} else if ( transpose.equalsIgnoreCase( "antidiagonal" ) ) {
+			transpose( "270" ).transpose( "horizontal" );
+		} else if ( transpose.equalsIgnoreCase( "90" ) ) {
+			this.image.rotate( 90 );
+		} else if ( transpose.equalsIgnoreCase( "180" ) ) {
+			this.image.rotate( 180 );
+		} else if ( transpose.equalsIgnoreCase( "270" ) ) {
+			this.image.rotate( 270 );
+		}
 
 		return this;
 	}

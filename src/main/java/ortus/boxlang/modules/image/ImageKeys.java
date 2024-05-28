@@ -24,6 +24,7 @@ public class ImageKeys {
 	public static final Key	image2				= Key.of( "image2" );
 	public static final Key	raised				= Key.of( "raised" );
 	public static final Key	startAngle			= Key.of( "startAngle" );
+	public static final Key	transpose			= Key.of( "transpose" );
 	public static final Key	archAngle			= Key.of( "archAngle" );
 	public static final Key	arcWidth			= Key.of( "arcWidth" );
 	public static final Key	arcHeight			= Key.of( "arcHeight" );
