@@ -357,6 +357,10 @@ public class BoxImage {
 		return this;
 	}
 
+	public byte[] getBytes() {
+		return this.image.getByteArray();
+	}
+
 	public BoxImage clearRect( int x, int y, int width, int height ) {
 		graphics.clearRect( x, y, width, height );
 
