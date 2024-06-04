@@ -88,7 +88,7 @@ public class BoxImage {
 			e.printStackTrace();
 		}
 
-		this.graphics = this.image.getBufferedImage().createGraphics();
+		this.cacheGraphics();
 	}
 
 	public BoxImage( URI imageURI ) {
@@ -109,7 +109,7 @@ public class BoxImage {
 			e.printStackTrace();
 		}
 
-		this.graphics = this.image.getBufferedImage().createGraphics();
+		this.cacheGraphics();
 	}
 
 	public BoxImage( BufferedImage imageData ) {
