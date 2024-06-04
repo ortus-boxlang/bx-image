@@ -1,9 +1,6 @@
 package ortus.boxlang.modules.image.bifs;
 
-import java.io.File;
 import java.util.Set;
-
-import org.apache.commons.imaging.Imaging;
 
 import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.bifs.BIF;
@@ -36,7 +33,7 @@ public class ImageRead extends BIF {
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		try {
-			return new BoxImage( Imaging.getBufferedImage( new File( arguments.getAsString( Key.path ) ) ) );
+			return new BoxImage( arguments.getAsString( Key.path ) );
 		} catch ( Exception e ) {
 			throw new BoxRuntimeException( "Unable to load image: " + arguments.getAsString( Key.path ), e );
 		}
