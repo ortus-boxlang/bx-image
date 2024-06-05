@@ -16,7 +16,7 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageGetExifTagTest {
+public class ImageGetIPTCTagTest {
 
 	static BoxRuntime	instance;
 	IBoxContext			context;
@@ -39,11 +39,11 @@ public class ImageGetExifTagTest {
 	public void testReadFromPath() throws IOException {
 		instance.executeSource(
 		    """
-		    result = ImageGetExifTag( "src/test/resources/test-images/exif-test.jpg", "software" );
+		    result = ImageGetIPTCTag( "src/test/resources/test-images/exif-test.jpg", "city" );
 		    """,
 		    context );
 
-		assertThat( variables.get( result ) ).isEqualTo( "GIMP 2.10.34" );
+		assertThat( variables.get( result ) ).isEqualTo( "test city" );
 	}
 
 	@DisplayName( "It should read the exif data from an image and return the tag value" )
@@ -51,11 +51,11 @@ public class ImageGetExifTagTest {
 	public void testReadFromImage() throws IOException {
 		instance.executeSource(
 		    """
-		    result = ImageGetExifTag( imageRead( "src/test/resources/test-images/exif-test.jpg" ), "software" );
+		    result = ImageGetIPTCTag( imageRead( "src/test/resources/test-images/exif-test.jpg" ), "city" );
 		    """,
 		    context );
 
-		assertThat( variables.get( result ) ).isEqualTo( "GIMP 2.10.34" );
+		assertThat( variables.get( result ) ).isEqualTo( "test city" );
 	}
 
 	@DisplayName( "It be callable as a member function" )
@@ -63,11 +63,11 @@ public class ImageGetExifTagTest {
 	public void testMemberInvocation() throws IOException {
 		instance.executeSource(
 		    """
-		    result = imageRead( "src/test/resources/test-images/exif-test.jpg" ).GetExifTag( "software" );
+		    result = imageRead( "src/test/resources/test-images/exif-test.jpg" ).GetIPTCTag( "city" );
 		    """,
 		    context );
 
-		assertThat( variables.get( result ) ).isEqualTo( "GIMP 2.10.34" );
+		assertThat( variables.get( result ) ).isEqualTo( "test city" );
 	}
 
 }

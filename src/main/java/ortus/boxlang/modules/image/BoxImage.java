@@ -73,6 +73,7 @@ public class BoxImage {
 	private String		drawingColor	= "white";
 	private String		backgroundColor	= "white";
 	private IStruct		exifData;
+	private IStruct		iptcData;
 
 	public static IStruct readExifMetaData( String path ) throws ImageProcessingException, FileNotFoundException, IOException {
 		IStruct		exifData	= new Struct();
@@ -99,8 +100,31 @@ public class BoxImage {
 		return exifData;
 	}
 
+	public static IStruct readIPTCMetaData( String path ) throws ImageProcessingException, FileNotFoundException, IOException {
+		IStruct		iptcData	= new Struct();
+		Metadata	metaData	= ImageMetadataReader.readMetadata( new FileInputStream( path ) );
+
+		Stream.of(
+		    metaData.getFirstDirectoryOfType( IptcDirectory.class )
+		)
+		    .filter( dir -> dir != null )
+		    .forEach( dir -> {
+			    dir.getTags().stream().forEach( tag -> iptcData.put( tag.getTagName(), tag.getDescription() ) );
+		    } );
+
+		if ( iptcData.get( "Date/Time" ) == null ) {
+			iptcData.put( "Date/Time", iptcData.get( "Date/Time Original" ) );
+		}
+
+		return iptcData;
+	}
+
 	public static Object getExifMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
 		return readExifMetaData( path ).get( tagName );
+	}
+
+	public static Object getIPTCMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
+		return readIPTCMetaData( path ).get( tagName );
 	}
 
 	// TODO handle imageType
@@ -179,8 +203,20 @@ public class BoxImage {
 		return exifData;
 	}
 
+	public IStruct getIPTCMetaData() throws ImageProcessingException, FileNotFoundException, IOException {
+		if ( iptcData == null ) {
+			iptcData = readExifMetaData( getSourcePath() );
+		}
+
+		return iptcData;
+	}
+
 	public Object getExifMetaDataTag( String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
 		return getExifMetaData().get( tagName );
+	}
+
+	public Object getIPTCMetaDataTag( String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
+		return getIPTCMetaData().get( tagName );
 	}
 
 	public BoxImage copy() {
