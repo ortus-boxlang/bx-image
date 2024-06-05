@@ -195,6 +195,19 @@ public class BoxImage {
 		return this.sourcePath;
 	}
 
+	public BoxImage grayScale() {
+		BufferedImage	grayImage	= new BufferedImage( this.image.getWidth(), this.image.getHeight(), BufferedImage.TYPE_BYTE_GRAY );
+		Graphics2D		g			= grayImage.createGraphics();
+		g.drawImage( this.image.getBufferedImage(), 0, 0, null );
+
+		this.image		= new Image( grayImage );
+		this.graphics	= g;
+		this.setDrawingColor( this.drawingColor );
+		this.setBackgroundColor( this.backgroundColor );
+
+		return this;
+	}
+
 	public IStruct getExifMetaData() throws ImageProcessingException, FileNotFoundException, IOException {
 		if ( exifData == null ) {
 			exifData = readExifMetaData( getSourcePath() );
