@@ -14,21 +14,21 @@ import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.BoxLangType;
-import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
-@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "getExifMetaData" )
-public class ImageGetExifMetaData extends BIF {
+@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "getExifTag" )
+public class ImageGetExifTag extends BIF {
 
 	/**
 	 * Constructor
 	 */
-	public ImageGetExifMetaData() {
+	public ImageGetExifTag() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) )
+		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "string", ImageKeys.tagName, Set.of( Validator.REQUIRED ) )
 		};
 	}
 
@@ -38,14 +38,14 @@ public class ImageGetExifMetaData extends BIF {
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
 	 */
-	public IStruct _invoke( IBoxContext context, ArgumentsScope arguments ) {
+	public Object _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		try {
 			Object arg = arguments.get( ImageKeys.name );
 
 			if ( arg instanceof BoxImage image ) {
-				return image.getExifMetaData();
+				return image.getExifMetaDataTag( arguments.getAsString( ImageKeys.tagName ) );
 			} else if ( arg instanceof String imageString ) {
-				return BoxImage.readExifMetaData( imageString );
+				return BoxImage.getExifMetaDataTag( imageString, arguments.getAsString( ImageKeys.tagName ) );
 			}
 
 		} catch ( ImageProcessingException e ) {
@@ -56,4 +56,5 @@ public class ImageGetExifMetaData extends BIF {
 
 		throw new BoxRuntimeException( "Unable to read Exif metadata" );
 	}
+
 }

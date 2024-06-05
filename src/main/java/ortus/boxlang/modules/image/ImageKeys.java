@@ -43,5 +43,6 @@ public class ImageKeys {
 	public static final Key	str					= Key.of( "str" );
 	public static final Key	attributeCollection	= Key.of( "attributeCollection" );
 	public static final Key	strikeThrough		= Key.of( "strikeThrough" );
+	public static final Key	tagName				= Key.of( "tagName" );
 	public static final Key	underline			= Key.of( "underline" );
 }

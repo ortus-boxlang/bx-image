@@ -48,6 +48,18 @@ public class ImageGetExifMetaDataTest {
 		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
 	}
 
+	@DisplayName( "It should be callable as a member function" )
+	@Test
+	public void testMemberInvocation() throws IOException {
+		instance.executeSource(
+		    """
+		    result = imageRead( "src/test/resources/test-images/exif-test.jpg" ).GetExifMetaData();
+		    """,
+		    context );
+
+		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
+	}
+
 	@DisplayName( "It should contain various EXIF meta data tags" )
 	@Test
 	public void testGetsExifTags() throws IOException {

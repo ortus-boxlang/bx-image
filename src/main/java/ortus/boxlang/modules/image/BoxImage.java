@@ -11,15 +11,28 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.commons.imaging.ImageFormats;
 import org.apache.commons.imaging.Imaging;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifImageDirectory;
+import com.drew.metadata.exif.ExifInteropDirectory;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.exif.ExifThumbnailDirectory;
+import com.drew.metadata.exif.GpsDirectory;
+import com.drew.metadata.iptc.IptcDirectory;
 
 import javaxt.io.Image;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
@@ -59,6 +72,36 @@ public class BoxImage {
 	private Image		image;
 	private String		drawingColor	= "white";
 	private String		backgroundColor	= "white";
+	private IStruct		exifData;
+
+	public static IStruct readExifMetaData( String path ) throws ImageProcessingException, FileNotFoundException, IOException {
+		IStruct		exifData	= new Struct();
+		Metadata	metaData	= ImageMetadataReader.readMetadata( new FileInputStream( path ) );
+
+		Stream.of(
+		    metaData.getFirstDirectoryOfType( ExifImageDirectory.class ),
+		    metaData.getFirstDirectoryOfType( ExifInteropDirectory.class ),
+		    metaData.getFirstDirectoryOfType( ExifIFD0Directory.class ),
+		    metaData.getFirstDirectoryOfType( ExifThumbnailDirectory.class ),
+		    metaData.getFirstDirectoryOfType( ExifSubIFDDirectory.class ),
+		    metaData.getFirstDirectoryOfType( GpsDirectory.class ),
+		    metaData.getFirstDirectoryOfType( IptcDirectory.class )
+		)
+		    .filter( dir -> dir != null )
+		    .forEach( dir -> {
+			    dir.getTags().stream().forEach( tag -> exifData.put( tag.getTagName(), tag.getDescription() ) );
+		    } );
+
+		if ( exifData.get( "Date/Time" ) == null ) {
+			exifData.put( "Date/Time", exifData.get( "Date/Time Original" ) );
+		}
+
+		return exifData;
+	}
+
+	public static Object getExifMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
+		return readExifMetaData( path ).get( tagName );
+	}
 
 	// TODO handle imageType
 	public BoxImage( int width, int height, ImageType imageType, String color ) {
@@ -128,12 +171,16 @@ public class BoxImage {
 		return this.sourcePath;
 	}
 
-	public IStruct getExifMetaData() {
-		IStruct								exifData	= new Struct();
-
-		java.util.HashMap<Integer, Object>	exif		= image.getExifTags();
+	public IStruct getExifMetaData() throws ImageProcessingException, FileNotFoundException, IOException {
+		if ( exifData == null ) {
+			exifData = readExifMetaData( getSourcePath() );
+		}
 
 		return exifData;
+	}
+
+	public Object getExifMetaDataTag( String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
+		return getExifMetaData().get( tagName );
 	}
 
 	public BoxImage copy() {
