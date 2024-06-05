@@ -9,6 +9,7 @@ import java.awt.geom.CubicCurve2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -74,6 +75,87 @@ public class BoxImage {
 	private String		backgroundColor	= "white";
 	private IStruct		exifData;
 	private IStruct		iptcData;
+
+	public static String getTransparencyDescription( int transparencyType ) {
+		switch ( transparencyType ) {
+			case java.awt.Transparency.BITMASK :
+				return "BITMASK";
+			case java.awt.Transparency.OPAQUE :
+				return "OPAQUE";
+			case java.awt.Transparency.TRANSLUCENT :
+				return "TRANSLUCENT";
+		}
+
+		return "UNKNOWN";
+	}
+
+	public static String getColorSpaceDescription( int colorSpaceType ) {
+		switch ( colorSpaceType ) {
+			case java.awt.color.ColorSpace.CS_CIEXYZ :
+				return "The CIEXYZ conversion color space defined above.";
+			case java.awt.color.ColorSpace.CS_GRAY :
+				return "The built-in linear gray scale color space.";
+			case java.awt.color.ColorSpace.CS_LINEAR_RGB :
+				return "A built-in linear RGB color space.";
+			case java.awt.color.ColorSpace.CS_PYCC :
+				return "The Photo YCC conversion color space.";
+			case java.awt.color.ColorSpace.CS_sRGB :
+				return "The sRGB color space defined at http://www.w3.org/pub/WWW/Graphics/Color/sRGB.html .";
+			case java.awt.color.ColorSpace.TYPE_2CLR :
+				return "Generic 2 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_3CLR :
+				return "Generic 3 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_4CLR :
+				return "Generic 4 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_5CLR :
+				return "Generic 5 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_6CLR :
+				return "Generic 6 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_7CLR :
+				return "Generic 7 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_8CLR :
+				return "Generic 8 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_9CLR :
+				return "Generic 9 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_ACLR :
+				return "Generic 10 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_BCLR :
+				return "Generic 11 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_CCLR :
+				return "Generic 12 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_CMY :
+				return "Any of the family of CMY color spaces.";
+			case java.awt.color.ColorSpace.TYPE_CMYK :
+				return "Any of the family of CMYK color spaces.";
+			case java.awt.color.ColorSpace.TYPE_DCLR :
+				return "Generic 13 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_ECLR :
+				return "Generic 14 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_FCLR :
+				return "Generic 15 component color spaces.";
+			case java.awt.color.ColorSpace.TYPE_GRAY :
+				return "Any of the family of GRAY color spaces.";
+			case java.awt.color.ColorSpace.TYPE_HLS :
+				return "Any of the family of HLS color spaces.";
+			case java.awt.color.ColorSpace.TYPE_HSV :
+				return "Any of the family of HSV color spaces.";
+			case java.awt.color.ColorSpace.TYPE_Lab :
+				return "Any of the family of Lab color spaces.";
+			case java.awt.color.ColorSpace.TYPE_Luv :
+				return "Any of the family of Luv color spaces.";
+			case java.awt.color.ColorSpace.TYPE_RGB :
+				return "Any of the family of RGB color spaces.";
+			case java.awt.color.ColorSpace.TYPE_XYZ :
+				return "Any of the family of XYZ color spaces.";
+			case java.awt.color.ColorSpace.TYPE_YCbCr :
+				return "Any of the family of YCbCr color spaces.";
+			case java.awt.color.ColorSpace.TYPE_Yxy :
+				return "Any of the family of Yxy color spaces.";
+		}
+		;
+
+		return "Unknown color space";
+	}
 
 	public static IStruct readExifMetaData( String path ) throws ImageProcessingException, FileNotFoundException, IOException {
 		IStruct		exifData	= new Struct();
@@ -193,6 +275,36 @@ public class BoxImage {
 
 	public String getSourcePath() {
 		return this.sourcePath;
+	}
+
+	public IStruct getImageInfo() {
+		IStruct info = new Struct();
+
+		info.put( "height", this.image.getHeight() );
+		info.put( "width", this.image.getWidth() );
+
+		IStruct		colorModel	= new Struct();
+		ColorModel	cm			= this.image.getBufferedImage().getColorModel();
+
+		int			index		= 1;
+		for ( int size : cm.getComponentSize() ) {
+			colorModel.put( "bits_component_" + index, size );
+			index += 1;
+		}
+
+		colorModel.put( "alpha_channel_support", cm.hasAlpha() );
+		colorModel.put( "alpha_premultiplied", cm.isAlphaPremultiplied() );
+		colorModel.put( "colormodel_type", cm.getClass().getSimpleName() );
+		// pulled from https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/awt/color/ColorSpace.html
+		colorModel.put( "colorspace", getColorSpaceDescription( cm.getColorSpace().getType() ) );
+		colorModel.put( "num_color_components", cm.getNumColorComponents() );
+		colorModel.put( "num_components", cm.getNumComponents() );
+		colorModel.put( "pixel_size", cm.getPixelSize() );
+		colorModel.put( "transparency", getTransparencyDescription( cm.getTransparency() ) );
+		info.put( "colormodel", colorModel );
+		info.put( "source", this.getSourcePath() );
+
+		return info;
 	}
 
 	public BoxImage grayScale() {
