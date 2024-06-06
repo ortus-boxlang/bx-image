@@ -45,4 +45,6 @@ public class ImageKeys {
 	public static final Key	strikeThrough		= Key.of( "strikeThrough" );
 	public static final Key	tagName				= Key.of( "tagName" );
 	public static final Key	underline			= Key.of( "underline" );
+	public static final Key	rule				= Key.of( "rule" );
+	public static final Key	transparency		= Key.of( "transparency" );
 }

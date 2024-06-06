@@ -1,5 +1,6 @@
 package ortus.boxlang.modules.image;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -75,6 +76,27 @@ public class BoxImage {
 	private String		backgroundColor	= "white";
 	private IStruct		exifData;
 	private IStruct		iptcData;
+
+	public static int getOveralyRule( String overlayRule ) {
+		switch ( overlayRule.toUpperCase() ) {
+			case "SRC" :
+				return AlphaComposite.SRC;
+			case "DST_IN" :
+				return AlphaComposite.DST_IN;
+			case "DST_OUT" :
+				return AlphaComposite.DST_OUT;
+			case "DST_OVER" :
+				return AlphaComposite.DST_OVER;
+			case "SRC_IN" :
+				return AlphaComposite.SRC_IN;
+			case "SRC_OVER" :
+				return AlphaComposite.SRC_OVER;
+			case "SRC_OUT" :
+				return AlphaComposite.SRC_OUT;
+		}
+
+		return AlphaComposite.SRC;
+	}
 
 	public static String getTransparencyDescription( int transparencyType ) {
 		switch ( transparencyType ) {
@@ -267,6 +289,10 @@ public class BoxImage {
 	}
 
 	private void cacheGraphics() {
+		if ( this.graphics != null ) {
+			this.graphics.dispose();
+		}
+
 		this.graphics = this.image.getBufferedImage().createGraphics();
 
 		this.setDrawingColor( this.drawingColor );
@@ -305,6 +331,14 @@ public class BoxImage {
 		info.put( "source", this.getSourcePath() );
 
 		return info;
+	}
+
+	public BoxImage overlay( BoxImage toOverlay, String overlayRule, double transparency ) {
+		AlphaComposite overlayComposite = AlphaComposite.getInstance( getOveralyRule( overlayRule ), ( float ) transparency );
+		this.graphics.setComposite( overlayComposite );
+		this.graphics.drawImage( toOverlay.getBufferedImage(), 0, 0, null );
+
+		return this;
 	}
 
 	public BoxImage grayScale() {
