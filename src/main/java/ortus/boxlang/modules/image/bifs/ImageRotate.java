@@ -13,21 +13,18 @@ import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
-public class ImageResize extends BIF {
+public class ImageRotate extends BIF {
 
-	// TODO finish filling out interpolation options
-
+	// TODO the docs don't seem correct to me https://cfdocs.org/imagerotate
+	// it says there should be x,y arguments but I wasn't able to get them working in either lucee or adobe
 	/**
 	 * Constructor
 	 */
-	public ImageResize() {
+	public ImageRotate() {
 		super();
 		declaredArguments = new Argument[] {
 		    new Argument( true, "any", ImageKeys.name ),
-		    new Argument( true, "numeric", ImageKeys.width, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.height, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "String", ImageKeys.interpolation, "bilinear" ),
-		    new Argument( true, "numeric", ImageKeys.blurFactor, 1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) )
+		    new Argument( true, "numeric", ImageKeys.angle, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
 		};
 	}
 
@@ -42,11 +39,8 @@ public class ImageResize extends BIF {
 		    ? ( BoxImage ) arguments.get( ImageKeys.name )
 		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
 
-		theImage.resize(
-		    IntegerCaster.cast( arguments.get( ImageKeys.width ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.height ) ),
-		    arguments.getAsString( ImageKeys.interpolation ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.blurFactor ) )
+		theImage.rotate(
+		    IntegerCaster.cast( arguments.get( ImageKeys.angle ) )
 		);
 
 		return theImage;

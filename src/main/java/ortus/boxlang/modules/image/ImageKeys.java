@@ -4,6 +4,7 @@ import ortus.boxlang.runtime.scopes.Key;
 
 public class ImageKeys {
 
+	public static final Key	angle				= Key.of( "angle" );
 	public static final Key	name				= Key.of( "name" );
 	public static final Key	blurRadius			= Key.of( "blurRadius" );
 	public static final Key	color				= Key.of( "color" );

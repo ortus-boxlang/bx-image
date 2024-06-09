@@ -4,7 +4,9 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
@@ -343,6 +345,32 @@ public class BoxImage {
 		info.put( "source", this.getSourcePath() );
 
 		return info;
+	}
+
+	public BoxImage rotate( int angle ) {
+		int				oldWidth		= this.image.getWidth();
+		int				oldHeight		= this.image.getHeight();
+		Rectangle		rect			= new Rectangle( 0, 0, this.image.getWidth(), this.image.getHeight() );
+		AffineTransform	rotate			= AffineTransform.getRotateInstance( Math.toRadians( angle ), 0, 0 );
+		Shape			rotated			= rotate.createTransformedShape( rect );
+		Rectangle		bounds			= rotated.getBounds();
+		int				newWidth		= Double.valueOf( bounds.getWidth() ).intValue();
+		int				newHeight		= Double.valueOf( bounds.getHeight() ).intValue();
+
+		BufferedImage	resizedImage	= new BufferedImage( newWidth, newHeight,
+		    this.image.getBufferedImage().getType() );
+		Graphics2D		resizedGraphics	= resizedImage.createGraphics();
+
+		resizedGraphics.fillRect( 0, 0, newWidth, newHeight );
+		resizedGraphics.setTransform( rotate );
+		resizedGraphics.setTransform( AffineTransform.getRotateInstance( Math.toRadians( angle ), newWidth / 2, newHeight / 2 ) );
+		resizedGraphics.drawImage( this.image.getBufferedImage(), ( newWidth - oldWidth ) / 2, ( newHeight - oldHeight ) / 2, null );
+		resizedGraphics.dispose();
+
+		this.image = new Image( resizedImage );
+		this.cacheGraphics();
+
+		return this;
 	}
 
 	public BoxImage overlay( BoxImage toOverlay, String overlayRule, double transparency ) {
