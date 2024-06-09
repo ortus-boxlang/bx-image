@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
@@ -76,6 +77,17 @@ public class BoxImage {
 	private String		backgroundColor	= "white";
 	private IStruct		exifData;
 	private IStruct		iptcData;
+
+	public static Object getInterpolation( String interpolation ) {
+		switch ( interpolation.toUpperCase() ) {
+			case "BILINEAR" :
+				return RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+			case "NEAREST" :
+				return RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+		}
+
+		return RenderingHints.VALUE_INTERPOLATION_BICUBIC;
+	}
 
 	public static int getOveralyRule( String overlayRule ) {
 		switch ( overlayRule.toUpperCase() ) {
@@ -487,6 +499,21 @@ public class BoxImage {
 		this.drawText( str, x, y );
 
 		this.graphics.setFont( null );
+
+		return this;
+	}
+
+	public BoxImage resize( int width, int height, String interpolcation, int blurFactor ) {
+		BufferedImage	resizedImage	= new BufferedImage( width, height, this.image.getBufferedImage().getType() );
+		Graphics2D		resizedGraphics	= resizedImage.createGraphics();
+
+		resizedGraphics.setRenderingHint( RenderingHints.KEY_INTERPOLATION, getInterpolation( interpolcation ) );
+
+		resizedGraphics.drawImage( resizedImage, 0, 0, width, height, null );
+		resizedGraphics.dispose();
+
+		this.image = new Image( resizedImage );
+		this.cacheGraphics();
 
 		return this;
 	}

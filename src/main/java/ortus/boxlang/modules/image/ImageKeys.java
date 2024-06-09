@@ -47,4 +47,6 @@ public class ImageKeys {
 	public static final Key	underline			= Key.of( "underline" );
 	public static final Key	rule				= Key.of( "rule" );
 	public static final Key	transparency		= Key.of( "transparency" );
+	public static final Key	interpolation		= Key.of( "interpolation" );
+	public static final Key	blurFactor			= Key.of( "blurFactor" );
 }
