@@ -14,6 +14,7 @@ import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,9 +22,12 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.imaging.ImageFormats;
 import org.apache.commons.imaging.Imaging;
@@ -79,6 +83,10 @@ public class BoxImage {
 	private String		backgroundColor	= "white";
 	private IStruct		exifData;
 	private IStruct		iptcData;
+
+	public static BoxImage fromBase64( String base64String ) throws IOException {
+		return new BoxImage( ImageIO.read( new ByteArrayInputStream( Base64.getDecoder().decode( base64String ) ) ) );
+	}
 
 	public static Object getInterpolation( String interpolation ) {
 		switch ( interpolation.toUpperCase() ) {
