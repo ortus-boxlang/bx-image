@@ -51,4 +51,9 @@ public class ImageKeys {
 	public static final Key	transparency		= Key.of( "transparency" );
 	public static final Key	interpolation		= Key.of( "interpolation" );
 	public static final Key	blurFactor			= Key.of( "blurFactor" );
+	public static final Key	endCaps				= Key.of( "endCaps" );
+	public static final Key	lineJoins			= Key.of( "lineJoins" );
+	public static final Key	miterLimit			= Key.of( "miterLimit" );
+	public static final Key	dashArray			= Key.of( "dashArray" );
+	public static final Key	dashPhase			= Key.of( "dashPhase" );
 }

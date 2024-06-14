@@ -1,6 +1,7 @@
 package ortus.boxlang.modules.image;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -44,9 +45,12 @@ import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.iptc.IptcDirectory;
 
 import javaxt.io.Image;
+import ortus.boxlang.runtime.dynamic.casters.ArrayCaster;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
 import ortus.boxlang.runtime.dynamic.casters.CastAttempt;
+import ortus.boxlang.runtime.dynamic.casters.FloatCaster;
 import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
+import ortus.boxlang.runtime.dynamic.casters.StringCaster;
 import ortus.boxlang.runtime.types.Array;
 import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.Struct;
@@ -91,6 +95,31 @@ public class BoxImage {
 
 	public static BoxImage fromBase64( String base64String ) throws IOException {
 		return new BoxImage( ImageIO.read( new ByteArrayInputStream( Base64.getDecoder().decode( base64String ) ) ) );
+	}
+
+	public static int getEndCapInt( String endCap ) {
+		switch ( endCap.toUpperCase() ) {
+			case "BUTT" :
+				return BasicStroke.CAP_BUTT;
+			case "SQUARE" :
+				return BasicStroke.CAP_SQUARE;
+		}
+		;
+
+		return BasicStroke.CAP_ROUND;
+	}
+
+	public static int getLineJoinsInt( String endCap ) {
+		switch ( endCap.toUpperCase() ) {
+			case "MITER" :
+				return BasicStroke.JOIN_MITER;
+			case "JOIN" :
+			case "ROUND" :
+				return BasicStroke.JOIN_ROUND;
+		}
+		;
+
+		return BasicStroke.JOIN_BEVEL;
 	}
 
 	public static Object getInterpolation( String interpolation ) {
@@ -514,6 +543,46 @@ public class BoxImage {
 
 	public BoxImage drawText( String str, int x, int y ) {
 		this.graphics.drawString( str, x, y );
+		return this;
+	}
+
+	public BoxImage setDrawingStroke( IStruct strokeConfig ) {
+		StrokeBuilder builder = new StrokeBuilder();
+
+		if ( strokeConfig.containsKey( ImageKeys.width ) ) {
+			builder.width( FloatCaster.cast( strokeConfig.get( ImageKeys.width ) ) );
+		}
+
+		if ( strokeConfig.containsKey( ImageKeys.endCaps ) ) {
+			builder.endCaps( BoxImage.getEndCapInt( StringCaster.cast( strokeConfig.get( ImageKeys.endCaps ) ) ) );
+		}
+
+		if ( strokeConfig.containsKey( ImageKeys.lineJoins ) ) {
+			builder.lineJoins( BoxImage.getLineJoinsInt( StringCaster.cast( strokeConfig.get( ImageKeys.lineJoins ) ) ) );
+		}
+
+		if ( strokeConfig.containsKey( ImageKeys.miterLimit ) ) {
+			builder.miterLimit( FloatCaster.cast( strokeConfig.get( ImageKeys.miterLimit ) ) );
+		}
+
+		if ( strokeConfig.containsKey( ImageKeys.dashArray ) ) {
+			Float[]	floats			= ArrayCaster.cast( strokeConfig.get( ImageKeys.dashArray ) ).toArray( new Float[] {} );
+			float[]	actualFloats	= new float[ floats.length ];
+
+			// yuck
+			for ( int i = 0; i < floats.length; i++ ) {
+				actualFloats[ i ] = floats[ i ].floatValue();
+			}
+
+			builder.dashArray( actualFloats );
+		}
+
+		if ( strokeConfig.containsKey( ImageKeys.dashPhase ) ) {
+			builder.dashPhase( FloatCaster.cast( strokeConfig.get( ImageKeys.dashPhase ) ) );
+		}
+
+		this.graphics.setStroke( builder.build() );
+
 		return this;
 	}
 
