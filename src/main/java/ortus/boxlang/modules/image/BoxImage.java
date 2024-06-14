@@ -355,6 +355,12 @@ public class BoxImage {
 		return info;
 	}
 
+	public BoxImage rotateDrawingAxis( double angle, int x, int y ) {
+		this.graphics.setTransform( AffineTransform.getRotateInstance( Math.toRadians( angle ), x, y ) );
+
+		return this;
+	}
+
 	public BoxImage rotate( int angle ) {
 		int				oldWidth		= this.image.getWidth();
 		int				oldHeight		= this.image.getHeight();
