@@ -84,6 +84,11 @@ public class BoxImage {
 	private IStruct		exifData;
 	private IStruct		iptcData;
 
+	public enum Dimension {
+		WIDTH,
+		HEIGHT
+	}
+
 	public static BoxImage fromBase64( String base64String ) throws IOException {
 		return new BoxImage( ImageIO.read( new ByteArrayInputStream( Base64.getDecoder().decode( base64String ) ) ) );
 	}
@@ -353,6 +358,19 @@ public class BoxImage {
 		info.put( "source", this.getSourcePath() );
 
 		return info;
+	}
+
+	public BoxImage scaleToFit( int size, Dimension dimension, String interpolation ) {
+		double scaleFactor = dimension == Dimension.WIDTH ? ( double ) size / ( double ) this.getWidth() : ( double ) size / ( double ) this.getHeight();
+
+		this.resize(
+		    Double.valueOf( this.getWidth() * scaleFactor ).intValue(),
+		    Double.valueOf( this.getHeight() * scaleFactor ).intValue(),
+		    interpolation,
+		    0
+		);
+
+		return this;
 	}
 
 	public BoxImage rotateDrawingAxis( double angle, int x, int y ) {

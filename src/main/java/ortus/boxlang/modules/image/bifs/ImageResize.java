@@ -16,7 +16,7 @@ import ortus.boxlang.runtime.validation.Validator;
 public class ImageResize extends BIF {
 
 	// TODO finish filling out interpolation options
-
+	// TODO add member annotation
 	/**
 	 * Constructor
 	 */
