@@ -360,6 +360,13 @@ public class BoxImage {
 		return info;
 	}
 
+	public BoxImage setAntiAliasing( boolean useAntiAliasing ) {
+		this.graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+		    useAntiAliasing ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF );
+
+		return this;
+	}
+
 	public BoxImage scaleToFit( int size, Dimension dimension, String interpolation ) {
 		double scaleFactor = dimension == Dimension.WIDTH ? ( double ) size / ( double ) this.getWidth() : ( double ) size / ( double ) this.getHeight();
 
