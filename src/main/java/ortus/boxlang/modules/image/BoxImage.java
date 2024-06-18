@@ -3,6 +3,7 @@ package ortus.boxlang.modules.image;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -442,9 +443,13 @@ public class BoxImage {
 	}
 
 	public BoxImage overlay( BoxImage toOverlay, String overlayRule, double transparency ) {
-		AlphaComposite overlayComposite = AlphaComposite.getInstance( getOveralyRule( overlayRule ), ( float ) transparency );
+		AlphaComposite	overlayComposite	= AlphaComposite.getInstance( getOveralyRule( overlayRule ), ( float ) transparency );
+		Composite		original			= this.graphics.getComposite();
+
 		this.graphics.setComposite( overlayComposite );
 		this.graphics.drawImage( toOverlay.getBufferedImage(), 0, 0, null );
+
+		this.graphics.setComposite( original );
 
 		return this;
 	}
@@ -583,6 +588,12 @@ public class BoxImage {
 
 		this.graphics.setStroke( builder.build() );
 
+		return this;
+	}
+
+	public BoxImage setDrawingTransparency( double transparency ) {
+		AlphaComposite composite = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, ( float ) ( transparency / 100.0 ) );
+		this.graphics.setComposite( composite );
 		return this;
 	}
 

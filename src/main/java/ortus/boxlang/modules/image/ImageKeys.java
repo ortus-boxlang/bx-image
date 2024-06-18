@@ -56,4 +56,5 @@ public class ImageKeys {
 	public static final Key	miterLimit			= Key.of( "miterLimit" );
 	public static final Key	dashArray			= Key.of( "dashArray" );
 	public static final Key	dashPhase			= Key.of( "dashPhase" );
+	public static final Key	percent				= Key.of( "percent" );
 }
