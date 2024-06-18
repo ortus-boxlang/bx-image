@@ -16,6 +16,8 @@ import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -594,6 +596,22 @@ public class BoxImage {
 	public BoxImage setDrawingTransparency( double transparency ) {
 		AlphaComposite composite = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, ( float ) ( transparency / 100.0 ) );
 		this.graphics.setComposite( composite );
+		return this;
+	}
+
+	public BoxImage sharpen( double gain ) {
+		float	step	= 0.1f;
+		float	num		= step * ( float ) gain;
+		float	center	= 1f + ( float ) ( num * 8f );
+		Kernel	kernel	= new Kernel( 3, 3,
+		    new float[] {
+		        -num, -num, -num,
+		        -num, center, -num,
+		        -num, -num, -num } );
+
+		this.image = new Image( new ConvolveOp( kernel ).filter( this.image.getBufferedImage(), null ) );
+		this.cacheGraphics();
+
 		return this;
 	}
 
