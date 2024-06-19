@@ -3,17 +3,17 @@
 	"version": "@build.version@+@build.number@",
 	"location": "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/bx-image/@build.version@/bx-image-@build.version@.zip",
 	"author": "Ortus Solutions",
-	"homepage": "https://github.com/boxlang-modules/bx-image",
-	"documentation": "https://github.com/boxlang-modules/bx-image",
+	"homepage": "https://github.com/ortus-boxlang/bx-image",
+	"documentation": "https://github.com/ortus-boxlang/bx-image",
 	"repository": {
 		"type": "git",
-		"URL": "https://github.com/boxlang-modules/bx-image"
+		"URL": "https://github.com/ortus-boxlang/bx-image"
 	},
-	"bugs": "https://github.com/boxlang-modules/bx-image/issues",
+	"bugs": "https://github.com/ortus-boxlang/bx-image/issues",
 	"slug": "bx-image",
 	"shortDescription": "Boxlang Image processing module",
 	"type": "boxlang-modules",
-	"keywords": ["boxlang"],
+	"keywords": [ "boxlang" ],
 	"boxlang": {
 		"minimumVersion": "1.0.0",
 		"moduleName": "image"
