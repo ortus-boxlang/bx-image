@@ -599,6 +599,41 @@ public class BoxImage {
 		return this;
 	}
 
+	public BoxImage shear( double amount, Dimension dim ) {
+		int				oldWidth	= this.image.getWidth();
+		int				oldHeight	= this.image.getHeight();
+		Rectangle		rect		= new Rectangle( 0, 0, this.image.getWidth(), this.image.getHeight() );
+		AffineTransform	shear;
+		if ( dim == Dimension.HEIGHT ) {
+			shear = AffineTransform.getShearInstance( 0, amount );
+		} else {
+			shear = AffineTransform.getShearInstance( amount, 0 );
+		}
+		Shape			sheared			= shear.createTransformedShape( rect );
+		Rectangle		bounds			= sheared.getBounds();
+		int				newWidth		= Double.valueOf( bounds.getWidth() ).intValue();
+		int				newHeight		= Double.valueOf( bounds.getHeight() ).intValue();
+
+		BufferedImage	resizedImage	= new BufferedImage( newWidth, newHeight,
+		    this.image.getBufferedImage().getType() );
+		Graphics2D		resizedGraphics	= resizedImage.createGraphics();
+
+		resizedGraphics.fillRect( 0, 0, newWidth, newHeight );
+		resizedGraphics.setTransform( shear );
+		resizedGraphics.drawImage( this.image.getBufferedImage(), 0, 0, null );
+		resizedGraphics.dispose();
+
+		this.image = new Image( resizedImage );
+		this.cacheGraphics();
+		if ( dim == Dimension.HEIGHT ) {
+			this.graphics.shear( 0, amount );
+		} else {
+			this.graphics.shear( amount, 0 );
+		}
+
+		return this;
+	}
+
 	public BoxImage sharpen( double gain ) {
 		float	step	= 0.1f;
 		float	num		= step * ( float ) gain;

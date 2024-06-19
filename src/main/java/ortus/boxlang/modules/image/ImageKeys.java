@@ -58,4 +58,6 @@ public class ImageKeys {
 	public static final Key	dashPhase			= Key.of( "dashPhase" );
 	public static final Key	percent				= Key.of( "percent" );
 	public static final Key	gain				= Key.of( "gain" );
+	public static final Key	amount				= Key.of( "amount" );
+	public static final Key	direction			= Key.of( "direction" );
 }
