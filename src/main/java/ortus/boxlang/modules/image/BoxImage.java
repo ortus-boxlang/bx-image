@@ -19,6 +19,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -390,6 +391,14 @@ public class BoxImage {
 		info.put( "source", this.getSourcePath() );
 
 		return info;
+	}
+
+	public String toBase64String( String format ) throws IOException {
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		ImageIO.write( this.image.getBufferedImage(), format, output );
+
+		return Base64.getEncoder().encodeToString( output.toByteArray() );
 	}
 
 	public BoxImage setAntiAliasing( boolean useAntiAliasing ) {
