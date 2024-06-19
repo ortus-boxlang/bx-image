@@ -424,6 +424,22 @@ public class BoxImage {
 		return this;
 	}
 
+	public BoxImage translate( int x, int y ) {
+		BufferedImage	resizedImage	= new BufferedImage( this.image.getWidth(), this.image.getHeight(),
+		    this.image.getBufferedImage().getType() );
+		Graphics2D		resizedGraphics	= resizedImage.createGraphics();
+
+		resizedGraphics.setColor( Color.BLACK );
+		resizedGraphics.fillRect( 0, 0, this.getWidth(), this.getHeight() );
+		resizedGraphics.drawImage( this.image.getBufferedImage(), x, y, null );
+		resizedGraphics.dispose();
+
+		this.image = new Image( resizedImage );
+		this.cacheGraphics();
+
+		return this;
+	}
+
 	public BoxImage rotate( int angle ) {
 		int				oldWidth		= this.image.getWidth();
 		int				oldHeight		= this.image.getHeight();
