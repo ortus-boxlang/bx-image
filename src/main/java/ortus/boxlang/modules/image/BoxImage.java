@@ -412,6 +412,12 @@ public class BoxImage {
 		return this;
 	}
 
+	public BoxImage shearDrawingAxis( double x, double y ) {
+		this.graphics.setTransform( AffineTransform.getShearInstance( x, y ) );
+
+		return this;
+	}
+
 	public BoxImage rotateDrawingAxis( double angle, int x, int y ) {
 		this.graphics.setTransform( AffineTransform.getRotateInstance( Math.toRadians( angle ), x, y ) );
 

@@ -1,9 +1,6 @@
 package ortus.boxlang.modules.image.bifs;
 
-import java.util.Set;
-
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.BoxImage.Dimension;
 import ortus.boxlang.modules.image.ImageKeys;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
@@ -13,22 +10,22 @@ import ortus.boxlang.runtime.dynamic.casters.DoubleCaster;
 import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.BoxLangType;
-import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
-@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "shear" )
-public class ImageShear extends BIF {
+@BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "shearDrawingAxis" )
+public class ImageShearDrawingAxis extends BIF {
 
-	// TODO I think this should be changed to shear( x, y );
+	// TODO the docs don't seem correct to me https://cfdocs.org/imagerotate
+	// it says there should be x,y arguments but I wasn't able to get them working in either lucee or adobe
 	/**
 	 * Constructor
 	 */
-	public ImageShear() {
+	public ImageShearDrawingAxis() {
 		super();
 		declaredArguments = new Argument[] {
 		    new Argument( true, "any", ImageKeys.name ),
-		    new Argument( true, "numeric", ImageKeys.amount, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "string", ImageKeys.direction, "horizontal", Set.of( Validator.NON_EMPTY, Validator.valueOneOf( "horizontal", "vertical" ) ) ),
+		    new Argument( true, "numeric", ImageKeys.x, 0 ),
+		    new Argument( true, "numeric", ImageKeys.y, 0 )
 		};
 	}
 
@@ -43,9 +40,9 @@ public class ImageShear extends BIF {
 		    ? ( BoxImage ) arguments.get( ImageKeys.name )
 		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
 
-		theImage.shear(
-		    DoubleCaster.cast( arguments.get( ImageKeys.amount ) ),
-		    arguments.getAsString( ImageKeys.direction ).equalsIgnoreCase( "horizontal" ) ? Dimension.WIDTH : Dimension.HEIGHT
+		theImage.shearDrawingAxis(
+		    DoubleCaster.cast( arguments.get( ImageKeys.x ) ),
+		    DoubleCaster.cast( arguments.get( ImageKeys.y ) )
 		);
 
 		return theImage;
