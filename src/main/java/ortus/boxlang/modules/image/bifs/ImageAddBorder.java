@@ -22,7 +22,6 @@ public class ImageAddBorder extends BIF {
 
 	/**
 	 * Constructor
-	 * someImage.addBorder(thickness [, color] [, bordertype])
 	 */
 	public ImageAddBorder() {
 		super();
@@ -35,10 +34,20 @@ public class ImageAddBorder extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Add a border to the image.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 * 
+	 * @argument.name The image or name of variable that references an image to operate on
+	 * 
+	 * @argument.thickness Border thickness
+	 * 
+	 * @argument.color Border color: hex or constant color
+	 * 
+	 * @argument.borderType Borer type - one of zero | constant | copy | reflect | wrap
+	 * 
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage

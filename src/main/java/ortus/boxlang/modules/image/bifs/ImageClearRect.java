@@ -33,10 +33,22 @@ public class ImageClearRect extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Draws a rectangle using the configured background color.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 * 
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 * 
+	 * @argument.x X coordinate of the upper left corner of the rectangle.
+	 * 
+	 * @argument.y Y coordinate of the upper left corner of the rectangle.
+	 * 
+	 * @argument.width The width of the rectangle.
+	 * 
+	 * @argument.height The height of the rectangle.
+	 * 
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage

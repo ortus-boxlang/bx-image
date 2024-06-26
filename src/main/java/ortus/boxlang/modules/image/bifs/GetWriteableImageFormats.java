@@ -12,10 +12,12 @@ import ortus.boxlang.runtime.types.Array;
 public class GetWriteableImageFormats extends BIF {
 
 	/**
-	 * ExampleBIF
+	 * Returns an array of writeable image formats
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @return Array of image format names
 	 */
 	public Array _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		return Array.fromArray( ImageIO.getWriterFormatNames() );

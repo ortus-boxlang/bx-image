@@ -20,7 +20,6 @@ public class ImageCopy extends BIF {
 
 	/**
 	 * Constructor
-	 * someImage.addBorder(thickness [, color] [, bordertype])
 	 */
 	public ImageCopy() {
 		super();
@@ -36,10 +35,26 @@ public class ImageCopy extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Draws a rectangle using the configured background color.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 * 
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 * 
+	 * @argument.x The x coordinate of the rectangular area of the image to copy.
+	 * 
+	 * @argument.y The y coordinate of the rectangular area of the image to copy.
+	 * 
+	 * @argument.width The width of the the rectangular area of the image to copy.
+	 * 
+	 * @argument.height The height of the the rectangular area of the image to copy.
+	 * 
+	 * @argument.dx The amount to shift the x coordinate when drawing the copied area.
+	 * 
+	 * @argument.dy The amount to shift the y coordinate when drawing the copied area.
+	 * 
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage

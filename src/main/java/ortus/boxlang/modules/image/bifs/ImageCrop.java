@@ -18,11 +18,8 @@ import ortus.boxlang.runtime.validation.Validator;
 @BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "crop" )
 public class ImageCrop extends BIF {
 
-	// TODO finish bordertypes
-
 	/**
 	 * Constructor
-	 * someImage.addBorder(thickness [, color] [, bordertype])
 	 */
 	public ImageCrop() {
 		super();
@@ -36,10 +33,22 @@ public class ImageCrop extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Crop an image to the specified area.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 * 
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 * 
+	 * @argument.x The x coordinate of the upper left corner of the part of the image that will be visible after the cropping operation.
+	 * 
+	 * @argument.y The y coordinate of the upper left corner of the part of the image that will be visible after the cropping operation.
+	 * 
+	 * @argument.width The width of the part of the image that will be visible after the cropping operation.
+	 * 
+	 * @argument.height The height of the part of the image that will be visible after the cropping operation.
+	 * 
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage
