@@ -1,7 +1,23 @@
+/**
+ * [BoxLang]
+ *
+ * Copyright [2024] [Ortus Solutions, Corp]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ortus.boxlang.modules.image;
 
 import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Font;
@@ -24,29 +40,21 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
 import org.apache.commons.imaging.ImageFormats;
 import org.apache.commons.imaging.Imaging;
 
-import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.FileType;
+import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifIFD0Directory;
-import com.drew.metadata.exif.ExifImageDirectory;
-import com.drew.metadata.exif.ExifInteropDirectory;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-import com.drew.metadata.exif.ExifThumbnailDirectory;
-import com.drew.metadata.exif.GpsDirectory;
-import com.drew.metadata.iptc.IptcDirectory;
 
 import javaxt.io.Image;
 import ortus.boxlang.runtime.dynamic.casters.ArrayCaster;
@@ -89,8 +97,9 @@ public class BoxImage {
 	private Image		image;
 	private String		drawingColor	= "white";
 	private String		backgroundColor	= "white";
-	private IStruct		exifData;
-	private IStruct		iptcData;
+	private IStruct		exifData		= new Struct();
+	private IStruct		iptcData		= new Struct();
+	private FileType	fileType;
 
 	public enum Dimension {
 		WIDTH,
@@ -99,196 +108,6 @@ public class BoxImage {
 
 	public static BoxImage fromBase64( String base64String ) throws IOException {
 		return new BoxImage( ImageIO.read( new ByteArrayInputStream( Base64.getDecoder().decode( base64String ) ) ) );
-	}
-
-	public static int getEndCapInt( String endCap ) {
-		switch ( endCap.toUpperCase() ) {
-			case "BUTT" :
-				return BasicStroke.CAP_BUTT;
-			case "SQUARE" :
-				return BasicStroke.CAP_SQUARE;
-		}
-		;
-
-		return BasicStroke.CAP_ROUND;
-	}
-
-	public static int getLineJoinsInt( String endCap ) {
-		switch ( endCap.toUpperCase() ) {
-			case "MITER" :
-				return BasicStroke.JOIN_MITER;
-			case "JOIN" :
-			case "ROUND" :
-				return BasicStroke.JOIN_ROUND;
-		}
-		;
-
-		return BasicStroke.JOIN_BEVEL;
-	}
-
-	public static Object getInterpolation( String interpolation ) {
-		switch ( interpolation.toUpperCase() ) {
-			case "BILINEAR" :
-				return RenderingHints.VALUE_INTERPOLATION_BILINEAR;
-			case "NEAREST" :
-				return RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
-		}
-
-		return RenderingHints.VALUE_INTERPOLATION_BICUBIC;
-	}
-
-	public static int getOveralyRule( String overlayRule ) {
-		switch ( overlayRule.toUpperCase() ) {
-			case "SRC" :
-				return AlphaComposite.SRC;
-			case "DST_IN" :
-				return AlphaComposite.DST_IN;
-			case "DST_OUT" :
-				return AlphaComposite.DST_OUT;
-			case "DST_OVER" :
-				return AlphaComposite.DST_OVER;
-			case "SRC_IN" :
-				return AlphaComposite.SRC_IN;
-			case "SRC_OVER" :
-				return AlphaComposite.SRC_OVER;
-			case "SRC_OUT" :
-				return AlphaComposite.SRC_OUT;
-		}
-
-		return AlphaComposite.SRC;
-	}
-
-	public static String getTransparencyDescription( int transparencyType ) {
-		switch ( transparencyType ) {
-			case java.awt.Transparency.BITMASK :
-				return "BITMASK";
-			case java.awt.Transparency.OPAQUE :
-				return "OPAQUE";
-			case java.awt.Transparency.TRANSLUCENT :
-				return "TRANSLUCENT";
-		}
-
-		return "UNKNOWN";
-	}
-
-	public static String getColorSpaceDescription( int colorSpaceType ) {
-		switch ( colorSpaceType ) {
-			case java.awt.color.ColorSpace.CS_CIEXYZ :
-				return "The CIEXYZ conversion color space defined above.";
-			case java.awt.color.ColorSpace.CS_GRAY :
-				return "The built-in linear gray scale color space.";
-			case java.awt.color.ColorSpace.CS_LINEAR_RGB :
-				return "A built-in linear RGB color space.";
-			case java.awt.color.ColorSpace.CS_PYCC :
-				return "The Photo YCC conversion color space.";
-			case java.awt.color.ColorSpace.CS_sRGB :
-				return "The sRGB color space defined at http://www.w3.org/pub/WWW/Graphics/Color/sRGB.html .";
-			case java.awt.color.ColorSpace.TYPE_2CLR :
-				return "Generic 2 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_3CLR :
-				return "Generic 3 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_4CLR :
-				return "Generic 4 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_5CLR :
-				return "Generic 5 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_6CLR :
-				return "Generic 6 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_7CLR :
-				return "Generic 7 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_8CLR :
-				return "Generic 8 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_9CLR :
-				return "Generic 9 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_ACLR :
-				return "Generic 10 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_BCLR :
-				return "Generic 11 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_CCLR :
-				return "Generic 12 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_CMY :
-				return "Any of the family of CMY color spaces.";
-			case java.awt.color.ColorSpace.TYPE_CMYK :
-				return "Any of the family of CMYK color spaces.";
-			case java.awt.color.ColorSpace.TYPE_DCLR :
-				return "Generic 13 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_ECLR :
-				return "Generic 14 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_FCLR :
-				return "Generic 15 component color spaces.";
-			case java.awt.color.ColorSpace.TYPE_GRAY :
-				return "Any of the family of GRAY color spaces.";
-			case java.awt.color.ColorSpace.TYPE_HLS :
-				return "Any of the family of HLS color spaces.";
-			case java.awt.color.ColorSpace.TYPE_HSV :
-				return "Any of the family of HSV color spaces.";
-			case java.awt.color.ColorSpace.TYPE_Lab :
-				return "Any of the family of Lab color spaces.";
-			case java.awt.color.ColorSpace.TYPE_Luv :
-				return "Any of the family of Luv color spaces.";
-			case java.awt.color.ColorSpace.TYPE_RGB :
-				return "Any of the family of RGB color spaces.";
-			case java.awt.color.ColorSpace.TYPE_XYZ :
-				return "Any of the family of XYZ color spaces.";
-			case java.awt.color.ColorSpace.TYPE_YCbCr :
-				return "Any of the family of YCbCr color spaces.";
-			case java.awt.color.ColorSpace.TYPE_Yxy :
-				return "Any of the family of Yxy color spaces.";
-		}
-		;
-
-		return "Unknown color space";
-	}
-
-	public static IStruct readExifMetaData( String path ) throws ImageProcessingException, FileNotFoundException, IOException {
-		IStruct		exifData	= new Struct();
-		Metadata	metaData	= ImageMetadataReader.readMetadata( new FileInputStream( path ) );
-
-		Stream.of(
-		    metaData.getFirstDirectoryOfType( ExifImageDirectory.class ),
-		    metaData.getFirstDirectoryOfType( ExifInteropDirectory.class ),
-		    metaData.getFirstDirectoryOfType( ExifIFD0Directory.class ),
-		    metaData.getFirstDirectoryOfType( ExifThumbnailDirectory.class ),
-		    metaData.getFirstDirectoryOfType( ExifSubIFDDirectory.class ),
-		    metaData.getFirstDirectoryOfType( GpsDirectory.class ),
-		    metaData.getFirstDirectoryOfType( IptcDirectory.class )
-		)
-		    .filter( dir -> dir != null )
-		    .forEach( dir -> {
-			    dir.getTags().stream().forEach( tag -> exifData.put( tag.getTagName(), tag.getDescription() ) );
-		    } );
-
-		if ( exifData.get( "Date/Time" ) == null ) {
-			exifData.put( "Date/Time", exifData.get( "Date/Time Original" ) );
-		}
-
-		return exifData;
-	}
-
-	public static IStruct readIPTCMetaData( String path ) throws ImageProcessingException, FileNotFoundException, IOException {
-		IStruct		iptcData	= new Struct();
-		Metadata	metaData	= ImageMetadataReader.readMetadata( new FileInputStream( path ) );
-
-		Stream.of(
-		    metaData.getFirstDirectoryOfType( IptcDirectory.class )
-		)
-		    .filter( dir -> dir != null )
-		    .forEach( dir -> {
-			    dir.getTags().stream().forEach( tag -> iptcData.put( tag.getTagName(), tag.getDescription() ) );
-		    } );
-
-		if ( iptcData.get( "Date/Time" ) == null ) {
-			iptcData.put( "Date/Time", iptcData.get( "Date/Time Original" ) );
-		}
-
-		return iptcData;
-	}
-
-	public static Object getExifMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readExifMetaData( path ).get( tagName );
-	}
-
-	public static Object getIPTCMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readIPTCMetaData( path ).get( tagName );
 	}
 
 	// TODO handle imageType
@@ -301,44 +120,22 @@ public class BoxImage {
 		this.setDrawingColor( "black" );
 	}
 
-	public BoxImage( String imageURI ) {
-		this.sourcePath = imageURI;
-		try {
-			if ( imageURI.toString().toLowerCase().startsWith( "http" ) ) {
-
-				this.image = new Image( new URL( imageURI ).openStream() );
-
-			} else {
-				this.image = new Image( imageURI.toString() );
-			}
-		} catch ( MalformedURLException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch ( IOException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		this.cacheGraphics();
+	public BoxImage( String imageURI ) throws MalformedURLException, IOException, ImageProcessingException {
+		this( URI.create( imageURI ) );
 	}
 
-	public BoxImage( URI imageURI ) {
+	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException {
 		this.sourcePath = imageURI.toString();
-		try {
-			if ( imageURI.toString().toLowerCase().startsWith( "http" ) ) {
-
-				this.image = new Image( imageURI.toURL().openStream() );
-
-			} else {
-				this.image = new Image( new FileInputStream( imageURI.toString() ) );
-			}
-		} catch ( MalformedURLException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch ( IOException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		InputStream				dataStream	= getInputStream( imageURI );
+		byte[]					data		= dataStream.readAllBytes();
+		ByteArrayInputStream	bas			= new ByteArrayInputStream( data );
+		this.fileType = FileTypeDetector.detectFileType( bas );
+		bas.reset();
+		exifData = ImageMetadataUtil.readExifMetaData( bas );
+		bas.reset();
+		iptcData = ImageMetadataUtil.readIPTCMetaData( bas );
+		bas.reset();
+		this.image = new Image( bas );
 
 		this.cacheGraphics();
 	}
@@ -382,11 +179,11 @@ public class BoxImage {
 		colorModel.put( "alpha_premultiplied", cm.isAlphaPremultiplied() );
 		colorModel.put( "colormodel_type", cm.getClass().getSimpleName() );
 		// pulled from https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/awt/color/ColorSpace.html
-		colorModel.put( "colorspace", getColorSpaceDescription( cm.getColorSpace().getType() ) );
+		colorModel.put( "colorspace", EnumConverterUtil.getColorSpaceDescription( cm.getColorSpace().getType() ) );
 		colorModel.put( "num_color_components", cm.getNumColorComponents() );
 		colorModel.put( "num_components", cm.getNumComponents() );
 		colorModel.put( "pixel_size", cm.getPixelSize() );
-		colorModel.put( "transparency", getTransparencyDescription( cm.getTransparency() ) );
+		colorModel.put( "transparency", EnumConverterUtil.getTransparencyDescription( cm.getTransparency() ) );
 		info.put( "colormodel", colorModel );
 		info.put( "source", this.getSourcePath() );
 
@@ -482,7 +279,7 @@ public class BoxImage {
 	}
 
 	public BoxImage overlay( BoxImage toOverlay, String overlayRule, double transparency ) {
-		AlphaComposite	overlayComposite	= AlphaComposite.getInstance( getOveralyRule( overlayRule ), ( float ) transparency );
+		AlphaComposite	overlayComposite	= AlphaComposite.getInstance( EnumConverterUtil.getOveralyRule( overlayRule ), ( float ) transparency );
 		Composite		original			= this.graphics.getComposite();
 
 		this.graphics.setComposite( overlayComposite );
@@ -506,19 +303,11 @@ public class BoxImage {
 		return this;
 	}
 
-	public IStruct getExifMetaData() throws ImageProcessingException, FileNotFoundException, IOException {
-		if ( exifData == null ) {
-			exifData = readExifMetaData( getSourcePath() );
-		}
-
+	public IStruct getExifMetaData() {
 		return exifData;
 	}
 
 	public IStruct getIPTCMetaData() throws ImageProcessingException, FileNotFoundException, IOException {
-		if ( iptcData == null ) {
-			iptcData = readExifMetaData( getSourcePath() );
-		}
-
 		return iptcData;
 	}
 
@@ -598,11 +387,11 @@ public class BoxImage {
 		}
 
 		if ( strokeConfig.containsKey( ImageKeys.endCaps ) ) {
-			builder.endCaps( BoxImage.getEndCapInt( StringCaster.cast( strokeConfig.get( ImageKeys.endCaps ) ) ) );
+			builder.endCaps( EnumConverterUtil.getEndCapInt( StringCaster.cast( strokeConfig.get( ImageKeys.endCaps ) ) ) );
 		}
 
 		if ( strokeConfig.containsKey( ImageKeys.lineJoins ) ) {
-			builder.lineJoins( BoxImage.getLineJoinsInt( StringCaster.cast( strokeConfig.get( ImageKeys.lineJoins ) ) ) );
+			builder.lineJoins( EnumConverterUtil.getLineJoinsInt( StringCaster.cast( strokeConfig.get( ImageKeys.lineJoins ) ) ) );
 		}
 
 		if ( strokeConfig.containsKey( ImageKeys.miterLimit ) ) {
@@ -637,9 +426,7 @@ public class BoxImage {
 	}
 
 	public BoxImage shear( double amount, Dimension dim ) {
-		int				oldWidth	= this.image.getWidth();
-		int				oldHeight	= this.image.getHeight();
-		Rectangle		rect		= new Rectangle( 0, 0, this.image.getWidth(), this.image.getHeight() );
+		Rectangle		rect	= new Rectangle( 0, 0, this.image.getWidth(), this.image.getHeight() );
 		AffineTransform	shear;
 		if ( dim == Dimension.HEIGHT ) {
 			shear = AffineTransform.getShearInstance( 0, amount );
@@ -744,7 +531,7 @@ public class BoxImage {
 		BufferedImage	resizedImage	= new BufferedImage( width, height, this.image.getBufferedImage().getType() );
 		Graphics2D		resizedGraphics	= resizedImage.createGraphics();
 
-		resizedGraphics.setRenderingHint( RenderingHints.KEY_INTERPOLATION, getInterpolation( interpolcation ) );
+		resizedGraphics.setRenderingHint( RenderingHints.KEY_INTERPOLATION, EnumConverterUtil.getInterpolation( interpolcation ) );
 
 		resizedGraphics.drawImage( resizedImage, 0, 0, width, height, null );
 		resizedGraphics.dispose();
@@ -972,5 +759,21 @@ public class BoxImage {
 		this.image.blur( radius.floatValue() );
 
 		return this;
+	}
+
+	private static InputStream getInputStream( String imageInput ) throws MalformedURLException, IOException {
+
+		return getInputStream( URI.create( imageInput ) );
+	}
+
+	private static InputStream getInputStream( URI imageInput ) throws MalformedURLException, IOException {
+
+		if ( imageInput.toString().toLowerCase().startsWith( "http" ) ) {
+
+			return imageInput.toURL().openStream();
+
+		}
+
+		return new FileInputStream( imageInput.toString() );
 	}
 }

@@ -109,4 +109,16 @@ public class ImageGetIPTCMetaDataTest {
 		assertThat( iptcData.get( "Special Instructions" ) ).isEqualTo( "test instructions" );
 	}
 
+	@DisplayName( "It should be able to read metadata info from a URL" )
+	@Test
+	public void testRemoteImage() throws IOException {
+		instance.executeSource(
+		    """
+		    result = ImageGetIPTCMetaData( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
+		    """,
+		    context );
+
+		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
+	}
+
 }

@@ -43,4 +43,16 @@ public class ImageReadTest {
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
 	}
 
+	@DisplayName( "It can create a new image from a url" )
+	@Test
+	public void testImageFromURL() {
+		instance.executeSource(
+		    """
+		    result = ImageRead( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
+		    """,
+		    context );
+
+		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
+	}
+
 }

@@ -213,4 +213,28 @@ public class ImageGetExifMetaDataTest {
 		assertThat( exifData.get( "YCbCr Positioning" ) ).isEqualTo( "Center of pixel array" );
 	}
 
+	@DisplayName( "It should be able to read metadata info directly from a URL" )
+	@Test
+	public void testRemoteImage() throws IOException {
+		instance.executeSource(
+		    """
+		    result = ImageGetExifMetaData( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
+		    """,
+		    context );
+
+		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
+	}
+
+	@DisplayName( "It should be able to read metadata info from an image loaded by URL" )
+	@Test
+	public void testLoadedRemoteImage() throws IOException {
+		instance.executeSource(
+		    """
+		    result =  ImageGetExifMetaData( imageRead( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" ) );
+		    """,
+		    context );
+
+		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
+	}
+
 }

@@ -58,6 +58,21 @@ public class ImageInfoTest {
 		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
 	}
 
+	@DisplayName( "It should be able to read image info from a URL" )
+	@Test
+	public void testRemoteImage() throws IOException {
+		instance.executeSource(
+		    """
+		                   image = ImageRead( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
+
+
+		    result = image.info();
+		                   """,
+		    context );
+
+		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
+	}
+
 	@DisplayName( "It should return the correct data" )
 	@Test
 	public void testKeys() throws IOException {
