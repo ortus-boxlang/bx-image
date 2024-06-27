@@ -1,7 +1,7 @@
 {
 	"name": "BoxLang Image Library",
-	"version": "@build.version@+@build.number@",
-	"location": "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/bx-image/@build.version@/bx-image-@build.version@.zip",
+	"version": "1.0.1",
+	"location": "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/bx-image/1.0.1/bx-image-1.0.1.zip",
 	"author": "Ortus Solutions",
 	"homepage": "https://github.com/ortus-boxlang/bx-image",
 	"documentation": "https://github.com/ortus-boxlang/bx-image",

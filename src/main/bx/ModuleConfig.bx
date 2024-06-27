@@ -30,23 +30,23 @@ class {
 	 * Your module version. Try to use semantic versioning
 	 * @mandatory
 	 */
-	this.version = "@build.version@+@build.number@";
+	this.version = "1.0.1";
 
 	/**
 	 * The BoxLang mapping for your module.  All BoxLang modules are registered with an internal
 	 * mapping prefix of : bxModules.{this.mapping}, /bxmodules/{this.mapping}. Ex: bxModules.test, /bxmodules/test
 	 */
-	this.mapping = "test";
+	this.mapping = "bximage";
 
 	/**
 	 * Who built the module
 	 */
-	this.author = "Luis Majano";
+	this.author = "Jacob Beers";
 
 	/**
 	 * The module description
 	 */
-	this.description = "This module does amazing things";
+	this.description = "This module provides image manipulation tools.";
 
 	/**
 	 * The module web URL
@@ -71,10 +71,7 @@ class {
 		/**
 		 * Every module has a settings configuration object
 		 */
-		settings = {
-			loadedOn : now(),
-			loadedBy : "Luis Majano"
-		};
+		settings = {};
 
 		/**
 		 * Every module can have a list of object mappings
