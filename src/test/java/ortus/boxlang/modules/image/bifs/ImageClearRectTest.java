@@ -47,10 +47,10 @@ public class ImageClearRectTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageClearRect( result, 0, 0, 50, 50 );
-		                        ImageWrite( result, "src/test/resources/logo-clear-rect.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-clear-rect.png" );
 		                                          """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-clear-rect.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-clear-rect.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-clear-rect.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -63,10 +63,10 @@ public class ImageClearRectTest {
 		                                                      result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageSetBackgroundColor( result, "green" );
 		                                    ImageClearRect( result, 0, 0, 50, 50 );
-		                                    ImageWrite( result, "src/test/resources/logo-clear-rect-green.png" );
+		                                    ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
 		                                                      """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-clear-rect-green.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-clear-rect-green.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-clear-rect-green.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -80,10 +80,10 @@ public class ImageClearRectTest {
 		                                                                                    result = ImageRead( "src/test/resources/logo.png" );
 		                                       ImageSetBackgroundColor( "result", "green" );
 		                                                ImageClearRect( result, 0, 0, 50, 50 );
-		                        ImageWrite( result, "src/test/resources/logo-clear-rect-green.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
 		                                                                                    """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-clear-rect-green.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-clear-rect-green.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-clear-rect-green.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -96,10 +96,10 @@ public class ImageClearRectTest {
 		                                                                                    result = ImageRead( "src/test/resources/logo.png" );
 		                                       ImageSetBackgroundColor( "result", "green" );
 		                                                result.clearRect( 0, 0, 50, 50 );
-		                        ImageWrite( result, "src/test/resources/logo-clear-rect-green.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
 		                                                                                    """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-clear-rect-green.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-clear-rect-green.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-clear-rect-green.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

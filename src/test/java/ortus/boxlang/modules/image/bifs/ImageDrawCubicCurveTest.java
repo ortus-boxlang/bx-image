@@ -44,10 +44,10 @@ public class ImageDrawCubicCurveTest {
 		                                                      result = ImageRead( "src/test/resources/logo.png" );
 		                        imageSetDrawingColor(result,"magenta")
 		                        imageDrawCubicCurve(result,0,100,256,100,0,0,256,256)
-		                                    ImageWrite( result, "src/test/resources/logo-cubic-curve.png" );
+		                                    ImageWrite( result, "src/test/resources/generated/logo-cubic-curve.png" );
 		                                                      """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-cubic-curve.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-cubic-curve.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-cubic-curve.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -60,10 +60,10 @@ public class ImageDrawCubicCurveTest {
 		                                                      result = ImageRead( "src/test/resources/logo.png" );
 		                        imageSetDrawingColor(result,"magenta")
 		                        result.drawCubicCurve(0,100,256,100,0,0,256,256)
-		                                    ImageWrite( result, "src/test/resources/logo-cubic-curve.png" );
+		                                    ImageWrite( result, "src/test/resources/generated/logo-cubic-curve.png" );
 		                                                      """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-cubic-curve.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-cubic-curve.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-cubic-curve.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

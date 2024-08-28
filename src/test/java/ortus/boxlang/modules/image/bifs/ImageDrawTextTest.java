@@ -47,11 +47,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawText( result, "Drink your Ovaltine!", 50, 50 );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -64,11 +64,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawText( result, "Drink your Ovaltine!", 50, 50, { font: "Georgia" } );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -81,11 +81,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawText( result, "Drink your Ovaltine!", 50, 50, { size: 50 } );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -98,11 +98,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawText( result, "Drink your Ovaltine!", 50, 50, { style: "bold" } );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -115,11 +115,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawText( result, "Drink your Ovaltine!", 50, 50, { style: "italic" } );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -132,11 +132,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawText( result, "Drink your Ovaltine!", 50, 50, { style: "bolditalic" } );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -149,11 +149,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawText( result, "Drink your Ovaltine!", 50, 50, { strikeThrough: true } );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -166,11 +166,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawText( result, "Drink your Ovaltine!", 50, 50, { underline: true } );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -183,11 +183,11 @@ public class ImageDrawTextTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        result.drawText( "Drink your Ovaltine!", 50, 50, { underline: true } );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

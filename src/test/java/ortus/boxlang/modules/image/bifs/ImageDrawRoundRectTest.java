@@ -44,11 +44,11 @@ public class ImageDrawRoundRectTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawRoundRect( result, 50, 150, 200, 100, 10, 10 );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        // ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -61,11 +61,11 @@ public class ImageDrawRoundRectTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageDrawRoundRect( result, 50, 150, 200, 100, 10, 10, true );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        // ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -78,11 +78,11 @@ public class ImageDrawRoundRectTest {
 		instance.executeSource( """
 		                                                      result = ImageRead( "src/test/resources/logo.png" );
 		                        result.drawRoundRect( 50, 150, 200, 100, 10, 10, true );
-		                                    ImageWrite( result, "src/test/resources/%s" );
+		                                    ImageWrite( result, "src/test/resources/generated/%s" );
 		                                    // ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                      """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

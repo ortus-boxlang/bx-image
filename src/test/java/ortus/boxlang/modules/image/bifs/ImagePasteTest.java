@@ -40,7 +40,7 @@ public class ImagePasteTest {
 		                                                    result = ImageRead( "src/test/resources/logo.png" );
 		    			realLogo = ImageNew( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
 		                                  ImagePaste( result, realLogo, 50, 50 );
-		    result.write( "src/test/resources/logo-paste.png" );
+		    result.write( "src/test/resources/generated/logo-paste.png" );
 		                                                    """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );

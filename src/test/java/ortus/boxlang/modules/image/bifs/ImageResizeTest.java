@@ -44,11 +44,11 @@ public class ImageResizeTest {
 		instance.executeSource( """
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        imageResize( result, 512, 512 );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                        ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

@@ -10,6 +10,7 @@ build/**
 
 ### BOXLANG ###
 /libs/
+src/test/resources/generated/*.png
 src/test/resources/logo-add*
 src/test/resources/logo-crop*
 src/test/resources/logo-paste*
