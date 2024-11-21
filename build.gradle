@@ -23,6 +23,13 @@ ext {
 	branch = System.getenv( 'BRANCH' ) ?: 'development'
 }
 
+if ( branch == 'development' ) {
+    // If the branch is 'development', ensure the version ends with '-snapshot'
+    // This replaces any existing prerelease identifier with '-snapshot'
+    version = version.contains('-') ? version.replaceAll(/-.*/, '-snapshot') : "${version}-snapshot"
+	boxlangVersion = boxlangVersion.contains('-') ? boxlangVersion.replaceAll(/-.*/, '-snapshot') : "${boxlangVersion}-snapshot"
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -36,12 +43,14 @@ dependencies {
 	// Until BoxLang is published to Maven Central
 	// Look for it in the local build directory
 	// You must run `./gradle build -x test` in the BoxLang project
-    // compileOnly files( 'src/test/resources/libs/boxlang-websupport-1.0.0.jar' )
-    compileOnly files( 'src/test/resources/libs/boxlang-1.0.0-all.jar' )
+    // compileOnly files( 'src/test/resources/libs/boxlang-websupport-' + boxlangVersion + '.jar' )
+	compileOnly files( '../../boxlang/build/libs/boxlang-' + boxlangVersion + '-all.jar' )
+    compileOnly files( 'src/test/resources/libs/boxlang-' + boxlangVersion + '-all.jar' )
 
     // Testing Dependencies
-    // compileOnly files( 'src/test/resources/libs/boxlang-websupport-1.0.0.jar' )
-    testImplementation files( 'src/test/resources/libs/boxlang-1.0.0-all.jar' )
+    // compileOnly files( 'src/test/resources/libs/boxlang-websupport-' + boxlangVersion + '.jar' )
+	testImplementation files( '../../boxlang/build/libs/boxlang-' + boxlangVersion + '-all.jar'  )
+	testImplementation files( 'src/test/resources/libs/boxlang-' + boxlangVersion + '-all.jar' )
     testImplementation "org.junit.jupiter:junit-jupiter:5.+"
 	testImplementation "org.mockito:mockito-core:5.+"
 	testImplementation "com.google.truth:truth:1.+"
@@ -142,7 +151,7 @@ task createModuleStructure(type: Copy) {
 		// Token Replacements Go Here
 		filter{ line -> line.replaceAll( '@build.version@', project.version ) }
 		if( project.branch == "development" ){
-			filter{ line -> line.replaceAll( '\\+@build.number@', '-SNAPSHOT' ) }
+			filter{ line -> line.replaceAll( '\\+@build.number@', '' ) }
 		} else {
 			filter{ line -> line.replaceAll( '@build.number@', project.buildID ) }
 		}
@@ -154,7 +163,7 @@ task createModuleStructure(type: Copy) {
 		// Token Replacements Go Here
 		filter{ line -> line.replaceAll( '@build.version@', project.version ) }
 		if( project.branch == "development" ){
-			filter{ line -> line.replaceAll( '\\+@build.number@', '-SNAPSHOT' ) }
+			filter{ line -> line.replaceAll( '\\+@build.number@', '' ) }
 		} else {
 			filter{ line -> line.replaceAll( '@build.number@', project.buildID ) }
 		}
