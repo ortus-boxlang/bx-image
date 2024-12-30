@@ -44,12 +44,12 @@ public class ImageBlurTest {
 		instance.executeSource( """
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          ImageBlur( result, 50 );
-		                        ImageWrite( result, "src/test/resources/logo-blurred.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-blurred.png" );
 		                                                            """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-blurred.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-blurred.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/blurred-50.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -61,11 +61,11 @@ public class ImageBlurTest {
 		instance.executeSource( """
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          result.blur(25);
-		                        ImageWrite( result, "src/test/resources/logo-blurred.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-blurred.png" );
 		                                                            """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-blurred.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-blurred.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/blurred-25.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

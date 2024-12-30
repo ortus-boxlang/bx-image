@@ -44,10 +44,10 @@ public class ImageDrawArcTest {
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          result.setDrawingColor( "yellow" );
 		                        ImageDrawArc( result, 150, 50, 100, 100, 45, 70 );
-		                                          ImageWrite( result, "src/test/resources/logo-draw-arc.png" );
+		                                          ImageWrite( result, "src/test/resources/generated/logo-draw-arc.png" );
 		                                                            """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-draw-arc.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-draw-arc.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-draw-arc.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -60,10 +60,10 @@ public class ImageDrawArcTest {
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          result.setDrawingColor( "yellow" );
 		                        ImageDrawArc( result, 150, 50, 100, 100, 45, 70, true );
-		                                          ImageWrite( result, "src/test/resources/logo-draw-arc-filled.png" );
+		                                          ImageWrite( result, "src/test/resources/generated/logo-draw-arc-filled.png" );
 		                                                            """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-draw-arc-filled.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-draw-arc-filled.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-draw-arc-filled.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -76,10 +76,10 @@ public class ImageDrawArcTest {
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          result.setDrawingColor( "yellow" );
 		                        result.drawArc( 150, 50, 100, 100, 45, 70, true );
-		                                          ImageWrite( result, "src/test/resources/logo-draw-arc-filled.png" );
+		                                          ImageWrite( result, "src/test/resources/generated/logo-draw-arc-filled.png" );
 		                                                            """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-draw-arc-filled.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-draw-arc-filled.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-draw-arc-filled.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

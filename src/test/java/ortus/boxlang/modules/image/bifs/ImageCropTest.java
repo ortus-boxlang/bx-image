@@ -38,7 +38,7 @@ public class ImageCropTest {
 		instance.executeSource( """
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          ImageCrop( result, 20, 20, 120, 120 );
-		                        ImageWrite( result, "src/test/resources/logo-cropped.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-cropped.png" );
 		                                                            """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
@@ -50,7 +50,7 @@ public class ImageCropTest {
 		instance.executeSource( """
 		                                                                              result = ImageRead( "src/test/resources/logo.png" );
 		                        result.crop( 20, 20, 120, 120 );
-		                                          ImageWrite( result, "src/test/resources/logo-cropped-member.png" );
+		                                          ImageWrite( result, "src/test/resources/generated/logo-cropped-member.png" );
 		                                                                              """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );

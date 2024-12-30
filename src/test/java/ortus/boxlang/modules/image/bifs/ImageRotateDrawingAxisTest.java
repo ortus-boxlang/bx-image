@@ -45,11 +45,11 @@ public class ImageRotateDrawingAxisTest {
 		                                                      result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageRotateDrawingAxis( result, 90, 45, 45 );
 		                        ImageDrawOval( result, 50, 50, 200, 100 );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                                    //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                      """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -63,11 +63,11 @@ public class ImageRotateDrawingAxisTest {
 		                                                      result = ImageRead( "src/test/resources/logo.png" );
 		                        result.rotateDrawingAxis( 90, 45, 45 );
 		                        ImageDrawOval( result, 50, 50, 200, 100 );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                                    //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                      """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

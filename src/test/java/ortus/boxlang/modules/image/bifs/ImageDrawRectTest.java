@@ -38,7 +38,7 @@ public class ImageDrawRectTest {
 		instance.executeSource( """
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          ImageDrawRect( result, 20, 20, 50, 50 );
-		                        ImageWrite( result, "src/test/resources/logo-test.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-test.png" );
 		                                                            """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
@@ -51,7 +51,7 @@ public class ImageDrawRectTest {
 		                                                                     result = ImageRead( "src/test/resources/logo.png" );
 		                        ImageSetDrawingColor( result, "green" );
 		                                                   ImageDrawRect( result, 20, 20, 50, 50, true );
-		                                 ImageWrite( result, "src/test/resources/logo-test.png" );
+		                                 ImageWrite( result, "src/test/resources/generated/logo-test.png" );
 		                                                                     """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
@@ -64,7 +64,7 @@ public class ImageDrawRectTest {
 		                                                                           result = ImageRead( "src/test/resources/logo.png" );
 		                        result.setDrawingColor( "magenta" );
 		                                                         result.drawRect( 20, 20, 50, 50, true );
-		                                       ImageWrite( result, "src/test/resources/logo-test-member.png" );
+		                                       ImageWrite( result, "src/test/resources/generated/logo-test-member.png" );
 		                                                                           """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );

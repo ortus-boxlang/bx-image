@@ -16,106 +16,83 @@
 
 <p>&nbsp;</p>
 
-This template can be used to create Ortus based BoxLang Modules.  To use, just click the `Use this Template` button in the github repository: https://github.com/boxlang-modules/module-template and run the setup task from where you cloned it.
+This module provides image manipulation functionality. This module is part of the [BoxLang](https://boxlang.io/) project.
 
-```bash
-box task run taskFile=src/build/SetupTemplate
+## BIFs
+
+This module contributes the following BIFs:
+
+* [GetReadableImageFormats](https://cfdocs.org/GetReadableImageFormats)
+* [GetWriteableImageFormats](https://cfdocs.org/GetWriteableImageFormats)
+* [ImageAddBorder](https://cfdocs.org/ImageAddBorder)
+* [ImageBlur](https://cfdocs.org/ImageBlur)
+* [ImageClearRect](https://cfdocs.org/ImageClearRect)
+* [ImageCopy](https://cfdocs.org/ImageCopy)
+* [ImageCrop](https://cfdocs.org/ImageCrop)
+* [ImageDrawArc](https://cfdocs.org/ImageDrawArc)
+* [ImageDrawBeveledRect](https://cfdocs.org/ImageDrawBeveledRect)
+* [ImageDrawCubicCurve](https://cfdocs.org/ImageDrawCubicCurve)
+* [ImageDrawLine](https://cfdocs.org/ImageDrawLine)
+* [ImageDrawLines](https://cfdocs.org/ImageDrawLines)
+* [ImageDrawOval](https://cfdocs.org/ImageDrawOval)
+* [ImageDrawPoint](https://cfdocs.org/ImageDrawPoint)
+* [ImageDrawQuadraticCurve](https://cfdocs.org/ImageDrawQuadraticCurve)
+* [ImageDrawRect](https://cfdocs.org/ImageDrawRect)
+* [ImageDrawRoundRect](https://cfdocs.org/ImageDrawRoundRect)
+* [ImageDrawText](https://cfdocs.org/ImageDrawText)
+* [ImageFlip](https://cfdocs.org/ImageFlip)
+* [ImageGetBlob](https://cfdocs.org/ImageGetBlob)
+* [ImageGetBufferedImage](https://cfdocs.org/ImageGetBufferedImage)
+* [ImageGetExifMetaData](https://cfdocs.org/ImageGetExifMetaData)
+* [ImageGetExifTag](https://cfdocs.org/ImageGetExifTag)
+* [ImageGetHeight](https://cfdocs.org/ImageGetHeight)
+* [ImageGetIPTCMetadata](https://cfdocs.org/ImageGetIPTCMetadata)
+* [ImageGetIPTCTag](https://cfdocs.org/ImageGetIPTCTag)
+* [ImageGetWidth](https://cfdocs.org/ImageGetWidth)
+* [ImageGrayScale](https://cfdocs.org/ImageGrayScale) - also aliased as [`ImageGreyScale()`](https://cfdocs.org/ImageGrayScale) for you brits
+* [ImageInfo](https://cfdocs.org/ImageInfo)
+* [ImageNegative](https://cfdocs.org/ImageNegative)
+* [ImageNew](https://cfdocs.org/ImageNew)
+* [ImageOverlay](https://cfdocs.org/ImageOverlay)
+* [ImagePaste](https://cfdocs.org/ImagePaste) - aliased as [`imagePaste()`](https://cfdocs.org/imagePaste)
+* [ImageRead](https://cfdocs.org/ImageRead)
+* [ImageReadBase64](https://cfdocs.org/ImageReadBase64)
+* [ImageResize](https://cfdocs.org/ImageResize)
+* [ImageRotate](https://cfdocs.org/ImageRotate)
+* [ImageRotateDrawingAxis](https://cfdocs.org/ImageRotateDrawingAxis)
+* [ImageScaleToFit](https://cfdocs.org/ImageScaleToFit)
+* [ImageSetAntiAliasing](https://cfdocs.org/ImageSetAntiAliasing)
+* [ImageSetBackgroundColor](https://cfdocs.org/ImageSetBackgroundColor)
+* [ImageSetDrawingColor](https://cfdocs.org/ImageSetDrawingColor)
+* [ImageSetDrawingStroke](https://cfdocs.org/ImageSetDrawingStroke)
+* [ImageSetDrawingTransparency](https://cfdocs.org/ImageSetDrawingTransparency)
+* [ImageSharpen](https://cfdocs.org/ImageSharpen)
+* [ImageShear](https://cfdocs.org/ImageShear)
+* [ImageShearDrawingAxis](https://cfdocs.org/ImageShearDrawingAxis)
+* [ImageTranslate](https://cfdocs.org/ImageTranslate)
+* [ImageTranslateDrawingAxis](https://cfdocs.org/ImageTranslateDrawingAxis)
+* [ImageWrite](https://cfdocs.org/ImageWrite)
+* [ImageWriteBase64](https://cfdocs.org/ImageWriteBase64)
+* [IsImage](https://cfdocs.org/IsImage)
+* [IsImageFile](https://cfdocs.org/IsImageFile)
+
+Most of these BIFs are also implemented as member functions on the `BoxImage` type, so `imageGrayScale( myImage )` can also be written as `myImage.grayScale()`.
+
+## Component
+
+This module contains no BoxLang Components.
+
+## Examples
+
+Blur, crop, and grayscale a png image before saving it back to disk:
+
+```js
+var updatedLogo = ImageRead( "src/test/resources/logo.png" )
+    .blur( 5 )
+    .crop( x = 50, y = 50, width = 150, height = 100 )
+    .grayScale();
+imageWrite( updatedLogo, "src/test/resources/logoNew.png" );
 ```
-
-The `SetupTemplate` task will ask you for your module name, id and description and configure the template for you! Enjoy!
-
-## Directory Structure
-
-Here is a brief overview of the directory structure:
-
-* `.github/workflows` - These are the github actions to test and build the module via CI
-* `build` - This is a temporary non-sourced folder that contains the build assets for the module that gradle produces
-* `gradle` - The gradle wrapper and configuration
-* `src` - Where your module source code lives
-* `.cfformat.json` - A CFFormat using the Ortus Standards
-* `.editorconfig` - Smooth consistency between editors
-* `.gitattributes` - Git attributes
-* `.gitignore` - Basic ignores. Modify as needed.
-* `.markdownlint.json` - A linting file for markdown docs
-* `.ortus-java-style.xml` - Ortus Java Style for IntelliJ, VScode, Eclipse.
-* `box.json` - The box.json for your module used to publish to ForgeBox
-* `build.gradle` - The gradle build file for the module
-* `changelog.md` - A nice changelog tracking file
-* `CONTRIBUTING.md` - A contribution guideline
-* `gradlew` - The gradle wrapper
-* `gradlew.bat` - The gradle wrapper for windows
-* `ModuleConfig.cfc` - Your module's configuration. Modify as needed.
-* `readme.md` - Your module's readme. Modify as needed.
-* `settings.gradle` - The gradle settings file
-
-Here is a brief overview of the source directory structure:
-
-* `build` - Build scripts and assets
-* `main` - The main module source code
-  * `bx` - The BoxLang source code
-  * `ModuleConfig.bx` - The BoxLang module configuration
-    * `bifs` - BoxLang built-in functions
-    * `components` - BoxLang components
-    * `config` - BoxLang configuration, schedulers, etc.
-    * `interceptors` - BoxLang interceptors
-    * `libs` - Java libraries to use that are NOT managed by gradle
-    * `models` - BoxLang models
-  * `java` - Java source code
-  * `resources` - Resources for the module placed in final jar
-* `test`
-  * `bx` - The BoxLang test code
-  * `java` - Java test code
-  * `resources` - Resources for testing
-    * `libs` - BoxLang binary goes here for now.
-
-## Project Properties
-
-The project name is defined in the `settings.gradle` file.  You can change it there.
-The project version, BoxLang Version and JDK version is defined in the `build.gradle` file.  You can change it there.
-
-## Gradle Tasks
-
-Before you get started, you need to run the `downloadBoxLang` task in order to download the latest BoxLang binary until we publish to Maven.
-
-```bash
-gradle downloadBoxLang
-```
-
-This will store the binary under `/src/test/resources/libs` for you to use in your tests and compiler. Here are some basic tasks
-
-
-| Task                | Description                                                                                                        	|
-|---------------------|---------------------------------------------------------------------------------------------------------------------|
-| `build`             | The default lifecycle task that triggers the build process, including tasks like `clean`, `assemble`, and others. 	|
-| `clean`             | Deletes the `build` folders. It helps ensure a clean build by removing any previously generated artifacts.			|
-| `compileJava`       | Compiles Java source code files located in the `src/main/java` directory											|
-| `compileTestJava`   | Compiles Java test source code files located in the `src/test/java` directory										|
-| `dependencyUpdates` | Checks for updated versions of all dependencies															 			|
-| `downloadBoxLang`   | Downloads the latest BoxLang binary for testing																		|
-| `jar`               | Packages your project's compiled classes and resources into a JAR file `build/libs` folder							|
-| `javadoc`           | Generates the Javadocs for your project and places them in the `build/docs/javadoc` folder							|
-| `serviceLoader`     | Generates the ServiceLoader file for your project																	|
-| `spotlessApply`     | Runs the Spotless plugin to format the code																			|
-| `spotlessCheck`     | Runs the Spotless plugin to check the formatting of the code														|
-| `tasks`			  | Show all the available tasks in the project																			|
-| `test`              | Executes the unit tests in your project and produces the reports in the `build/reports/tests` folder				|
-
-## Tests
-
-Please use the `src/test` folder for your unit tests.  You can either test using TestBox o JUnit if it's Java.
-
-## Github Actions Automation
-
-The github actions will clone, test, package, deploy your module to ForgeBox and the Ortus S3 accounts for API Docs and Artifacts.  So please make sure the following environment variables are set in your repository.
-
-> Please note that most of them are already defined at the org level
-
-* `FORGEBOX_TOKEN` - The Ortus ForgeBox API Token
-* `AWS_ACCESS_KEY` - The travis user S3 account
-* `AWS_ACCESS_SECRET` - The travis secret S3
-
-> Please contact the admins in the `#infrastructure` channel for these credentials if needed
-
 
 ## Ortus Sponsors
 

@@ -45,11 +45,11 @@ public class ImageTranslateDrawingAxisTest {
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          ImageTranslateDrawingAxis( result, 60, 100 );
 		                                          ImageDrawRect( result, 0, 0, 100, 100, true );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                                           //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                            """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -63,11 +63,11 @@ public class ImageTranslateDrawingAxisTest {
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          result.translateDrawingAxis( 60, 100 );
 		                                          ImageDrawRect( result, 0, 0, 100, 100, true );
-		                        ImageWrite( result, "src/test/resources/%s" );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
 		                                          //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                            """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

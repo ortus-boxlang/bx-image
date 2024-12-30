@@ -38,7 +38,7 @@ public class ImageAddBorderTest {
 		instance.executeSource( """
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          ImageAddBorder( result, 20, "yellow" );
-		                        ImageWrite( result, "src/test/resources/logo-add-border.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-add-border.png" );
 		                                                            """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
@@ -51,7 +51,7 @@ public class ImageAddBorderTest {
 		                                                                           result = ImageRead( "src/test/resources/logo.png" );
 		                        result.setDrawingColor( "magenta" );
 		                                                         result.drawRect( 20, 20, 50, 50, true );
-		                                       ImageWrite( result, "src/test/resources/logo-test-member.png" );
+		                                       ImageWrite( result, "src/test/resources/generated/logo-test-member.png" );
 		                                                                           """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );

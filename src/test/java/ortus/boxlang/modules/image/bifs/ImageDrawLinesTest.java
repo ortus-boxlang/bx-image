@@ -54,11 +54,11 @@ public class ImageDrawLinesTest {
 		                        y[3] = "100";
 		                        y[4] = "200";
 		                                     ImageDrawLines( result, x, y );
-		                                     ImageWrite( result, "src/test/resources/%s" );
+		                                     ImageWrite( result, "src/test/resources/generated/%s" );
 		                                     //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                       """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -81,11 +81,11 @@ public class ImageDrawLinesTest {
 		                        y[3] = "100";
 		                        y[4] = "200";
 		                                     ImageDrawLines( result, x, y, true );
-		                                     ImageWrite( result, "src/test/resources/%s" );
+		                                     ImageWrite( result, "src/test/resources/generated/%s" );
 		                                     //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                       """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -108,11 +108,11 @@ public class ImageDrawLinesTest {
 		                        y[3] = "100";
 		                        y[4] = "200";
 		                                     ImageDrawLines( result, x, y, true, true );
-		                                     ImageWrite( result, "src/test/resources/%s" );
+		                                     ImageWrite( result, "src/test/resources/generated/%s" );
 		                                     //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                       """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -135,11 +135,11 @@ public class ImageDrawLinesTest {
 		                        y[3] = "100";
 		                        y[4] = "200";
 		                                     result.drawLines( x, y, true, true );
-		                                     ImageWrite( result, "src/test/resources/%s" );
+		                                     ImageWrite( result, "src/test/resources/generated/%s" );
 		                                     //ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                                       """.formatted( fileName, fileName ), context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/%s".formatted( fileName ) ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

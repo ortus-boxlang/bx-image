@@ -43,10 +43,10 @@ public class ImageCopyTest {
 		instance.executeSource( """
 		                                          theSource = ImageRead( "src/test/resources/logo.png" );
 		                        result = ImageCopy( theSource, 0, 0, 100, 100 );
-		                        ImageWrite( result, "src/test/resources/logo-copy-100.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-copy-100.png" );
 		                                          """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-copy-100.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-copy-100.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-copy-100.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -58,10 +58,10 @@ public class ImageCopyTest {
 		instance.executeSource( """
 		                                          theSource = ImageRead( "src/test/resources/logo.png" );
 		                        result = ImageCopy( theSource, 0, 0, 100, 100, 15, 15 );
-		                        ImageWrite( result, "src/test/resources/logo-copy-100-15.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-copy-100-15.png" );
 		                                          """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-copy-100-15.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-copy-100-15.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-copy-100-15.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
@@ -73,10 +73,10 @@ public class ImageCopyTest {
 		instance.executeSource( """
 		                                          theSource = ImageRead( "src/test/resources/logo.png" );
 		                        result = theSource.copy( 0, 0, 100, 100, 15, 15 );
-		                        ImageWrite( result, "src/test/resources/logo-copy-100-15.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-copy-100-15.png" );
 		                                          """, context );
 
-		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/logo-copy-100-15.png" ) );
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-copy-100-15.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-copy-100-15.png" ) );
 
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();

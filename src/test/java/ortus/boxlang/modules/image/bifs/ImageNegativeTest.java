@@ -38,7 +38,7 @@ public class ImageNegativeTest {
 		instance.executeSource( """
 		                                                            result = ImageRead( "src/test/resources/logo.png" );
 		                                          ImageNegative( result );
-		                        ImageWrite( result, "src/test/resources/logo-negative.png" );
+		                        ImageWrite( result, "src/test/resources/generated/logo-negative.png" );
 		                                                            """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
@@ -51,7 +51,7 @@ public class ImageNegativeTest {
 		                                                                           result = ImageRead( "src/test/resources/logo.png" );
 		                        result.setDrawingColor( "magenta" );
 		                                                         result.drawRect( 20, 20, 50, 50, true );
-		                                       ImageWrite( result, "src/test/resources/logo-test-member.png" );
+		                                       ImageWrite( result, "src/test/resources/generated/logo-test-member.png" );
 		                                                                           """, context );
 
 		assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
