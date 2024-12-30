@@ -42,6 +42,16 @@ public class IsImageFileTest {
 		assertThat( variables.get( result ) ).isEqualTo( true );
 	}
 
+	@DisplayName( "It should true if the file is an image and the path has backslashes" )
+	@Test
+	public void testTrueIfImageWithBackslashes() {
+		instance.executeSource( """
+		                        result = isImageFile( "src\\test\\resources\\logo.png" );
+		                        """, context );
+
+		assertThat( variables.get( result ) ).isEqualTo( true );
+	}
+
 	@DisplayName( "It should return false for anything other than an image file" )
 	@Test
 	public void testFalseIfNotImage() {
