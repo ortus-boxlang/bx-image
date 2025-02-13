@@ -28,8 +28,8 @@ public class ImageDrawLines extends BIF {
 		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
 		    new Argument( true, "array", ImageKeys.xCoords, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
 		    new Argument( true, "array", ImageKeys.yCoords, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( false, "numeric", ImageKeys.isPolygon, false ),
-		    new Argument( false, "numeric", ImageKeys.filled, false )
+		    new Argument( false, "boolean", ImageKeys.isPolygon, false ),
+		    new Argument( false, "boolean", ImageKeys.filled, false )
 		};
 	}
 
