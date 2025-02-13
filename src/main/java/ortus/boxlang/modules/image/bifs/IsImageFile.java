@@ -8,9 +8,6 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.context.IBoxContext;
@@ -23,8 +20,6 @@ import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
 public class IsImageFile extends BIF {
-
-	protected static final Logger logger = LoggerFactory.getLogger( IsImageFile.class );
 
 	/**
 	 * Constructor
