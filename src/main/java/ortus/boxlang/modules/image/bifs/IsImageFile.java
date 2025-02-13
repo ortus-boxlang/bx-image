@@ -1,9 +1,9 @@
 package ortus.boxlang.modules.image.bifs;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -56,7 +56,8 @@ public class IsImageFile extends BIF {
 		}
 
 		try {
-			return ImageIO.read( new File( passedInPath ) ) != null;
+			Path p = Path.of( passedInPath );
+			return ImageIO.read( p.toFile() ) != null;
 		} catch ( IOException e ) {
 			return false;
 		}
