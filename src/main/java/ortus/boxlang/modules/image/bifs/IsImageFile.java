@@ -3,7 +3,6 @@ package ortus.boxlang.modules.image.bifs;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -16,6 +15,8 @@ import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
+import ortus.boxlang.runtime.util.ResolvedFilePath;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
@@ -56,8 +57,9 @@ public class IsImageFile extends BIF {
 		}
 
 		try {
-			Path p = Path.of( passedInPath );
-			return ImageIO.read( p.toFile() ) != null;
+			ResolvedFilePath resolved = FileSystemUtil.expandPath( context, passedInPath );
+
+			return ImageIO.read( resolved.absolutePath().toFile() ) != null;
 		} catch ( IOException e ) {
 			return false;
 		}
