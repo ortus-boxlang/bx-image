@@ -1,15 +1,11 @@
 package ortus.boxlang.modules.image.bifs;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
@@ -19,12 +15,12 @@ import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
+import ortus.boxlang.runtime.util.ResolvedFilePath;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
 public class IsImageFile extends BIF {
-
-	protected static final Logger logger = LoggerFactory.getLogger( IsImageFile.class );
 
 	/**
 	 * Constructor
@@ -61,7 +57,9 @@ public class IsImageFile extends BIF {
 		}
 
 		try {
-			return ImageIO.read( new File( passedInPath ) ) != null;
+			ResolvedFilePath resolved = FileSystemUtil.expandPath( context, passedInPath );
+
+			return ImageIO.read( resolved.absolutePath().toFile() ) != null;
 		} catch ( IOException e ) {
 			return false;
 		}
