@@ -1,0 +1,74 @@
+package ortus.boxlang.modules.image.components;
+
+import static com.google.common.truth.Truth.assertThat;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import ortus.boxlang.compiler.parser.BoxSourceType;
+import ortus.boxlang.runtime.BoxRuntime;
+import ortus.boxlang.runtime.context.IBoxContext;
+import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
+import ortus.boxlang.runtime.scopes.IScope;
+import ortus.boxlang.runtime.scopes.Key;
+import ortus.boxlang.runtime.scopes.VariablesScope;
+
+public class ImageTest {
+
+	static BoxRuntime	instance;
+	IBoxContext			context;
+	IScope				variables;
+	static Key			result	= new Key( "result" );
+
+	@BeforeAll
+	public static void setUp() {
+		instance = BoxRuntime.getInstance( true );
+	}
+
+	@BeforeEach
+	public void setupEach() {
+		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
+		variables	= context.getScopeNearby( VariablesScope.name );
+	}
+
+	@DisplayName( "It should add a border" )
+	@Test
+	public void testDrawBeveledRect() throws IOException {
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="border" source="src/test/resources/logo.png" thickness=5 color="red" name="theImage" />
+			<bx:image action="write" source="#theImage#" destination="src/test/resources/generated/logo-component-border.png" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-component-border.png" ) );
+		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-component-border.png" ) );
+
+		// assertThat( true ).isTrue();
+		assertThat( Arrays.equals( actual, expected ) ).isTrue();
+	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testResize() throws IOException {
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="resize" source="src/test/resources/logo.png" width="1024" height="385" name="theImage" />
+			<bx:image action="write" source="#theImage#" destination="src/test/resources/generated/logo-component-resize.png" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-component-resize.png" ) );
+		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-component-resize.png" ) );
+
+		// assertThat( true ).isTrue();
+		assertThat( Arrays.equals( actual, expected ) ).isTrue();
+	}
+}

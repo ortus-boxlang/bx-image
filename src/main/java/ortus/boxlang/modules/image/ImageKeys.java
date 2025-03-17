@@ -60,4 +60,17 @@ public class ImageKeys {
 	public static final Key	gain				= Key.of( "gain" );
 	public static final Key	amount				= Key.of( "amount" );
 	public static final Key	direction			= Key.of( "direction" );
+
+	public static final Key	action				= Key.of( "action" );
+	public static final Key	destination			= Key.of( "destination" );
+	public static final Key	difficulty			= Key.of( "difficulty" );
+	public static final Key	fontSize			= Key.of( "fontSize" );
+	public static final Key	format				= Key.of( "format" );
+	public static final Key	isBase64			= Key.of( "isBase64" );
+	public static final Key	overwrite			= Key.of( "overwrite" );
+	public static final Key	quality				= Key.of( "quality" );
+	public static final Key	structName			= Key.of( "structName" );
+	public static final Key	text				= Key.of( "text" );
+	public static final Key	fonts				= Key.of( "fonts" );
+	public static final Key	source				= Key.of( "source" );
 }

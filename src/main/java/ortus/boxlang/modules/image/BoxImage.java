@@ -533,7 +533,7 @@ public class BoxImage {
 
 		resizedGraphics.setRenderingHint( RenderingHints.KEY_INTERPOLATION, EnumConverterUtil.getInterpolation( interpolcation ) );
 
-		resizedGraphics.drawImage( resizedImage, 0, 0, width, height, null );
+		resizedGraphics.drawImage( this.image.getBufferedImage(), 0, 0, width, height, null );
 		resizedGraphics.dispose();
 
 		this.image = new Image( resizedImage );
