@@ -25,11 +25,13 @@ import ortus.boxlang.runtime.components.Attribute;
 import ortus.boxlang.runtime.components.BoxComponent;
 import ortus.boxlang.runtime.components.Component;
 import ortus.boxlang.runtime.context.IBoxContext;
+import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
 import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
 import ortus.boxlang.runtime.dynamic.casters.StringCaster;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxComponent( allowsBody = false )
@@ -41,7 +43,17 @@ public class Image extends Component {
 	public Image() {
 		super();
 		declaredAttributes = new Attribute[] {
-		    new Attribute( ImageKeys.action, "string", Set.of( Validator.REQUIRED ) ),
+		    new Attribute( ImageKeys.action, "string", Set.of( Validator.REQUIRED, Validator.valueOneOf(
+		        "border",
+		        "captcha",
+		        "convert",
+		        "info",
+		        "read",
+		        "resize",
+		        "rotate",
+		        "write",
+		        "writeToBrowser"
+		    ) ) ),
 		    new Attribute( ImageKeys.angle, "string" ),
 		    new Attribute( ImageKeys.color, "string" ),
 		    new Attribute( ImageKeys.destination, "string" ),
@@ -51,7 +63,7 @@ public class Image extends Component {
 		    new Attribute( ImageKeys.height, "numeric" ),
 		    new Attribute( ImageKeys.isBase64, "string" ),
 		    new Attribute( ImageKeys.name, "string" ),
-		    new Attribute( ImageKeys.overwrite, "string" ),
+		    new Attribute( ImageKeys.overwrite, "boolean", false ),
 		    new Attribute( ImageKeys.quality, "string" ),
 		    new Attribute( ImageKeys.source, "any" ),
 		    new Attribute( ImageKeys.structName, "string" ),
@@ -96,6 +108,15 @@ public class Image extends Component {
 				break;
 			case "convert" :
 				// Handle convert action
+				image = getImageFromContext( context, attributes );
+				String destination = StringCaster.cast( attributes.get( Key.destination ) );
+				boolean overwrite = BooleanCaster.cast( attributes.get( Key.overwrite ) );
+
+				if ( !overwrite && FileSystemUtil.exists( destination ) ) {
+					throw new BoxRuntimeException( String.format( "Unable to write image, destination exists: {}", destination ) );
+				}
+
+				image.write( destination );
 				break;
 			case "info" :
 				// Handle info action

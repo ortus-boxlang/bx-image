@@ -1,6 +1,7 @@
 package ortus.boxlang.modules.image.components;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,6 +20,8 @@ import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
 import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
+import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 
 public class ImageTest {
 
@@ -70,5 +73,59 @@ public class ImageTest {
 
 		// assertThat( true ).isTrue();
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
+	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testConvert() throws IOException {
+		try {
+			FileSystemUtil.deleteFile( "src/test/resources/generated/logo.jpg" );
+		} catch ( Exception e ) {
+			// pass
+		}
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="convert" source="src/test/resources/logo.png" destination="src/test/resources/generated/logo.jpg" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( FileSystemUtil.exists( "src/test/resources/generated/logo.jpg" ) ).isTrue();
+	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testConvertWithOverwrite() throws IOException {
+		try {
+			FileSystemUtil.deleteFile( "src/test/resources/generated/logo-overwrite.jpg" );
+		} catch ( Exception e ) {
+			// pass
+		}
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="convert" source="src/test/resources/logo.png" destination="src/test/resources/generated/logo-overwrite.jpg" />
+			<bx:image action="convert" source="src/test/resources/logo.png" destination="src/test/resources/generated/logo-overwrite.jpg" overwrite=true />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( FileSystemUtil.exists( "src/test/resources/generated/logo-overwrite.jpg" ) ).isTrue();
+	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testConvertWithNoOverwrite() throws IOException {
+		try {
+			FileSystemUtil.deleteFile( "src/test/resources/generated/logo-overwrite-fail.jpg" );
+		} catch ( Exception e ) {
+			// pass
+		}
+
+		assertThrows( BoxRuntimeException.class, () -> {
+			// @formatter:off
+			instance.executeSource( """
+				<bx:image action="convert" source="src/test/resources/logo.png" destination="src/test/resources/generated/logo-overwrite-fail.jpg" />
+				<bx:image action="convert" source="src/test/resources/logo.png" destination="src/test/resources/generated/logo-overwrite-fail.jpg" />
+			""", context, BoxSourceType.BOXTEMPLATE );
+			// @formatter:on
+		} );
 	}
 }
