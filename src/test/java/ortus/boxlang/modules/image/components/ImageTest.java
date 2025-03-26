@@ -20,6 +20,7 @@ import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
 import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
+import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 import ortus.boxlang.runtime.util.FileSystemUtil;
 
@@ -127,5 +128,19 @@ public class ImageTest {
 			""", context, BoxSourceType.BOXTEMPLATE );
 			// @formatter:on
 		} );
+	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testInfo() throws IOException {
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="info" source="src/test/resources/logo.png" structName="imageInfo" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		IStruct info = variables.getAsStruct( Key.of( "imageInfo" ) );
+
+		assertThat( info ).isNotNull();
 	}
 }

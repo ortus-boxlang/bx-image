@@ -120,6 +120,14 @@ public class Image extends Component {
 				break;
 			case "info" :
 				// Handle info action
+				image = getImageFromContext( context, attributes );
+				IStruct info = image.getExifMetaData();
+
+				StringCaster.attempt( attributes.get( ImageKeys.structName ) )
+				    .ifPresent( ( n ) -> {
+					    context.getDefaultAssignmentScope().assign( context, Key.of( n ), info );
+				    } );
+
 				break;
 			case "read" :
 				// Handle read action
