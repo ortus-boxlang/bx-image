@@ -192,6 +192,12 @@ public class Image extends Component {
 
 		if ( source instanceof String pathOrURL ) {
 			try {
+				boolean isBase64 = BooleanCaster.cast( attributes.get( ImageKeys.isBase64 ) );
+
+				if ( isBase64 ) {
+					return BoxImage.fromBase64( pathOrURL );
+				}
+
 				return new BoxImage( pathOrURL );
 			} catch ( Exception e ) {
 				throw new BoxRuntimeException( String.format( "Unable to read image from: %s", pathOrURL ), e );
