@@ -45,7 +45,7 @@ public class ImageResizeTest {
 		                                          result = ImageRead( "src/test/resources/logo.png" );
 		                        imageResize( result, 512, 512 );
 		                        ImageWrite( result, "src/test/resources/generated/%s" );
-		                        ImageWrite( result, "src/test/resources/test-images/%s" );
+		                        // ImageWrite( result, "src/test/resources/test-images/%s" );
 		                                          """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );

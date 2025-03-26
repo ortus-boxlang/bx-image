@@ -54,9 +54,10 @@ public class ImageScaleToFitTest {
 	@Test
 	public void testScaleToFitMemberInvocation() throws IOException {
 		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        result.scaleToFit( 100, "" );
-		                                          """, context );
+		                                                            result = ImageRead( "src/test/resources/logo.png" );
+		                                          result.scaleToFit( 100, "" );
+		                        imageWrite( result,"src/test/resources/testimage.png")
+		                                                            """, context );
 
 		assertThat( variables.get( result ) ).isInstanceOf( BoxImage.class );
 		BoxImage res = ( BoxImage ) variables.get( result );
