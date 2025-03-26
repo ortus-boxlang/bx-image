@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import ortus.boxlang.compiler.parser.BoxSourceType;
+import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.BoxRuntime;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
@@ -156,7 +157,18 @@ public class ImageTest {
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-component-rotated.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-component-rotated.png" ) );
 
-		// assertThat( true ).isTrue();
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
+	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testRead() throws IOException {
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="read" source="src/test/resources/logo.png" name="theImage" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( variables.get( "theImage" ) ).isInstanceOf( BoxImage.class );
 	}
 }

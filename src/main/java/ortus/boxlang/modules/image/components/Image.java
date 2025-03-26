@@ -91,10 +91,8 @@ public class Image extends Component {
 	 *
 	 */
 	public BodyResult _invoke( IBoxContext context, IStruct attributes, ComponentBody body, IStruct executionState ) {
-		String		action		= attributes.getAsString( ImageKeys.action );
-		BoxImage	image		= null;
-		String		destination	= null;
-		boolean		overwrite	= false;
+		String		action	= attributes.getAsString( ImageKeys.action );
+		BoxImage	image	= null;
 
 		switch ( action ) {
 			case "border" :
@@ -128,6 +126,8 @@ public class Image extends Component {
 				break;
 			case "read" :
 				// Handle read action
+				image = getImageFromContext( context, attributes );
+				putImageInContext( image, context, attributes );
 				break;
 			case "resize" :
 				// Handle resize action
