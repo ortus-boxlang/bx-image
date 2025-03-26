@@ -91,8 +91,11 @@ public class Image extends Component {
 	 *
 	 */
 	public BodyResult _invoke( IBoxContext context, IStruct attributes, ComponentBody body, IStruct executionState ) {
-		String		action	= attributes.getAsString( ImageKeys.action );
-		BoxImage	image	= null;
+		String		action		= attributes.getAsString( ImageKeys.action );
+		BoxImage	image		= null;
+		String		destination	= null;
+		boolean		overwrite	= false;
+
 		switch ( action ) {
 			case "border" :
 				image = getImageFromContext( context, attributes );
@@ -109,14 +112,8 @@ public class Image extends Component {
 			case "convert" :
 				// Handle convert action
 				image = getImageFromContext( context, attributes );
-				String destination = StringCaster.cast( attributes.get( Key.destination ) );
-				boolean overwrite = BooleanCaster.cast( attributes.get( Key.overwrite ) );
 
-				if ( !overwrite && FileSystemUtil.exists( destination ) ) {
-					throw new BoxRuntimeException( String.format( "Unable to write image, destination exists: {}", destination ) );
-				}
-
-				image.write( destination );
+				writeIfAble( image, attributes );
 				break;
 			case "info" :
 				// Handle info action
@@ -144,6 +141,13 @@ public class Image extends Component {
 				break;
 			case "rotate" :
 				// Handle rotate action
+				image = getImageFromContext( context, attributes );
+
+				int angle = IntegerCaster.cast( attributes.get( ImageKeys.angle ) );
+
+				image.rotate( angle );
+
+				writeIfAble( image, attributes );
 				break;
 			case "write" :
 				// Handle write action
@@ -159,6 +163,17 @@ public class Image extends Component {
 		}
 
 		return DEFAULT_RETURN;
+	}
+
+	private void writeIfAble( BoxImage image, IStruct attributes ) {
+		String	destination	= StringCaster.cast( attributes.get( Key.destination ) );
+		boolean	overwrite	= BooleanCaster.cast( attributes.get( Key.overwrite ) );
+
+		if ( !overwrite && FileSystemUtil.exists( destination ) ) {
+			throw new BoxRuntimeException( String.format( "Unable to write image, destination exists: {}", destination ) );
+		}
+
+		image.write( destination );
 	}
 
 	private void putImageInContext( BoxImage image, IBoxContext context, IStruct attributes ) {

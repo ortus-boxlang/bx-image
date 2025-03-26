@@ -143,4 +143,20 @@ public class ImageTest {
 
 		assertThat( info ).isNotNull();
 	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testRotate() throws IOException {
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="rotate" source="src/test/resources/logo.png" destination="src/test/resources/generated/logo-component-rotated.png" angle=45 overwrite=true />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-component-rotated.png" ) );
+		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-component-rotated.png" ) );
+
+		// assertThat( true ).isTrue();
+		assertThat( Arrays.equals( actual, expected ) ).isTrue();
+	}
 }
