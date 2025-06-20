@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* BL-1216 Fix ImageScaleToFit BIF
+* BL-1217 Fix invoking resize as a member function
+
 ## [1.1.0] - 2025-02-13
 
 ## [1.0.1] - 2024-12-30
