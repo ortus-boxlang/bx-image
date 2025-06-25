@@ -22,6 +22,7 @@ public class ImageKeys {
 	public static final Key	borderType			= Key.of( "borderType" );
 	public static final Key	filled				= Key.of( "filled" );
 	public static final Key	isPolygon			= Key.of( "isPolygon" );
+	public static final Key	image				= Key.of( "image" );
 	public static final Key	image1				= Key.of( "image1" );
 	public static final Key	image2				= Key.of( "image2" );
 	public static final Key	raised				= Key.of( "raised" );

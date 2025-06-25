@@ -171,4 +171,17 @@ public class ImageTest {
 
 		assertThat( variables.get( "theImage" ) ).isInstanceOf( BoxImage.class );
 	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testWriteToBrowser() throws IOException {
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="read" source="src/test/resources/logo.png" name="theImage" />
+			<bx:image action="writeToBrowser" name="theImage" source="src/test/resources/logo.png"/>
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( variables.get( "theImage" ) ).isInstanceOf( BoxImage.class );
+	}
 }

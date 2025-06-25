@@ -18,8 +18,10 @@
 package ortus.boxlang.modules.image.components;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import ortus.boxlang.modules.image.BoxImage;
+import ortus.boxlang.modules.image.ImageEvents;
 import ortus.boxlang.modules.image.ImageKeys;
 import ortus.boxlang.runtime.components.Attribute;
 import ortus.boxlang.runtime.components.BoxComponent;
@@ -30,6 +32,7 @@ import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
 import ortus.boxlang.runtime.dynamic.casters.StringCaster;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.IStruct;
+import ortus.boxlang.runtime.types.Struct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 import ortus.boxlang.runtime.util.FileSystemUtil;
 import ortus.boxlang.runtime.validation.Validator;
@@ -91,8 +94,9 @@ public class Image extends Component {
 	 *
 	 */
 	public BodyResult _invoke( IBoxContext context, IStruct attributes, ComponentBody body, IStruct executionState ) {
-		String		action	= attributes.getAsString( ImageKeys.action );
-		BoxImage	image	= null;
+		String		action		= attributes.getAsString( ImageKeys.action );
+		BoxImage	image		= null;
+		IStruct		eventData	= null;
 
 		switch ( action ) {
 			case "border" :
@@ -155,10 +159,30 @@ public class Image extends Component {
 				image.write( StringCaster.cast( attributes.get( ImageKeys.destination ) ) );
 				break;
 			case "writeToBrowser" :
-				// Handle writeToBrowser action
+
+				eventData = Struct.of(
+				    ImageKeys.image, getImageFromContext( context, attributes )
+				);
+
+				announce( ImageEvents.IMAGE_WRITE_TO_BROWSER, eventData );
 				break;
 			default :
-				// Handle unknown action
+				AtomicBoolean wasHandled = new AtomicBoolean( false );
+				Runnable handleAction = () -> {
+					wasHandled.set( true );
+				};
+
+				eventData = Struct.of(
+				    ImageKeys.image, getImageFromContext( context, attributes ),
+				    Key.of( "action" ), action,
+				    Key.of( "handleAction" ), handleAction
+				);
+
+				announce( ImageEvents.IMAGE_WRITE_TO_BROWSER, eventData );
+
+				if ( !wasHandled.get() ) {
+					throw new BoxRuntimeException( String.format( "Unknown action for Image component: %s", action ) );
+				}
 				break;
 		}
 
