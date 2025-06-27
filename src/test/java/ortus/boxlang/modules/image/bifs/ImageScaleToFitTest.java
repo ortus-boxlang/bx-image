@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.BoxRuntime;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
@@ -38,32 +37,34 @@ public class ImageScaleToFitTest {
 	@DisplayName( "It should resize an image and keep the aspect ratio" )
 	@Test
 	public void testScaleToFit() throws IOException {
+		// @formatter:off
 		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageScaleToFit( result, 100, "" );
-		                                          """, context );
+			result = ImageRead( "src/test/resources/logo.png" );
+			ImageScaleToFit( result, 100, "" );
+			width = result.getWidth();
+			height = result.getHeight();
+		""", context );
+		// @formatter:on
 
-		assertThat( variables.get( result ) ).isInstanceOf( BoxImage.class );
-		BoxImage res = ( BoxImage ) variables.get( result );
-
-		assertThat( res.getWidth() ).isEqualTo( 100 );
-		assertThat( res.getHeight() ).isEqualTo( 100 );
+		assertThat( variables.get( "width" ) ).isEqualTo( 100 );
+		assertThat( variables.get( "height" ) ).isEqualTo( 100 );
 	}
 
 	@DisplayName( "It should resize an image when called as a member function" )
 	@Test
 	public void testScaleToFitMemberInvocation() throws IOException {
+		// @formatter:off
 		instance.executeSource( """
-		                                                            result = ImageRead( "src/test/resources/logo.png" );
-		                                          result.scaleToFit( 100, "" );
-		                        imageWrite( result,"src/test/resources/testimage.png")
-		                                                            """, context );
+			result = ImageRead( "src/test/resources/logo.png" );
+			result.scaleToFit( 100, "" );
+			imageWrite( result,"src/test/resources/testimage.png")
+			width = result.getWidth();
+			height = result.getHeight();
+		""", context );
+		// @formatter:on
 
-		assertThat( variables.get( result ) ).isInstanceOf( BoxImage.class );
-		BoxImage res = ( BoxImage ) variables.get( result );
-
-		assertThat( res.getWidth() ).isEqualTo( 100 );
-		assertThat( res.getHeight() ).isEqualTo( 100 );
+		assertThat( variables.get( "width" ) ).isEqualTo( 100 );
+		assertThat( variables.get( "height" ) ).isEqualTo( 100 );
 	}
 
 }

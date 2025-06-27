@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import ortus.boxlang.compiler.parser.BoxSourceType;
 import ortus.boxlang.modules.image.BaseIntegrationTest;
-import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.BoxRuntime;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
@@ -167,10 +166,11 @@ public class ImageTest extends BaseIntegrationTest {
 		// @formatter:off
 		instance.executeSource( """
 			<bx:image action="read" source="src/test/resources/logo.png" name="theImage" />
+			<bx:set result = theImage.$bx.$class.name />
 		""", context, BoxSourceType.BOXTEMPLATE );
 		// @formatter:on
 
-		assertThat( variables.get( "theImage" ) ).isInstanceOf( BoxImage.class );
+		assertThat( variables.get( result ) ).isEqualTo( "ortus.boxlang.modules.image.BoxImage" );
 	}
 
 	@DisplayName( "It should resize the image" )
@@ -180,9 +180,10 @@ public class ImageTest extends BaseIntegrationTest {
 		instance.executeSource( """
 			<bx:image action="read" source="src/test/resources/logo.png" name="theImage" />
 			<bx:image action="writeToBrowser" name="theImage" source="src/test/resources/logo.png"/>
+			<bx:set result = theImage.$bx.$class.name />
 		""", context, BoxSourceType.BOXTEMPLATE );
 		// @formatter:on
 
-		assertThat( variables.get( "theImage" ) ).isInstanceOf( BoxImage.class );
+		assertThat( variables.get( result ) ).isEqualTo( "ortus.boxlang.modules.image.BoxImage" );
 	}
 }
