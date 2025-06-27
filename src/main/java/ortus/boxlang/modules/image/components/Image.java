@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.modules.image.ImageEvents;
 import ortus.boxlang.modules.image.ImageKeys;
+import ortus.boxlang.modules.image.services.ImageService;
 import ortus.boxlang.runtime.components.Attribute;
 import ortus.boxlang.runtime.components.BoxComponent;
 import ortus.boxlang.runtime.components.Component;
@@ -30,6 +31,7 @@ import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
 import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
 import ortus.boxlang.runtime.dynamic.casters.StringCaster;
+import ortus.boxlang.runtime.logging.BoxLangLogger;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.Struct;
@@ -40,12 +42,16 @@ import ortus.boxlang.runtime.validation.Validator;
 @BoxComponent( allowsBody = false )
 public class Image extends Component {
 
-	static Key	locationKey	= Key.of( "location" );
-	static Key	shoutKey	= Key.of( "shout" );
+	private ImageService	imageService	= ( ImageService ) runtime.getGlobalService( ImageKeys.imageService );
+
+	static Key				locationKey		= Key.of( "location" );
+	static Key				shoutKey		= Key.of( "shout" );
+
+	BoxLangLogger			logger;
 
 	public Image() {
 		super();
-		declaredAttributes = new Attribute[] {
+		declaredAttributes	= new Attribute[] {
 		    new Attribute( ImageKeys.action, "string", Set.of( Validator.REQUIRED, Validator.valueOneOf(
 		        "border",
 		        "captcha",
@@ -76,6 +82,8 @@ public class Image extends Component {
 		    new Attribute( ImageKeys.fonts, "string" ),
 		    new Attribute( ImageKeys.interpolation, "string" )
 		};
+
+		logger				= imageService.getLogger();
 	}
 
 	/**
@@ -160,11 +168,8 @@ public class Image extends Component {
 				break;
 			case "writeToBrowser" :
 
-				eventData = Struct.of(
-				    ImageKeys.image, getImageFromContext( context, attributes )
-				);
+				imageService.writeToBrowser( context, getImageFromContext( context, attributes ), attributes );
 
-				announce( ImageEvents.IMAGE_WRITE_TO_BROWSER, eventData );
 				break;
 			default :
 				AtomicBoolean wasHandled = new AtomicBoolean( false );
@@ -222,7 +227,16 @@ public class Image extends Component {
 					return BoxImage.fromBase64( pathOrURL );
 				}
 
-				return new BoxImage( pathOrURL );
+				// Check if it's a local file path or a URL
+				if ( pathOrURL.startsWith( "http://" ) || pathOrURL.startsWith( "https://" ) || pathOrURL.startsWith( "file://" ) ) {
+					logger.info( "Image URL detected: {}", pathOrURL );
+					// It's a URL, pass it directly
+					return new BoxImage( pathOrURL );
+				} else {
+					logger.info( "Assuming local file path for image: {}", pathOrURL );
+					// It's a local file path, convert to proper file URI
+					return new BoxImage( FileSystemUtil.createFileUri( pathOrURL ) );
+				}
 			} catch ( Exception e ) {
 				throw new BoxRuntimeException( String.format( "Unable to read image from: %s", pathOrURL ), e );
 			}
