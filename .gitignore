@@ -17,5 +17,6 @@ src/test/resources/logo-paste*
 src/test/resources/logo-negative*
 src/test/resources/new-image*
 src/test/resources/libs/*
+src/test/resources/testimage*
 !src/test/resources/libs/.gitkeep
 grapher/*
