@@ -33,7 +33,9 @@ public class ImageReadBase64 extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		String imagePath = FileSystemUtil.expandPath( context, arguments.getAsString( Key.string ) ).absolutePath().toString();
+		String	providedPath	= arguments.getAsString( Key.string );
+		String	imagePath		= providedPath.substring( 0, 4 ).equalsIgnoreCase( "http" ) ? providedPath
+		    : FileSystemUtil.expandPath( context, providedPath ).absolutePath().toString();
 		try {
 			return BoxImage.fromBase64( imagePath );
 		} catch ( Exception e ) {
