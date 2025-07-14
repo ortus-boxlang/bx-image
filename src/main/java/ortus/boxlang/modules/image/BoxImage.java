@@ -67,6 +67,7 @@ import ortus.boxlang.runtime.types.Array;
 import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.Struct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 
 public class BoxImage {
 
@@ -774,6 +775,6 @@ public class BoxImage {
 
 		}
 
-		return new FileInputStream( imageInput.toString() );
+		return new FileInputStream( FileSystemUtil.createFileUri( imageInput.toString() ).getPath() );
 	}
 }

@@ -1,0 +1,9 @@
+<bx:output>
+    <bx:script>
+        imageService = getBoxRuntime().getGlobalService( "imageService" )
+
+        image = imageService.getCachedImage( getBoxContext(), url.id );
+
+        bx:content type="image/png" variable="#image.getBytes()#";
+    </bx:script>
+</bx:output>

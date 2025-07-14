@@ -14,7 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import ortus.boxlang.compiler.parser.BoxSourceType;
-import ortus.boxlang.modules.image.BoxImage;
+import ortus.boxlang.modules.image.BaseIntegrationTest;
 import ortus.boxlang.runtime.BoxRuntime;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
@@ -25,7 +25,7 @@ import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 import ortus.boxlang.runtime.util.FileSystemUtil;
 
-public class ImageTest {
+public class ImageTest extends BaseIntegrationTest {
 
 	static BoxRuntime	instance;
 	IBoxContext			context;
@@ -166,9 +166,24 @@ public class ImageTest {
 		// @formatter:off
 		instance.executeSource( """
 			<bx:image action="read" source="src/test/resources/logo.png" name="theImage" />
+			<bx:set result = theImage.$bx.$class.name />
 		""", context, BoxSourceType.BOXTEMPLATE );
 		// @formatter:on
 
-		assertThat( variables.get( "theImage" ) ).isInstanceOf( BoxImage.class );
+		assertThat( variables.get( result ) ).isEqualTo( "ortus.boxlang.modules.image.BoxImage" );
+	}
+
+	@DisplayName( "It should resize the image" )
+	@Test
+	public void testWriteToBrowser() throws IOException {
+		// @formatter:off
+		instance.executeSource( """
+			<bx:image action="read" source="src/test/resources/logo.png" name="theImage" />
+			<bx:image action="writeToBrowser" name="theImage" source="src/test/resources/logo.png"/>
+			<bx:set result = theImage.$bx.$class.name />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( variables.get( result ) ).isEqualTo( "ortus.boxlang.modules.image.BoxImage" );
 	}
 }

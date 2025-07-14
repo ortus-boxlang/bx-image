@@ -4,6 +4,7 @@ import ortus.boxlang.runtime.scopes.Key;
 
 public class ImageKeys {
 
+	public static final Key	bximage				= Key.of( "bximage" );
 	public static final Key	angle				= Key.of( "angle" );
 	public static final Key	antialias			= Key.of( "antialias" );
 	public static final Key	name				= Key.of( "name" );
@@ -22,6 +23,8 @@ public class ImageKeys {
 	public static final Key	borderType			= Key.of( "borderType" );
 	public static final Key	filled				= Key.of( "filled" );
 	public static final Key	isPolygon			= Key.of( "isPolygon" );
+	public static final Key	imageService		= Key.of( "imageService" );
+	public static final Key	image				= Key.of( "image" );
 	public static final Key	image1				= Key.of( "image1" );
 	public static final Key	image2				= Key.of( "image2" );
 	public static final Key	raised				= Key.of( "raised" );
@@ -73,4 +76,5 @@ public class ImageKeys {
 	public static final Key	text				= Key.of( "text" );
 	public static final Key	fonts				= Key.of( "fonts" );
 	public static final Key	source				= Key.of( "source" );
+	public static final Key	writeType			= Key.of( "writeType" );
 }
