@@ -10,6 +10,7 @@ import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
@@ -32,8 +33,9 @@ public class ImageReadBase64 extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
+		String imagePath = FileSystemUtil.expandPath( context, arguments.getAsString( Key.string ) ).absolutePath().toString();
 		try {
-			return BoxImage.fromBase64( arguments.getAsString( Key.string ) );
+			return BoxImage.fromBase64( imagePath );
 		} catch ( Exception e ) {
 			throw new BoxRuntimeException( "Unable to read from base64 input", e );
 		}

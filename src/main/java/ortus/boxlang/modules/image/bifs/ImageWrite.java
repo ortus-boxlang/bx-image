@@ -10,6 +10,7 @@ import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.Argument;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
@@ -33,11 +34,12 @@ public class ImageWrite extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage
+		String		imagePath	= FileSystemUtil.expandPath( context, arguments.getAsString( Key.path ) ).absolutePath().toString();
+		BoxImage	theImage	= arguments.get( ImageKeys.name ) instanceof BoxImage
 		    ? ( BoxImage ) arguments.get( ImageKeys.name )
 		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
 
-		theImage.write( arguments.getAsString( Key.path ) );
+		theImage.write( imagePath );
 
 		return theImage;
 	}

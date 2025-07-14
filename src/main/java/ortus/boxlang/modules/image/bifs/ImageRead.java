@@ -10,6 +10,7 @@ import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
@@ -32,8 +33,9 @@ public class ImageRead extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
+		String imagePath = FileSystemUtil.expandPath( context, arguments.getAsString( Key.path ) ).absolutePath().toString();
 		try {
-			return new BoxImage( arguments.getAsString( Key.path ) );
+			return new BoxImage( imagePath );
 		} catch ( Exception e ) {
 			throw new BoxRuntimeException( "Unable to load image: " + arguments.getAsString( Key.path ), e );
 		}
