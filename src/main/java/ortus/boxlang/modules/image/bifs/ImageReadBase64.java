@@ -22,7 +22,7 @@ public class ImageReadBase64 extends BIF {
 	public ImageReadBase64() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "String", Key.string, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) )
+				new Argument(true, "String", Key.string, Set.of(Validator.REQUIRED, Validator.NON_EMPTY))
 		};
 	}
 
@@ -32,14 +32,11 @@ public class ImageReadBase64 extends BIF {
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
 	 */
-	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		String	providedPath	= arguments.getAsString( Key.string );
-		String	imagePath		= providedPath.substring( 0, 4 ).equalsIgnoreCase( "http" ) ? providedPath
-		    : FileSystemUtil.expandPath( context, providedPath ).absolutePath().toString();
+	public BoxImage _invoke(IBoxContext context, ArgumentsScope arguments) {
 		try {
-			return BoxImage.fromBase64( imagePath );
-		} catch ( Exception e ) {
-			throw new BoxRuntimeException( "Unable to read from base64 input", e );
+			return BoxImage.fromBase64(arguments.getAsString(Key.string));
+		} catch (Exception e) {
+			throw new BoxRuntimeException("Unable to read from base64 input", e);
 		}
 	}
 
