@@ -49,7 +49,7 @@ public class ImageScaleToFitTest {
 			width = result.getWidth();
 			height = result.getHeight();
 			ImageWrite( result, "src/test/resources/generated/%s" );
-		""", context );
+		""".formatted( fileName, fileName ), context );
 		// @formatter:on
 
 		assertThat( variables.get( "width" ) ).isEqualTo( 100 );
