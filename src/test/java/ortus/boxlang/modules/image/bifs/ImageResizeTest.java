@@ -54,4 +54,21 @@ public class ImageResizeTest {
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
 	}
 
+	@DisplayName( "It should resize an image via member function" )
+	@Test
+	public void testResizeMemberFunc() throws IOException {
+		String fileName = "logo-draw-resize.png";
+		instance.executeSource( """
+		                                          result = ImageRead( "src/test/resources/logo.png" );
+		                        result.resize( 512, 512 );
+		                        ImageWrite( result, "src/test/resources/generated/%s" );
+		                        // ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                          """.formatted( fileName, fileName ), context );
+
+		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
+		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
+
+		assertThat( Arrays.equals( actual, expected ) ).isTrue();
+	}
+
 }
