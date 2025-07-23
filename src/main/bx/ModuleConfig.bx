@@ -128,4 +128,8 @@ class {
 	 * that match the approved Runtime Interception Points
 	 */
 
+	 public function imageWriteToBrowser( data ) {
+		println( "THIS IS A TEST" );
+	 }
+
 }

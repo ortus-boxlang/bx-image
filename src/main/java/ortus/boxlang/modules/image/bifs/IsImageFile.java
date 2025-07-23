@@ -39,9 +39,12 @@ public class IsImageFile extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public Boolean _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		String passedInPath = StringCaster.cast( arguments.get( Key.value ) );
+		String	passedInPath	= StringCaster.cast( arguments.get( Key.value ) );
+		String	imagePath		= passedInPath.substring( 0, 4 ).equalsIgnoreCase( "http" ) ? passedInPath
+		    : FileSystemUtil.expandPath( context, passedInPath ).absolutePath().toString();
+
 		try {
-			URI		path	= new URI( passedInPath );
+			URI		path	= new URI( imagePath );
 			String	scheme	= path.getScheme();
 
 			if ( path.isAbsolute()

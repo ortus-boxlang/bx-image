@@ -46,16 +46,14 @@ public class ImageScaleToFitTest {
 		instance.executeSource( """
 			result = ImageRead( "src/test/resources/logo.png" );
 			ImageScaleToFit( result, 100, "" );
+			width = result.getWidth();
+			height = result.getHeight();
 			ImageWrite( result, "src/test/resources/generated/%s" );
-			// ImageWrite( result, "src/test/resources/test-images/%s" )
 		""".formatted( fileName, fileName ), context );
 		// @formatter:on
 
-		assertThat( variables.get( result ) ).isInstanceOf( BoxImage.class );
-		BoxImage res = ( BoxImage ) variables.get( result );
-
-		assertThat( res.getWidth() ).isEqualTo( 100 );
-		assertThat( res.getHeight() ).isEqualTo( 100 );
+		assertThat( variables.get( "width" ) ).isEqualTo( 100 );
+		assertThat( variables.get( "height" ) ).isEqualTo( 100 );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
@@ -76,7 +74,6 @@ public class ImageScaleToFitTest {
 		""".formatted( fileName, fileName ), context );
 		// @formatter:on
 
-		assertThat( variables.get( result ) ).isInstanceOf( BoxImage.class );
 		BoxImage res = ( BoxImage ) variables.get( result );
 
 		assertThat( res.getWidth() ).isEqualTo( 100 );

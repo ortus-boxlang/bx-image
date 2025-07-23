@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.BoxRuntime;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
@@ -40,45 +39,56 @@ public class ImageSetDrawingColorTest {
 	@DisplayName( "It should default to white" )
 	@Test
 	public void testDefaultDrawingColor() {
+		// @formatter:off
 		instance.executeSource( """
-		                        result = ImageRead( "src/test/resources/logo.png" );
-		                        """, context );
+			result = ImageRead( "src/test/resources/logo.png" ).getDrawingColor();
+		""", context );
+		// @formatter:on
 
-		assertThat( ( ( BoxImage ) variables.get( result ) ).getDrawingColor() ).isEqualTo( "white" );
+		assertThat( variables.get( result ) ).isEqualTo( "white" );
 	}
 
 	@DisplayName( "It should let you set the drawing color" )
 	@Test
 	public void testSetDrawingColor() {
+		// @formatter:off
 		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageSetDrawingColor( result, "green" );
-		                                          """, context );
+			result = ImageRead( "src/test/resources/logo.png" );
+			ImageSetDrawingColor( result, "green" );
+			result = result.getDrawingColor();
+		""", context );
+		// @formatter:on
 
-		assertThat( ( ( BoxImage ) variables.get( result ) ).getDrawingColor() ).isEqualTo( "green" );
+		assertThat( variables.get( result ) ).isEqualTo( "green" );
 	}
 
 	@DisplayName( "It should let you set the drawing color of an image by name" )
 	@Test
 	public void testSetDrawingColorByName() {
+		// @formatter:off
 		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageSetDrawingColor( "result", "green" );
-		                                          """, context );
+			result = ImageRead( "src/test/resources/logo.png" );
+			ImageSetDrawingColor( "result", "green" );
+			result = result.getDrawingColor();
+		""", context );
+		// @formatter:on
 
-		assertThat( ( ( BoxImage ) variables.get( result ) ).getDrawingColor() ).isEqualTo( "green" );
+		assertThat( variables.get( result ) ).isEqualTo( "green" );
 	}
 
 	// TODO test member functionality
 	@DisplayName( "It should let you set the drawing color as a member function" )
 	@Test
 	public void testSetDrawingColorMember() {
+		// @formatter:off
 		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        result.setDrawingColor( "green" );
-		                                          """, context );
+			result = ImageRead( "src/test/resources/logo.png" );
+			result.setDrawingColor( "green" );
+			result = result.getDrawingColor();
+		""", context );
+		// @formatter:on
 
-		assertThat( ( ( BoxImage ) variables.get( result ) ).getDrawingColor() ).isEqualTo( "green" );
+		assertThat( variables.get( result ) ).isEqualTo( "green" );
 	}
 
 }

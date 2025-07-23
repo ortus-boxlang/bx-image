@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.BoxRuntime;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
@@ -76,17 +75,20 @@ public class ImageInfoTest {
 	@DisplayName( "It should return the correct data" )
 	@Test
 	public void testKeys() throws IOException {
+		// @formatter:off
 		instance.executeSource( """
-		                                          image = ImageRead( "src/test/resources/logo.png" );
-		                        result = ImageInfo( image );
-		                                          """, context );
+			image = ImageRead( "src/test/resources/logo.png" );
+			result = ImageInfo( image );
+			sourcePath = Image.getSourcePath();
+		""", context );
+		// @formatter:on
 
 		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
 
 		IStruct info = variables.getAsStruct( result );
 		assertThat( info.get( "width" ) ).isEqualTo( 256 );
 		assertThat( info.get( "height" ) ).isEqualTo( 256 );
-		assertThat( info.get( "source" ) ).isEqualTo( ( ( BoxImage ) variables.get( "image" ) ).getSourcePath() );
+		assertThat( info.get( "source" ) ).isEqualTo( variables.get( "sourcePath" ) );
 
 		IStruct colorModel = info.getAsStruct( Key.of( "colormodel" ) );
 

@@ -71,6 +71,8 @@ jobs:
       - name: Test Module
         run: |
           gradle downloadBoxLang
+          # generate our module structure
+          gradle build -x test
           gradle test --stacktrace --console=plain
 
       - name: Upload Test Results

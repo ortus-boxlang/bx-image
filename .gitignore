@@ -10,12 +10,13 @@ build/**
 
 ### BOXLANG ###
 /libs/
-src/test/resources/generated/*.png
+src/test/resources/generated/*
 src/test/resources/logo-add*
 src/test/resources/logo-crop*
 src/test/resources/logo-paste*
 src/test/resources/logo-negative*
 src/test/resources/new-image*
 src/test/resources/libs/*
+src/test/resources/testimage*
 !src/test/resources/libs/.gitkeep
 grapher/*

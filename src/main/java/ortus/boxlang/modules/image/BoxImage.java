@@ -43,6 +43,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +70,7 @@ import ortus.boxlang.runtime.types.Array;
 import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.Struct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 
 public class BoxImage {
 
@@ -121,7 +125,7 @@ public class BoxImage {
 	}
 
 	public BoxImage( String imageURI ) throws MalformedURLException, IOException, ImageProcessingException {
-		this( URI.create( imageURI ) );
+		this( stringToURI( imageURI ) );
 	}
 
 	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException {
@@ -774,6 +778,18 @@ public class BoxImage {
 
 		}
 
-		return new FileInputStream( imageInput.toString() );
+		return new FileInputStream( FileSystemUtil.createFileUri( imageInput.toString() ).getPath() );
+	}
+
+	public static URI stringToURI( String input ) {
+		try {
+			// Try to parse as a URL (e.g., http://, file://, etc.)
+			URL url = new URL( input );
+			return url.toURI();  // Also handles encoding
+		} catch ( Exception e ) {
+			// Not a valid URL? Treat as a local file path
+			Path path = Paths.get( input );
+			return path.toUri();  // Converts to file:// URI
+		}
 	}
 }
