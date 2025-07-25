@@ -42,12 +42,12 @@ public class ImageService extends BaseService {
 
 	@Override
 	public void onShutdown( Boolean arg0 ) {
-		getLogger().info( "+ Image Service shutdown requested" );
+		// getLogger().info( "+ Image Service shutdown requested" );
 	}
 
 	@Override
 	public void onStartup() {
-		getLogger().info( "+ Image Service started" );
+		// getLogger().info( "+ Image Service started" );
 	}
 
 	public void writeToBrowser( IBoxContext context, BoxImage image, IStruct attributes ) {
