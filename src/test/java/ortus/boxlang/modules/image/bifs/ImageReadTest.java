@@ -53,4 +53,16 @@ public class ImageReadTest {
 		// assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
 	}
 
+	@DisplayName( "It can create a new image from a url which will return a relocation header" )
+	@Test
+	public void testImageFromRelocation() {
+		instance.executeSource(
+		    """
+		    result = ImageRead( "http://cfdocs.org/apple-touch-icon.png" );
+		    """,
+		    context );
+
+		// assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
+	}
+
 }

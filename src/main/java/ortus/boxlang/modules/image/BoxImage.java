@@ -41,8 +41,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -124,11 +126,11 @@ public class BoxImage {
 		this.setDrawingColor( "black" );
 	}
 
-	public BoxImage( String imageURI ) throws MalformedURLException, IOException, ImageProcessingException {
+	public BoxImage( String imageURI ) throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
 		this( stringToURI( imageURI ) );
 	}
 
-	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException {
+	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
 		this.sourcePath = imageURI.toString();
 		InputStream				dataStream	= getInputStream( imageURI );
 		byte[]					data		= dataStream.readAllBytes();
@@ -765,20 +767,47 @@ public class BoxImage {
 		return this;
 	}
 
-	private static InputStream getInputStream( String imageInput ) throws MalformedURLException, IOException {
+	private static InputStream getInputStream( String imageInput ) throws MalformedURLException, IOException, URISyntaxException {
 
 		return getInputStream( URI.create( imageInput ) );
 	}
 
-	private static InputStream getInputStream( URI imageInput ) throws MalformedURLException, IOException {
+	private static InputStream getInputStream( URI imageInput ) throws MalformedURLException, IOException, URISyntaxException {
 
 		if ( imageInput.toString().toLowerCase().startsWith( "http" ) ) {
 
-			return imageInput.toURL().openStream();
+			return resolveURLToInputStream( imageInput );
 
 		}
 
 		return new FileInputStream( FileSystemUtil.createFileUri( imageInput.toString() ).getPath() );
+	}
+
+	private static InputStream resolveURLToInputStream( URI imageInput ) throws MalformedURLException, IOException, URISyntaxException {
+		URL					url			= imageInput.toURL();
+		HttpURLConnection	connection	= null;
+		int					responseCode;
+		String				newLocation;
+		do {
+			connection = ( HttpURLConnection ) url.openConnection();
+			connection.setInstanceFollowRedirects( false ); // Disable automatic redirects
+			responseCode = connection.getResponseCode();
+
+			if ( responseCode >= 300 && responseCode <= 308 && responseCode != 304 ) { // Check for redirect status codes
+				newLocation = connection.getHeaderField( "Location" );
+				if ( newLocation != null ) {
+					url = url.toURI().resolve( newLocation ).toURL(); // Resolve new URL relative to the current one
+					connection.disconnect(); // Disconnect previous connection
+				} else {
+					throw new BoxRuntimeException(
+					    "Error retrieving remote image [" + imageInput + "]. A redirect status was received but no Location header found." );
+				}
+			} else {
+				break; // Not a redirect, or an error
+			}
+		} while ( true );
+
+		return connection.getInputStream();
 	}
 
 	public static URI stringToURI( String input ) {
