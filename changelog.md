@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Resource leak when reading images into the input stream and not closing it.
 - Added jaxt library to gradle dependencies
 - Fixed writing of images to directories that don't exist. Now creates parent directories as needed.
 - image.scaleToFit() now works with a single value and more.

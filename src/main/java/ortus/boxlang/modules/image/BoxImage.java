@@ -259,9 +259,15 @@ public class BoxImage {
 	 */
 	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
 		this.sourcePath = imageURI.toString();
-		InputStream				dataStream	= getInputStream( imageURI );
-		byte[]					data		= dataStream.readAllBytes();
-		ByteArrayInputStream	bas			= new ByteArrayInputStream( data );
+		byte[] data;
+
+		// Use try-with-resources to ensure the InputStream is properly closed
+		// This prevents file locking issues on Windows when attempting to delete the file
+		try ( InputStream dataStream = getInputStream( imageURI ) ) {
+			data = dataStream.readAllBytes();
+		}
+
+		ByteArrayInputStream bas = new ByteArrayInputStream( data );
 		this.fileType = FileTypeDetector.detectFileType( bas );
 		bas.reset();
 		exifData = ImageMetadataUtil.readExifMetaData( bas );
