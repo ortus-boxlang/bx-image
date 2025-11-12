@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added jaxt library to gradle dependencies
 - Fixed writing of images to directories that don't exist. Now creates parent directories as needed.
+- image.scaleToFit() now works with a single value and more.
 
 ## [1.3.2] - 2025-07-25
 

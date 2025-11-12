@@ -138,13 +138,16 @@ public class BoxImage {
 	public static final Map<String, Color>	COLORS;
 
 	/** Default font family for text drawing operations */
-	public static final String				DEFAULT_FONT_FAMILY	= Font.SANS_SERIF;
+	public static final String				DEFAULT_FONT_FAMILY		= Font.SANS_SERIF;
 
 	/** Default font style (plain, not bold or italic) */
-	public static final int					DEFAULT_FONT_STYLE	= Font.PLAIN;
+	public static final int					DEFAULT_FONT_STYLE		= Font.PLAIN;
 
 	/** Default font size in points */
-	public static final int					DEFAULT_FONT_SIZE	= 10;
+	public static final int					DEFAULT_FONT_SIZE		= 10;
+
+	/** Default interpolation method for image scaling operations */
+	public static final String				DEFAULT_INTERPOLATION	= "bilinear";
 
 	static {
 		COLORS = new HashMap<String, Color>();
@@ -374,6 +377,82 @@ public class BoxImage {
 		    useAntiAliasing ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF );
 
 		return this;
+	}
+
+	/**
+	 * Scales the image to fit within a square while maintaining aspect ratio.
+	 * The image will be scaled so that the longest dimension fits within the specified size.
+	 * The default interpolation method is "bicubic".
+	 *
+	 * @param size The maximum width and height in pixels
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage scaleToFit( int size ) {
+		return scaleToFit( size, size, DEFAULT_INTERPOLATION );
+	}
+
+	/**
+	 * Scales the image to fit within a square while maintaining aspect ratio.
+	 * The image will be scaled so that the longest dimension fits within the specified size.
+	 *
+	 * @param size          The maximum width and height in pixels
+	 * @param interpolation The interpolation method ("bicubic", "bilinear", "nearest")
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage scaleToFit( int size, String interpolation ) {
+		return scaleToFit( size, size, interpolation );
+	}
+
+	/**
+	 * Scales the image to fit within specified dimensions while maintaining aspect ratio.
+	 * The default interpolation method is "bicubic".
+	 *
+	 * @param maxWidth  The maximum width in pixels
+	 * @param maxHeight The maximum height in pixels
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage scaleToFit( int maxWidth, int maxHeight ) {
+		return scaleToFit( maxWidth, maxHeight, DEFAULT_INTERPOLATION );
+	}
+
+	/**
+	 * Scales the image to fit within specified dimensions while maintaining aspect ratio.
+	 *
+	 * @param maxWidth      The maximum width in pixels
+	 * @param maxHeight     The maximum height in pixels
+	 * @param interpolation The interpolation method ("bicubic", "bilinear", "nearest")
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage scaleToFit( int maxWidth, int maxHeight, String interpolation ) {
+		double	widthRatio	= ( double ) maxWidth / ( double ) this.getWidth();
+		double	heightRatio	= ( double ) maxHeight / ( double ) this.getHeight();
+		double	scaleFactor	= Math.min( widthRatio, heightRatio );
+
+		this.resize(
+		    Double.valueOf( this.getWidth() * scaleFactor ).intValue(),
+		    Double.valueOf( this.getHeight() * scaleFactor ).intValue(),
+		    interpolation,
+		    0
+		);
+
+		return this;
+	}
+
+	/**
+	 * Scales the image to fit within a specific dimension while maintaining aspect ratio.
+	 * The default interpolation method is "bicubic".
+	 *
+	 * @param size      The target size in pixels
+	 * @param dimension The dimension to fit (WIDTH or HEIGHT)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage scaleToFit( int size, Dimension dimension ) {
+		return scaleToFit( size, dimension, DEFAULT_INTERPOLATION );
 	}
 
 	/**
