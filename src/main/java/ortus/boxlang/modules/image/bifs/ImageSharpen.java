@@ -1,7 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.ImageKeys;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
@@ -24,8 +24,8 @@ public class ImageSharpen extends BIF {
 	public ImageSharpen() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "any", ImageKeys.name ),
-		    new Argument( true, "numeric", ImageKeys.gain, 1 )
+		    new Argument( true, "any", KeyDictionary.name ),
+		    new Argument( true, "numeric", KeyDictionary.gain, 1 )
 		};
 	}
 
@@ -36,11 +36,11 @@ public class ImageSharpen extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage
-		    ? ( BoxImage ) arguments.get( ImageKeys.name )
-		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
+		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
+		    ? ( BoxImage ) arguments.get( KeyDictionary.name )
+		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.name ) );
 
-		theImage.sharpen( DoubleCaster.cast( arguments.get( ImageKeys.gain ) ) );
+		theImage.sharpen( DoubleCaster.cast( arguments.get( KeyDictionary.gain ) ) );
 
 		return theImage;
 	}

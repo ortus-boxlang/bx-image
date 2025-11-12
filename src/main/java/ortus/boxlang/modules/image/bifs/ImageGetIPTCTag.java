@@ -23,8 +23,8 @@ import java.util.Set;
 import com.drew.imaging.ImageProcessingException;
 
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.ImageKeys;
-import ortus.boxlang.modules.image.ImageMetadataUtil;
+import ortus.boxlang.modules.image.util.ImageMetadataUtil;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
@@ -45,8 +45,8 @@ public class ImageGetIPTCTag extends BIF {
 	public ImageGetIPTCTag() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "string", ImageKeys.tagName, Set.of( Validator.REQUIRED ) )
+		    new Argument( true, "any", KeyDictionary.name, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "string", KeyDictionary.tagName, Set.of( Validator.REQUIRED ) )
 		};
 	}
 
@@ -58,12 +58,12 @@ public class ImageGetIPTCTag extends BIF {
 	 */
 	public Object _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		try {
-			Object arg = arguments.get( ImageKeys.name );
+			Object arg = arguments.get( KeyDictionary.name );
 
 			if ( arg instanceof BoxImage image ) {
-				return image.getIPTCMetaDataTag( arguments.getAsString( ImageKeys.tagName ) );
+				return image.getIPTCMetaDataTag( arguments.getAsString( KeyDictionary.tagName ) );
 			} else if ( arg instanceof String imageString ) {
-				return ImageMetadataUtil.getIPTCMetaDataTag( imageString, arguments.getAsString( ImageKeys.tagName ) );
+				return ImageMetadataUtil.getIPTCMetaDataTag( imageString, arguments.getAsString( KeyDictionary.tagName ) );
 			}
 
 		} catch ( ImageProcessingException e ) {

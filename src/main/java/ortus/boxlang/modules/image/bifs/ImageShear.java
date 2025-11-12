@@ -4,7 +4,7 @@ import java.util.Set;
 
 import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.modules.image.BoxImage.Dimension;
-import ortus.boxlang.modules.image.ImageKeys;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
@@ -26,9 +26,10 @@ public class ImageShear extends BIF {
 	public ImageShear() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "any", ImageKeys.name ),
-		    new Argument( true, "numeric", ImageKeys.amount, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "string", ImageKeys.direction, "horizontal", Set.of( Validator.NON_EMPTY, Validator.valueOneOf( "horizontal", "vertical" ) ) ),
+		    new Argument( true, "any", KeyDictionary.name ),
+		    new Argument( true, "numeric", KeyDictionary.amount, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "string", KeyDictionary.direction, "horizontal",
+		        Set.of( Validator.NON_EMPTY, Validator.valueOneOf( "horizontal", "vertical" ) ) ),
 		};
 	}
 
@@ -39,13 +40,13 @@ public class ImageShear extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage
-		    ? ( BoxImage ) arguments.get( ImageKeys.name )
-		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
+		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
+		    ? ( BoxImage ) arguments.get( KeyDictionary.name )
+		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.name ) );
 
 		theImage.shear(
-		    DoubleCaster.cast( arguments.get( ImageKeys.amount ) ),
-		    arguments.getAsString( ImageKeys.direction ).equalsIgnoreCase( "horizontal" ) ? Dimension.WIDTH : Dimension.HEIGHT
+		    DoubleCaster.cast( arguments.get( KeyDictionary.amount ) ),
+		    arguments.getAsString( KeyDictionary.direction ).equalsIgnoreCase( "horizontal" ) ? Dimension.WIDTH : Dimension.HEIGHT
 		);
 
 		return theImage;

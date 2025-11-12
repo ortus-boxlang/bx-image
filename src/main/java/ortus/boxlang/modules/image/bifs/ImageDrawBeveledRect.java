@@ -3,7 +3,7 @@ package ortus.boxlang.modules.image.bifs;
 import java.util.Set;
 
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.ImageKeys;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
@@ -25,13 +25,13 @@ public class ImageDrawBeveledRect extends BIF {
 	public ImageDrawBeveledRect() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "numeric", ImageKeys.x, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.y, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.width, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.height, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "boolean", ImageKeys.raised ),
-		    new Argument( true, "boolean", ImageKeys.filled, false )
+		    new Argument( true, "any", KeyDictionary.name, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "numeric", KeyDictionary.x, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", KeyDictionary.y, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", KeyDictionary.width, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", KeyDictionary.height, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "boolean", KeyDictionary.raised ),
+		    new Argument( true, "boolean", KeyDictionary.filled, false )
 		};
 	}
 
@@ -42,17 +42,17 @@ public class ImageDrawBeveledRect extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage
-		    ? ( BoxImage ) arguments.get( ImageKeys.name )
-		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
+		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
+		    ? ( BoxImage ) arguments.get( KeyDictionary.name )
+		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.name ) );
 
 		theImage.drawBeveledRect(
-		    IntegerCaster.cast( arguments.get( ImageKeys.x ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.y ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.width ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.height ) ),
-		    BooleanCaster.cast( arguments.get( ImageKeys.raised ) ),
-		    BooleanCaster.cast( arguments.get( ImageKeys.filled ) )
+		    IntegerCaster.cast( arguments.get( KeyDictionary.x ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.y ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.width ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.height ) ),
+		    BooleanCaster.cast( arguments.get( KeyDictionary.raised ) ),
+		    BooleanCaster.cast( arguments.get( KeyDictionary.filled ) )
 		);
 
 		return theImage;

@@ -29,6 +29,9 @@ if ( branch == 'development' ) {
 repositories {
     mavenLocal()
     mavenCentral()
+	maven {
+		url "https://www.javaxt.com/maven"
+	}
 }
 
 dependencies {

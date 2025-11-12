@@ -3,7 +3,7 @@ package ortus.boxlang.modules.image.bifs;
 import java.util.Set;
 
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.ImageKeys;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
@@ -24,8 +24,8 @@ public class ImageSetDrawingStroke extends BIF {
 	public ImageSetDrawingStroke() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
-		    new Argument( false, "struct", ImageKeys.attributeCollection )
+		    new Argument( true, "any", KeyDictionary.name, Set.of( Validator.REQUIRED ) ),
+		    new Argument( false, "struct", KeyDictionary.attributeCollection )
 		};
 	}
 
@@ -36,11 +36,11 @@ public class ImageSetDrawingStroke extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage
-		    ? ( BoxImage ) arguments.get( ImageKeys.name )
-		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
+		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
+		    ? ( BoxImage ) arguments.get( KeyDictionary.name )
+		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.name ) );
 
-		theImage.setDrawingStroke( StructCaster.cast( arguments.getAsStruct( ImageKeys.attributeCollection ) ) );
+		theImage.setDrawingStroke( StructCaster.cast( arguments.getAsStruct( KeyDictionary.attributeCollection ) ) );
 
 		return theImage;
 	}

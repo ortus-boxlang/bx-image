@@ -62,6 +62,10 @@ import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageProcessingException;
 
 import javaxt.io.Image;
+import ortus.boxlang.modules.image.util.EnumConverterUtil;
+import ortus.boxlang.modules.image.util.ImageMetadataUtil;
+import ortus.boxlang.modules.image.util.KeyDictionary;
+import ortus.boxlang.modules.image.util.StrokeBuilder;
 import ortus.boxlang.runtime.dynamic.casters.ArrayCaster;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
 import ortus.boxlang.runtime.dynamic.casters.CastAttempt;
@@ -388,24 +392,24 @@ public class BoxImage {
 	public BoxImage setDrawingStroke( IStruct strokeConfig ) {
 		StrokeBuilder builder = new StrokeBuilder();
 
-		if ( strokeConfig.containsKey( ImageKeys.width ) ) {
-			builder.width( FloatCaster.cast( strokeConfig.get( ImageKeys.width ) ) );
+		if ( strokeConfig.containsKey( KeyDictionary.width ) ) {
+			builder.width( FloatCaster.cast( strokeConfig.get( KeyDictionary.width ) ) );
 		}
 
-		if ( strokeConfig.containsKey( ImageKeys.endCaps ) ) {
-			builder.endCaps( EnumConverterUtil.getEndCapInt( StringCaster.cast( strokeConfig.get( ImageKeys.endCaps ) ) ) );
+		if ( strokeConfig.containsKey( KeyDictionary.endCaps ) ) {
+			builder.endCaps( EnumConverterUtil.getEndCapInt( StringCaster.cast( strokeConfig.get( KeyDictionary.endCaps ) ) ) );
 		}
 
-		if ( strokeConfig.containsKey( ImageKeys.lineJoins ) ) {
-			builder.lineJoins( EnumConverterUtil.getLineJoinsInt( StringCaster.cast( strokeConfig.get( ImageKeys.lineJoins ) ) ) );
+		if ( strokeConfig.containsKey( KeyDictionary.lineJoins ) ) {
+			builder.lineJoins( EnumConverterUtil.getLineJoinsInt( StringCaster.cast( strokeConfig.get( KeyDictionary.lineJoins ) ) ) );
 		}
 
-		if ( strokeConfig.containsKey( ImageKeys.miterLimit ) ) {
-			builder.miterLimit( FloatCaster.cast( strokeConfig.get( ImageKeys.miterLimit ) ) );
+		if ( strokeConfig.containsKey( KeyDictionary.miterLimit ) ) {
+			builder.miterLimit( FloatCaster.cast( strokeConfig.get( KeyDictionary.miterLimit ) ) );
 		}
 
-		if ( strokeConfig.containsKey( ImageKeys.dashArray ) ) {
-			Float[]	floats			= ArrayCaster.cast( strokeConfig.get( ImageKeys.dashArray ) ).toArray( new Float[] {} );
+		if ( strokeConfig.containsKey( KeyDictionary.dashArray ) ) {
+			Float[]	floats			= ArrayCaster.cast( strokeConfig.get( KeyDictionary.dashArray ) ).toArray( new Float[] {} );
 			float[]	actualFloats	= new float[ floats.length ];
 
 			// yuck
@@ -416,8 +420,8 @@ public class BoxImage {
 			builder.dashArray( actualFloats );
 		}
 
-		if ( strokeConfig.containsKey( ImageKeys.dashPhase ) ) {
-			builder.dashPhase( FloatCaster.cast( strokeConfig.get( ImageKeys.dashPhase ) ) );
+		if ( strokeConfig.containsKey( KeyDictionary.dashPhase ) ) {
+			builder.dashPhase( FloatCaster.cast( strokeConfig.get( KeyDictionary.dashPhase ) ) );
 		}
 
 		this.graphics.setStroke( builder.build() );
@@ -488,12 +492,12 @@ public class BoxImage {
 		attr.put( TextAttribute.STRIKETHROUGH, false );
 		attr.put( TextAttribute.UNDERLINE, false );
 
-		String family = fontConfig.getAsString( ImageKeys.font );
+		String family = fontConfig.getAsString( KeyDictionary.font );
 		if ( family != null ) {
 			attr.put( TextAttribute.FAMILY, family );
 		}
 
-		String style = fontConfig.getAsString( ImageKeys.style );
+		String style = fontConfig.getAsString( KeyDictionary.style );
 		if ( style != null && !style.equalsIgnoreCase( "plain" ) ) {
 			if ( style.equalsIgnoreCase( "bold" ) ) {
 				attr.put( TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD );
@@ -507,17 +511,17 @@ public class BoxImage {
 			}
 		}
 
-		CastAttempt<Integer> size = IntegerCaster.attempt( fontConfig.get( ImageKeys.size ) );
+		CastAttempt<Integer> size = IntegerCaster.attempt( fontConfig.get( KeyDictionary.size ) );
 		if ( size.wasSuccessful() ) {
 			attr.put( TextAttribute.SIZE, size.get() );
 		}
 
-		CastAttempt<Boolean> strikeThrough = BooleanCaster.attempt( fontConfig.get( ImageKeys.strikeThrough ) );
+		CastAttempt<Boolean> strikeThrough = BooleanCaster.attempt( fontConfig.get( KeyDictionary.strikeThrough ) );
 		if ( strikeThrough.wasSuccessful() ) {
 			attr.put( TextAttribute.STRIKETHROUGH, strikeThrough.get() );
 		}
 
-		CastAttempt<Boolean> underline = BooleanCaster.attempt( fontConfig.get( ImageKeys.underline ) );
+		CastAttempt<Boolean> underline = BooleanCaster.attempt( fontConfig.get( KeyDictionary.underline ) );
 		if ( underline.wasSuccessful() && underline.get() ) {
 			attr.put( TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON );
 		}
