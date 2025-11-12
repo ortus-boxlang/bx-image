@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generate AI Instructions
 - Dependabot updates
 - Updated Gradle wrapper to 8.14.1
+- Updated gradle build to latest module template
 
 ## [1.3.2] - 2025-07-25
 
