@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
@@ -17,31 +19,15 @@ import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 import ortus.boxlang.runtime.types.IStruct;
 
-public class ImageInfoTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageInfoTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should return a struct" )
 	@Test
 	public void testStructReturn() throws IOException {
-		instance.executeSource( """
-		                                          image = ImageRead( "src/test/resources/logo.png" );
-		                        result = ImageInfo( image );
-		                                          """, context );
+		runtime.executeSource( """
+		                                         image = ImageRead( "src/test/resources/logo.png" );
+		                       result = ImageInfo( image );
+		                                         """, context );
 
 		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
 	}
@@ -49,10 +35,10 @@ public class ImageInfoTest {
 	@DisplayName( "It should be callable as a member function" )
 	@Test
 	public void testMemberInfocation() throws IOException {
-		instance.executeSource( """
-		                                          image = ImageRead( "src/test/resources/logo.png" );
-		                        result = image.info();
-		                                          """, context );
+		runtime.executeSource( """
+		                                         image = ImageRead( "src/test/resources/logo.png" );
+		                       result = image.info();
+		                                         """, context );
 
 		assertThat( variables.get( result ) ).isInstanceOf( IStruct.class );
 	}
@@ -60,7 +46,7 @@ public class ImageInfoTest {
 	@DisplayName( "It should be able to read image info from a URL" )
 	@Test
 	public void testRemoteImage() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		                   image = ImageRead( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
 
@@ -76,7 +62,7 @@ public class ImageInfoTest {
 	@Test
 	public void testKeys() throws IOException {
 		// @formatter:off
-		instance.executeSource( """
+		runtime.executeSource( """
 			image = ImageRead( "src/test/resources/logo.png" );
 			result = ImageInfo( image );
 			sourcePath = Image.getSourcePath();

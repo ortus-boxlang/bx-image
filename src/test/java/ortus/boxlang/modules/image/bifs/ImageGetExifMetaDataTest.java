@@ -4,41 +4,18 @@ import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import ortus.boxlang.runtime.BoxRuntime;
-import ortus.boxlang.runtime.context.IBoxContext;
-import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
-import ortus.boxlang.runtime.scopes.IScope;
-import ortus.boxlang.runtime.scopes.Key;
-import ortus.boxlang.runtime.scopes.VariablesScope;
+import ortus.boxlang.modules.image.BaseIntegrationTest;
 import ortus.boxlang.runtime.types.IStruct;
 
-public class ImageGetExifMetaDataTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageGetExifMetaDataTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should return a struct" )
 	@Test
 	public void testReturnsAStruct() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		                      result = ImageGetExifMetaData( "src/test/resources/test-images/exif-test.jpg" );
 		    // result = ImageGetExifMetaData( result );
@@ -51,7 +28,7 @@ public class ImageGetExifMetaDataTest {
 	@DisplayName( "It should be callable as a member function" )
 	@Test
 	public void testMemberInvocation() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = imageRead( "src/test/resources/test-images/exif-test.jpg" ).GetExifMetaData();
 		    """,
@@ -63,7 +40,7 @@ public class ImageGetExifMetaDataTest {
 	@DisplayName( "It should contain various EXIF meta data tags" )
 	@Test
 	public void testGetsExifTags() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = ImageGetExifMetaData( "src/test/resources/test-images/exif-test.jpg" );
 		    """,
@@ -139,7 +116,7 @@ public class ImageGetExifMetaDataTest {
 	@DisplayName( "It should image data directly from a BoxImage" )
 	@Test
 	public void testGetsExifTagsFromBoxImage() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 
 		    result = ImageGetExifMetaData( ImageRead( "src/test/resources/test-images/exif-test.jpg" ) );
@@ -216,7 +193,7 @@ public class ImageGetExifMetaDataTest {
 	@DisplayName( "It should be able to read metadata info directly from a URL" )
 	@Test
 	public void testRemoteImage() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = ImageGetExifMetaData( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
 		    """,
@@ -228,7 +205,7 @@ public class ImageGetExifMetaDataTest {
 	@DisplayName( "It should be able to read metadata info from an image loaded by URL" )
 	@Test
 	public void testLoadedRemoteImage() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result =  ImageGetExifMetaData( imageRead( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" ) );
 		    """,

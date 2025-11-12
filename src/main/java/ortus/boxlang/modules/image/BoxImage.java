@@ -613,7 +613,13 @@ public class BoxImage {
 	public BoxImage write( String path ) {
 		// TODO determine format
 		try {
-			Imaging.writeImage( this.image.getBufferedImage(), new File( path ), ImageFormats.PNG );
+			File	targetFile	= new File( path );
+			// Create parent directories if they don't exist using BoxLang FileSystemUtil
+			File	parentDir	= targetFile.getParentFile();
+			if ( parentDir != null && !parentDir.exists() ) {
+				FileSystemUtil.createDirectory( parentDir.getAbsolutePath() );
+			}
+			Imaging.writeImage( this.image.getBufferedImage(), targetFile, ImageFormats.PNG );
 		} catch ( Exception e ) {
 			throw new BoxRuntimeException( "Unable to save image", e );
 		}

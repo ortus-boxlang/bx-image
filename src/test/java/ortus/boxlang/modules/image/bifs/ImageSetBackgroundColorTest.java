@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
@@ -19,24 +21,7 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageSetBackgroundColorTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
-
+public class ImageSetBackgroundColorTest extends BaseIntegrationTest {
 	// TODO tests for color by name green/white/black/red etc
 	// TODO tests for hexadecimal
 	// TODO tests for rgb values
@@ -44,11 +29,11 @@ public class ImageSetBackgroundColorTest {
 	@DisplayName( "It should default to white" )
 	@Test
 	public void testDefaultDrawingColor() throws IOException {
-		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageClearRect( result, 0, 0, 50, 50 );
-		                        ImageWrite( result, "src/test/resources/generated/logo-clear-rect.png" );
-		                                          """, context );
+		runtime.executeSource( """
+		                                         result = ImageRead( "src/test/resources/logo.png" );
+		                       ImageClearRect( result, 0, 0, 50, 50 );
+		                       ImageWrite( result, "src/test/resources/generated/logo-clear-rect.png" );
+		                                         """, context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-clear-rect.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-clear-rect.png" ) );
@@ -59,12 +44,12 @@ public class ImageSetBackgroundColorTest {
 	@DisplayName( "It should let you set the drawing color" )
 	@Test
 	public void testSetDrawingColor() throws IOException {
-		instance.executeSource( """
-		                                                      result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageSetBackgroundColor( result, "green" );
-		                                    ImageClearRect( result, 0, 0, 50, 50 );
-		                                    ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
-		                                                      """, context );
+		runtime.executeSource( """
+		                                                     result = ImageRead( "src/test/resources/logo.png" );
+		                       ImageSetBackgroundColor( result, "green" );
+		                                   ImageClearRect( result, 0, 0, 50, 50 );
+		                                   ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
+		                                                     """, context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-clear-rect-green.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-clear-rect-green.png" ) );
@@ -76,12 +61,12 @@ public class ImageSetBackgroundColorTest {
 	@DisplayName( "It should let you set the drawing color of an image by name" )
 	@Test
 	public void testSetDrawingColorByName() throws IOException {
-		instance.executeSource( """
-		                                                                                    result = ImageRead( "src/test/resources/logo.png" );
-		                                       ImageSetBackgroundColor( "result", "green" );
-		                                                ImageClearRect( result, 0, 0, 50, 50 );
-		                        ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
-		                                                                                    """, context );
+		runtime.executeSource( """
+		                                                                                   result = ImageRead( "src/test/resources/logo.png" );
+		                                      ImageSetBackgroundColor( "result", "green" );
+		                                               ImageClearRect( result, 0, 0, 50, 50 );
+		                       ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
+		                                                                                   """, context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-clear-rect-green.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-clear-rect-green.png" ) );
@@ -92,12 +77,12 @@ public class ImageSetBackgroundColorTest {
 	@DisplayName( "It should let you set the drawing color as a member function" )
 	@Test
 	public void testSetDrawingColorMember() throws IOException {
-		instance.executeSource( """
-		                                                                                    result = ImageRead( "src/test/resources/logo.png" );
-		                                       ImageSetBackgroundColor( "result", "green" );
-		                                                result.clearRect( 0, 0, 50, 50 );
-		                        ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
-		                                                                                    """, context );
+		runtime.executeSource( """
+		                                                                                   result = ImageRead( "src/test/resources/logo.png" );
+		                                      ImageSetBackgroundColor( "result", "green" );
+		                                               result.clearRect( 0, 0, 50, 50 );
+		                       ImageWrite( result, "src/test/resources/generated/logo-clear-rect-green.png" );
+		                                                                                   """, context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-clear-rect-green.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-clear-rect-green.png" ) );

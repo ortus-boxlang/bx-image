@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.awt.image.BufferedImage;
@@ -17,31 +19,15 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageGetBufferedImageTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageGetBufferedImageTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should an instance of BufferedImage" )
 	@Test
 	public void testReturnsAnArray() throws IOException {
-		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        result = ImageGetBufferedImage( result );
-		                                          """, context );
+		runtime.executeSource( """
+		                                         result = ImageRead( "src/test/resources/logo.png" );
+		                       result = ImageGetBufferedImage( result );
+		                                         """, context );
 
 		assertThat( variables.get( result ) ).isInstanceOf( BufferedImage.class );
 	}
@@ -49,10 +35,10 @@ public class ImageGetBufferedImageTest {
 	@DisplayName( "It should be callable as a member function" )
 	@Test
 	public void testMemberInvocation() throws IOException {
-		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        result = result.getBufferedImage();
-		                                          """, context );
+		runtime.executeSource( """
+		                                         result = ImageRead( "src/test/resources/logo.png" );
+		                       result = result.getBufferedImage();
+		                                         """, context );
 
 		assertThat( variables.get( result ) ).isInstanceOf( BufferedImage.class );
 	}

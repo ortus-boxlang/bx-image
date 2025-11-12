@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
@@ -17,28 +19,12 @@ import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 import ortus.boxlang.runtime.types.IStruct;
 
-public class ImageGetIPTCMetaDataTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageGetIPTCMetaDataTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should return a struct" )
 	@Test
 	public void testReturnsAStruct() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = ImageGetIPTCMetaData( "src/test/resources/test-images/exif-test.jpg" );
 		    """,
@@ -50,7 +36,7 @@ public class ImageGetIPTCMetaDataTest {
 	@DisplayName( "It should be callable as a member function" )
 	@Test
 	public void testMemberInvocation() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = imageRead( "src/test/resources/test-images/exif-test.jpg" ).getIPTCMetaData();
 		    """,
@@ -62,7 +48,7 @@ public class ImageGetIPTCMetaDataTest {
 	@DisplayName( "It should contain various IPTC meta data tags" )
 	@Test
 	public void testGetsIPTCTags() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = ImageGetIPTCMetaData( "src/test/resources/test-images/exif-test.jpg" );
 		    """,
@@ -87,7 +73,7 @@ public class ImageGetIPTCMetaDataTest {
 	@DisplayName( "It should contain various IPTC meta data tags" )
 	@Test
 	public void testGetsIPTCTagsFromImage() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = ImageGetIPTCMetaData( imageRead( "src/test/resources/test-images/exif-test.jpg" ) );
 		    """,
@@ -112,7 +98,7 @@ public class ImageGetIPTCMetaDataTest {
 	@DisplayName( "It should be able to read metadata info from a URL" )
 	@Test
 	public void testRemoteImage() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = ImageGetIPTCMetaData( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
 		    """,

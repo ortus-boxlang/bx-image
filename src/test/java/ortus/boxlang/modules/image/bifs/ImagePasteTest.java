@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,28 +14,12 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImagePasteTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImagePasteTest extends BaseIntegrationTest {
 
 	@DisplayName( "It can draw an Image" )
 	@Test
 	public void testDrawImage() {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		                                                    result = ImageRead( "src/test/resources/logo.png" );
 		    			realLogo = ImageNew( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );

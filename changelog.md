@@ -22,11 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- All tests to inherit from BaseIntegrationTest for consistency
 - Refactored internal classes into functional packaging
+- Rewrote the ImageDrawTextTest to use more reliable image size assertions and work on all Operating Systems
 
 ### Fixed
 
 - Added jaxt library to gradle dependencies
+- Fixed writing of images to directories that don't exist. Now creates parent directories as needed.
 
 ## [1.3.2] - 2025-07-25
 

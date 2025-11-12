@@ -5,43 +5,20 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 import java.io.IOException;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import ortus.boxlang.runtime.BoxRuntime;
-import ortus.boxlang.runtime.context.IBoxContext;
-import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
-import ortus.boxlang.runtime.scopes.IScope;
-import ortus.boxlang.runtime.scopes.Key;
-import ortus.boxlang.runtime.scopes.VariablesScope;
+import ortus.boxlang.modules.image.BaseIntegrationTest;
 import ortus.boxlang.runtime.types.Array;
 
-public class GetWriteableImageFormatsTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class GetWriteableImageFormatsTest extends BaseIntegrationTest {
 
 	@DisplayName( "It can return an array of image formats that it can write to" )
 	@Test
 	public void testGetWriteableImageFormats() throws IOException {
-		instance.executeSource( """
-		                        result = getWriteableImageFormats();
-		                        """, context );
+		runtime.executeSource( """
+		                       result = getWriteableImageFormats();
+		                       """, context );
 
 		assertInstanceOf( ortus.boxlang.runtime.types.Array.class, variables.get( result ) );
 

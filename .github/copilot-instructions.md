@@ -77,26 +77,141 @@ This generates `META-INF/services/` files for Java ServiceLoader mechanism.
 ```
 
 ### Testing
-- Base class: `BaseIntegrationTest` sets up BoxRuntime and loads module from `build/module/`
-- **Critical**: Must run `./gradlew build -x test` before tests to create module structure
-- Tests use BoxLang script execution: `instance.executeSource("...", context)`
-- Test images in `src/test/resources/test-images/`
-- Tests often write output images to `src/test/resources/` for visual verification
 
-Example test structure:
+#### Test Structure and Base Classes
+All module tests **MUST** extend `BaseIntegrationTest` to properly load the module:
+
 ```java
 public class ImageSomeTest extends BaseIntegrationTest {
     @Test
     public void testSomething() {
-        instance.executeSource("""
+        runtime.executeSource("""
             result = ImageNew("src/test/resources/logo.png")
                 .crop(50, 50, 150, 100)
                 .grayScale();
-            ImageWrite(result, "src/test/resources/output.png");
+            ImageWrite(result, "src/test/resources/generated/output.png");
         """, context);
     }
 }
 ```
+
+**Critical Requirements**:
+- **ALL tests must extend `BaseIntegrationTest`** - this loads the module from `build/module/`
+- Use `runtime.executeSource()` (provided by BaseIntegrationTest), NOT `instance.executeSource()`
+- Do NOT re-declare fields like `instance`, `context`, `variables`, or `result` - they're inherited from BaseIntegrationTest
+- Must run `./gradlew build -x test` before tests to create module structure
+
+#### BaseIntegrationTest Provides:
+- `protected static BoxRuntime runtime` - The BoxLang runtime instance
+- `protected static ModuleService moduleService` - Module management service
+- `protected static ModuleRecord moduleRecord` - This module's record
+- `protected static Key result` - Standard key for test results
+- `protected ScriptingRequestBoxContext context` - Execution context (recreated per test via @BeforeEach)
+- `protected IScope variables` - Variables scope (recreated per test via @BeforeEach)
+
+#### Classloader Isolation Pattern
+BoxLang modules run in a separate classloader from test code. This creates casting restrictions:
+
+**❌ WRONG - ClassCastException:**
+```java
+runtime.executeSource("""
+    result = ImageNew("test.png");
+""", context);
+BoxImage img = (BoxImage) variables.get(result); // FAILS - different classloaders
+int width = img.getWidth();
+```
+
+**✅ CORRECT - Extract values within BoxLang:**
+```java
+runtime.executeSource("""
+    result = ImageNew("test.png");
+    width = result.getWidth();
+    height = result.getHeight();
+""", context);
+int width = (int) variables.get(Key.of("width"));   // Simple types work
+int height = (int) variables.get(Key.of("height"));
+```
+
+**Golden Rule**: Execute ALL BoxLang operations inside `runtime.executeSource()`. Only extract primitive types, Strings, or BoxLang core types (Array, Struct) from `variables.get()`. Never cast to module classes like `BoxImage`.
+
+#### Test Resource Directories
+- `src/test/resources/test-images/` - Reference images for comparison
+- `src/test/resources/generated/` - Output directory for test-generated images (must exist)
+- `src/test/resources/libs/` - BoxLang runtime JAR
+- Test images often compared byte-for-byte using `Files.readAllBytes()` and `Arrays.equals()`
+
+#### Common Test Patterns
+
+**Testing BIF Functionality:**
+```java
+@Test
+public void testImageCrop() {
+    runtime.executeSource("""
+        img = ImageNew("src/test/resources/logo.png");
+        result = ImageCrop(img, 50, 50, 100, 100);
+        width = result.getWidth();
+        ImageWrite(result, "src/test/resources/generated/cropped.png");
+    """, context);
+
+    int width = (int) variables.get(Key.of("width"));
+    assertThat(width).isEqualTo(100);
+}
+```
+
+**Testing Member Functions:**
+```java
+@Test
+public void testMemberFunction() {
+    runtime.executeSource("""
+        result = ImageNew("src/test/resources/logo.png")
+            .crop(50, 50, 100, 100)
+            .blur()
+            .grayScale();
+        exists = isDefined("result");
+    """, context);
+
+    boolean exists = (boolean) variables.get(Key.of("exists"));
+    assertThat(exists).isTrue();
+}
+```
+
+**Testing Exception Handling:**
+```java
+@Test
+public void testInvalidArgument() {
+    assertThrows(BoxRuntimeException.class, () -> {
+        runtime.executeSource("""
+            ImageNew("nonexistent.png");
+        """, context);
+    });
+}
+```
+
+**Testing Component Usage:**
+```java
+@Test
+public void testImageComponent() {
+    runtime.executeSource("""
+        <bx:image action="read" source="src/test/resources/logo.png" name="img" />
+        <bx:image action="crop" source="#img#" x="50" y="50" width="100" height="100" />
+        <bx:image action="write" source="#img#" destination="src/test/resources/generated/out.png" />
+    """, context, BoxSourceType.BOXTEMPLATE);
+    // Verify file exists or other assertions
+}
+```
+
+#### Platform-Specific Test Considerations
+Some tests may fail due to platform differences (especially font rendering):
+- Use `@DisabledOnOs(OS.LINUX)` or similar annotations for platform-specific tests
+- `ImageDrawTextTest` has known font rendering variations across platforms
+- Byte-perfect image comparisons are fragile across different environments/JDK versions
+
+#### Test Failure Debugging
+1. Check `build/reports/tests/test/index.html` for detailed test reports
+2. Verify `build/module/` exists and contains the module
+3. Check `src/test/resources/generated/` for actual output images
+4. Compare generated images visually with reference images in `test-images/`
+5. For ClassCastException: Ensure not casting module classes in test code
 
 ### Adding New BIFs
 1. Create BIF class in `src/main/java/ortus/boxlang/modules/image/bifs/`
@@ -141,12 +256,17 @@ BoxImage theImage = arguments.get(ImageKeys.name) instanceof BoxImage
 
 ## Common Pitfalls
 
-1. **Forgetting to build module before testing**: Tests load from `build/module/`, not `src/`
-2. **Not returning BoxImage from BIFs**: Breaks method chaining (e.g., `image.crop().blur()`)
-3. **Hardcoding argument names**: Always use `ImageKeys.*` constants
-4. **Missing @BoxMember**: BIF works but member function doesn't (e.g., `image.method()` fails)
-5. **Version mismatches**: Ensure all 3 version locations are updated together
-6. **BoxLang runtime dependency**: Must match version in `gradle.properties` and be present in `src/test/resources/libs/`
+1. **Tests not extending BaseIntegrationTest**: All tests MUST extend `BaseIntegrationTest` to load the module. Without it, tests fail with `BoxRuntimeException` because BIFs aren't registered.
+2. **Re-declaring inherited fields in tests**: Don't redeclare `instance`, `context`, `variables`, or `result` - they're inherited from `BaseIntegrationTest`. This causes NullPointerException or uses wrong instances.
+3. **Using `instance` instead of `runtime`**: Tests should use `runtime.executeSource()`, not `instance.executeSource()`. The inherited field is named `runtime`.
+4. **Casting module classes in tests**: Never cast `variables.get()` to `BoxImage` or other module classes due to classloader isolation. Extract values as BoxLang primitives instead.
+5. **Missing generated directory**: Tests write to `src/test/resources/generated/` which must exist. Create it with `mkdir -p src/test/resources/generated/`.
+6. **Forgetting to build module before testing**: Tests load from `build/module/`, not `src/`. Run `./gradlew build -x test` first.
+7. **Not returning BoxImage from BIFs**: Breaks method chaining (e.g., `image.crop().blur()`)
+8. **Hardcoding argument names**: Always use `ImageKeys.*` constants
+9. **Missing @BoxMember**: BIF works but member function doesn't (e.g., `image.method()` fails)
+10. **Version mismatches**: Ensure all 3 version locations are updated together
+11. **BoxLang runtime dependency**: Must match version in `gradle.properties` and be present in `src/test/resources/libs/`
 
 ## Key External Dependencies
 
