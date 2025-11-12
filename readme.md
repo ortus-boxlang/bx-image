@@ -120,23 +120,31 @@ img = imageRead("https://example.com/img")   // Load from URL
 img = imageReadBase64(base64String)          // Load from Base64
 img = imageNew("", 800, 600, "rgb", "white") // Create blank canvas
 
-img.write("output.png")                      // Write to file
-img.write()                                  // Write back to source
+img.write("output.png")                      // Write to specified file
+img.write()                                  // Write back to original source file
 base64 = imageWriteBase64(img)               // Export as Base64
 blob = imageGetBlob(img)                     // Export as binary
 ```
+
+**Note:** The parameterless `write()` method saves the image back to its original source path. This is useful when you want to modify an image in place. For images created from scratch (not loaded from a file), you must provide a path.
 
 #### Transformations
 
 ```javascript
 img.resize(width, height)                    // Exact dimensions
 img.resize(width, height, interpolation)     // With interpolation method
-img.scaleToFit(size)                         // Fit to width, maintain aspect
-img.scaleToFit(maxWidth, maxHeight)          // Fit within bounds
+img.scaleToFit(size)                         // Fit to width, maintain aspect ratio
+img.scaleToFit(width, height)                // Fit within rectangular bounds
+img.scaleToFit(width, height, interpolation) // With custom interpolation
 img.crop(x, y, width, height)                // Extract region
 img.rotate(angle)                            // Rotate degrees
 img.flip("horizontal")                       // Flip horizontal
 img.flip("vertical")                         // Flip vertical
+img.flip("diagonal")                         // Flip along main diagonal (transpose)
+img.flip("antidiagonal")                     // Flip along anti-diagonal
+img.flip("90")                               // Rotate 90° clockwise
+img.flip("180")                              // Rotate 180°
+img.flip("270")                              // Rotate 270° clockwise (90° CCW)
 img.shear(shearX, shearY)                    // Shear transform
 img.rotateDrawingAxis(angle)                 // Rotate drawing axis
 img.translateDrawingAxis(x, y)               // Translate drawing axis
@@ -162,9 +170,12 @@ img.setBackgroundColor("white")              // Set background
 img.setAntiAliasing(true)                    // Enable anti-aliasing
 img.setDrawingTransparency(50)               // Set transparency (0-100)
 img.setDrawingStroke({                       // Set stroke properties
-    width: 2,
-    endCaps: "round",
-    lineJoins: "miter"
+    width: 2.0,                              // Stroke width in pixels
+    endCaps: "round",                        // "butt", "round", or "square"
+    lineJoins: "miter",                      // "miter", "round", or "bevel"
+    miterLimit: 10.0,                        // Miter limit for mitered joins
+    dashArray: [10, 5],                      // Dash pattern (on, off, on, off...)
+    dashPhase: 0                             // Offset to start dash pattern
 })
 ```
 
@@ -359,6 +370,30 @@ The `<bx:image>` component supports the following actions:
 - `isBase64` - Boolean, indicates if source is Base64-encoded
 
 💡 **Tip:** For complex image manipulation workflows, consider using the fluent API instead of components for better readability and maintainability.
+
+## Important Notes
+
+### File Handling
+
+The module properly manages file handles when reading images. After loading an image with `imageRead()` or `imageNew()`, the underlying file stream is automatically closed, allowing you to safely delete or move the source file:
+
+```javascript
+// This works correctly - file can be deleted after reading
+img = imageRead("photo.jpg");
+img.resize(800, 600).write("photo-resized.jpg");
+fileDelete("photo.jpg");  // ✅ Works - no file lock
+```
+
+This is especially important on Windows, where file locks can prevent file operations.
+
+### Directory Creation
+
+When writing images, parent directories are automatically created if they don't exist:
+
+```javascript
+// Creates 'output/thumbs/' directory if needed
+img.write("output/thumbs/photo.jpg");
+```
 
 ## Examples
 
