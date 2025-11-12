@@ -24,15 +24,29 @@ public class ImageFlip extends BIF {
 		super();
 		declaredArguments = new Argument[] {
 		    new Argument( true, "any", KeyDictionary.name, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "string", KeyDictionary.transpose, Set.of( Validator.REQUIRED ) )
+		    new Argument( true, "string", KeyDictionary.transpose, Set.of(
+		        Validator.REQUIRED,
+		        Validator.valueOneOf( "horizontal", "vertical", "diagonal", "antidiagonal", "90", "180", "270" )
+		    ) )
 		};
 	}
 
 	/**
-	 * ExampleBIF
+	 * Flips or transposes an image.
+	 *
+	 * Supported transpose operations:
+	 * - "horizontal" : Flip the image horizontally (mirror left-right)
+	 * - "vertical" : Flip the image vertically (mirror top-bottom)
+	 * - "diagonal" : Transpose along the main diagonal (equivalent to 90° rotation + horizontal flip)
+	 * - "antidiagonal" : Transpose along the anti-diagonal (equivalent to 270° rotation + horizontal flip)
+	 * - "90" : Rotate 90 degrees clockwise
+	 * - "180" : Rotate 180 degrees
+	 * - "270" : Rotate 270 degrees clockwise (or 90 degrees counter-clockwise)
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @return The flipped/transposed BoxImage instance for method chaining
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
