@@ -78,11 +78,72 @@ import ortus.boxlang.runtime.types.Struct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 import ortus.boxlang.runtime.util.FileSystemUtil;
 
+/**
+ * BoxImage is the central wrapper class for image manipulation in the BoxLang Image module.
+ * It encapsulates a javaxt.io.Image and Java's BufferedImage, providing a fluent API for
+ * image operations including drawing, transformations, filters, and metadata access.
+ *
+ * <p>
+ * This class serves as the primary interface for all image BIFs (Built-In Functions) and
+ * supports method chaining for convenient image processing workflows.
+ * </p>
+ *
+ * <h2>Features</h2>
+ * <ul>
+ * <li>Image creation from files, URLs, URIs, Base64 strings, or blank canvases</li>
+ * <li>Drawing operations (shapes, text, lines, curves)</li>
+ * <li>Image transformations (rotate, scale, crop, flip, shear)</li>
+ * <li>Filters and effects (blur, sharpen, grayscale, negative)</li>
+ * <li>EXIF and IPTC metadata extraction and access</li>
+ * <li>Color and stroke management with Graphics2D context</li>
+ * <li>Base64 encoding/decoding support</li>
+ * <li>Overlay and composite operations</li>
+ * </ul>
+ *
+ * <h2>Usage Examples</h2>
+ *
+ * <pre>
+ * // Create from file
+ * BoxImage img = new BoxImage( "path/to/image.png" );
+ *
+ * // Create blank canvas
+ * BoxImage canvas = new BoxImage( 800, 600, ImageType.ARGB, "white" );
+ *
+ * // Method chaining
+ * img.crop( 50, 50, 200, 200 )
+ *     .blur( 5 )
+ *     .grayScale()
+ *     .write( "output.png" );
+ *
+ * // Drawing operations
+ * canvas.setDrawingColor( "blue" )
+ *     .drawRect( 10, 10, 100, 100, true )
+ *     .setDrawingColor( "red" )
+ *     .drawText( "Hello World", 50, 50 );
+ * </pre>
+ *
+ * <h2>Thread Safety</h2>
+ * <p>
+ * This class is NOT thread-safe. Each BoxImage instance should be used by a single thread
+ * or externally synchronized when shared across threads.
+ * </p>
+ *
+ * @see ortus.boxlang.modules.image.bifs Package containing all image BIF implementations
+ * @see javaxt.io.Image The underlying image library
+ * @see java.awt.Graphics2D The drawing context used for operations
+ */
 public class BoxImage {
 
+	/** Map of named colors to java.awt.Color instances */
 	public static final Map<String, Color>	COLORS;
+
+	/** Default font family for text drawing operations */
 	public static final String				DEFAULT_FONT_FAMILY	= Font.SANS_SERIF;
+
+	/** Default font style (plain, not bold or italic) */
 	public static final int					DEFAULT_FONT_STYLE	= Font.PLAIN;
+
+	/** Default font size in points */
 	public static final int					DEFAULT_FONT_SIZE	= 10;
 
 	static {
@@ -102,24 +163,61 @@ public class BoxImage {
 		COLORS.put( "yellow", Color.yellow );
 	}
 
+	/** Path or URL from which the image was loaded, if applicable */
 	private String		sourcePath;
+
+	/** Graphics2D context for drawing operations on the image */
 	private Graphics2D	graphics;
+
+	/** The underlying javaxt.io.Image wrapped by this BoxImage */
 	private Image		image;
+
+	/** Current drawing color (default: white) */
 	private String		drawingColor	= "white";
+
+	/** Current background color (default: white) */
 	private String		backgroundColor	= "white";
+
+	/** EXIF metadata extracted from the image file */
 	private IStruct		exifData		= new Struct();
+
+	/** IPTC metadata extracted from the image file */
 	private IStruct		iptcData		= new Struct();
+
+	/** Detected file type from metadata-extractor library */
 	private FileType	fileType;
 
+	/**
+	 * Enumeration for specifying image dimensions in scaling operations.
+	 */
 	public enum Dimension {
+		/** Width dimension */
 		WIDTH,
+		/** Height dimension */
 		HEIGHT
 	}
 
+	/**
+	 * Creates a BoxImage from a Base64-encoded string.
+	 *
+	 * @param base64String The Base64-encoded image data
+	 *
+	 * @return A new BoxImage instance
+	 *
+	 * @throws IOException If the Base64 string cannot be decoded or the image format is invalid
+	 */
 	public static BoxImage fromBase64( String base64String ) throws IOException {
 		return new BoxImage( ImageIO.read( new ByteArrayInputStream( Base64.getDecoder().decode( base64String ) ) ) );
 	}
 
+	/**
+	 * Creates a new blank BoxImage with specified dimensions and background color.
+	 *
+	 * @param width     The width of the image in pixels
+	 * @param height    The height of the image in pixels
+	 * @param imageType The image type (ARGB, RGB, etc.)
+	 * @param color     The initial background color
+	 */
 	// TODO handle imageType
 	public BoxImage( int width, int height, ImageType imageType, String color ) {
 		this.image		= new Image( width, height );
@@ -130,10 +228,32 @@ public class BoxImage {
 		this.setDrawingColor( "black" );
 	}
 
+	/**
+	 * Creates a BoxImage from a file path or URL string.
+	 * Supports local file paths, http://, https://, and file:// URIs.
+	 *
+	 * @param imageURI The path or URL to the image file
+	 *
+	 * @throws MalformedURLException    If the URI is malformed
+	 * @throws IOException              If the image cannot be read
+	 * @throws ImageProcessingException If metadata extraction fails
+	 * @throws URISyntaxException       If the URI syntax is invalid
+	 */
 	public BoxImage( String imageURI ) throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
 		this( stringToURI( imageURI ) );
 	}
 
+	/**
+	 * Creates a BoxImage from a URI.
+	 * Automatically extracts EXIF and IPTC metadata during creation.
+	 *
+	 * @param imageURI The URI to the image file
+	 *
+	 * @throws MalformedURLException    If the URI is malformed
+	 * @throws IOException              If the image cannot be read
+	 * @throws ImageProcessingException If metadata extraction fails
+	 * @throws URISyntaxException       If the URI syntax is invalid
+	 */
 	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
 		this.sourcePath = imageURI.toString();
 		InputStream				dataStream	= getInputStream( imageURI );
@@ -150,11 +270,21 @@ public class BoxImage {
 		this.cacheGraphics();
 	}
 
+	/**
+	 * Creates a BoxImage from an existing BufferedImage.
+	 *
+	 * @param imageData The BufferedImage to wrap
+	 */
 	public BoxImage( BufferedImage imageData ) {
 		this.image = new Image( imageData );
 		this.cacheGraphics();
 	}
 
+	/**
+	 * Initializes or refreshes the Graphics2D context for drawing operations.
+	 * Disposes of any existing graphics context before creating a new one.
+	 * Preserves the current drawing and background colors.
+	 */
 	private void cacheGraphics() {
 		if ( this.graphics != null ) {
 			this.graphics.dispose();
@@ -166,10 +296,25 @@ public class BoxImage {
 		this.setBackgroundColor( this.backgroundColor );
 	}
 
+	/**
+	 * Gets the source path or URL from which this image was loaded.
+	 *
+	 * @return The source path, or null if the image was created from scratch or BufferedImage
+	 */
 	public String getSourcePath() {
 		return this.sourcePath;
 	}
 
+	/**
+	 * Retrieves comprehensive information about the image including dimensions,
+	 * color model details, and source path.
+	 *
+	 * @return An IStruct containing image metadata with keys:
+	 *         - height: Image height in pixels
+	 *         - width: Image width in pixels
+	 *         - colormodel: Struct with color model details (alpha support, color space, etc.)
+	 *         - source: Original source path if available
+	 */
 	public IStruct getImageInfo() {
 		IStruct info = new Struct();
 
@@ -200,6 +345,15 @@ public class BoxImage {
 		return info;
 	}
 
+	/**
+	 * Converts the image to a Base64-encoded string in the specified format.
+	 *
+	 * @param format The image format (e.g., "png", "jpg", "gif")
+	 *
+	 * @return A Base64-encoded string representing the image
+	 *
+	 * @throws IOException If encoding fails
+	 */
 	public String toBase64String( String format ) throws IOException {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 
@@ -208,6 +362,13 @@ public class BoxImage {
 		return Base64.getEncoder().encodeToString( output.toByteArray() );
 	}
 
+	/**
+	 * Enables or disables anti-aliasing for drawing operations.
+	 *
+	 * @param useAntiAliasing true to enable anti-aliasing, false to disable
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage setAntiAliasing( boolean useAntiAliasing ) {
 		this.graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
 		    useAntiAliasing ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF );
@@ -215,6 +376,15 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Scales the image to fit within a specific dimension while maintaining aspect ratio.
+	 *
+	 * @param size          The target size in pixels
+	 * @param dimension     The dimension to fit (WIDTH or HEIGHT)
+	 * @param interpolation The interpolation method ("bicubic", "bilinear", "nearest")
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage scaleToFit( int size, Dimension dimension, String interpolation ) {
 		double scaleFactor = dimension == Dimension.WIDTH ? ( double ) size / ( double ) this.getWidth() : ( double ) size / ( double ) this.getHeight();
 
@@ -228,24 +398,57 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Translates the drawing axis for subsequent drawing operations.
+	 *
+	 * @param x The x-axis translation offset
+	 * @param y The y-axis translation offset
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage translateDrawingAxis( int x, int y ) {
 		this.graphics.setTransform( AffineTransform.getTranslateInstance( x, y ) );
 
 		return this;
 	}
 
+	/**
+	 * Shears the drawing axis for subsequent drawing operations.
+	 *
+	 * @param x The x-axis shear factor
+	 * @param y The y-axis shear factor
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage shearDrawingAxis( double x, double y ) {
 		this.graphics.setTransform( AffineTransform.getShearInstance( x, y ) );
 
 		return this;
 	}
 
+	/**
+	 * Rotates the drawing axis around a specific point for subsequent drawing operations.
+	 *
+	 * @param angle The rotation angle in degrees
+	 * @param x     The x-coordinate of the rotation point
+	 * @param y     The y-coordinate of the rotation point
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage rotateDrawingAxis( double angle, int x, int y ) {
 		this.graphics.setTransform( AffineTransform.getRotateInstance( Math.toRadians( angle ), x, y ) );
 
 		return this;
 	}
 
+	/**
+	 * Translates the entire image to a new position on a canvas of the same size.
+	 *
+	 * @param x The x-axis translation offset
+	 * @param y The y-axis translation offset
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage translate( int x, int y ) {
 		BufferedImage	resizedImage	= new BufferedImage( this.image.getWidth(), this.image.getHeight(),
 		    this.image.getBufferedImage().getType() );
@@ -262,6 +465,14 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Rotates the image by the specified angle in degrees.
+	 * The canvas is automatically expanded to fit the rotated image.
+	 *
+	 * @param angle The rotation angle in degrees (positive for clockwise)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage rotate( int angle ) {
 		int				oldWidth		= this.image.getWidth();
 		int				oldHeight		= this.image.getHeight();
@@ -288,6 +499,15 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Overlays another image on top of this image using the specified composite rule and transparency.
+	 *
+	 * @param toOverlay    The BoxImage to overlay on this image
+	 * @param overlayRule  The composite rule (e.g., "normal", "multiply", "screen")
+	 * @param transparency The transparency level (0.0 to 1.0, where 1.0 is fully opaque)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage overlay( BoxImage toOverlay, String overlayRule, double transparency ) {
 		AlphaComposite	overlayComposite	= AlphaComposite.getInstance( EnumConverterUtil.getOveralyRule( overlayRule ), ( float ) transparency );
 		Composite		original			= this.graphics.getComposite();
@@ -300,6 +520,11 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Converts the image to grayscale.
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage grayScale() {
 		BufferedImage	grayImage	= new BufferedImage( this.image.getWidth(), this.image.getHeight(), BufferedImage.TYPE_BYTE_GRAY );
 		Graphics2D		g			= grayImage.createGraphics();
@@ -313,22 +538,63 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Retrieves the EXIF metadata for this image as a struct.
+	 *
+	 * @return A struct containing EXIF metadata tags and values, or an empty struct if no EXIF data exists
+	 */
 	public IStruct getExifMetaData() {
 		return exifData;
 	}
 
+	/**
+	 * Retrieves the IPTC metadata for this image as a struct.
+	 *
+	 * @return A struct containing IPTC metadata tags and values, or an empty struct if no IPTC data exists
+	 *
+	 * @throws ImageProcessingException If metadata cannot be processed
+	 * @throws FileNotFoundException    If the source image file cannot be found
+	 * @throws IOException              If an I/O error occurs reading metadata
+	 */
 	public IStruct getIPTCMetaData() throws ImageProcessingException, FileNotFoundException, IOException {
 		return iptcData;
 	}
 
+	/**
+	 * Retrieves a specific EXIF metadata tag value by name.
+	 *
+	 * @param tagName The name of the EXIF tag to retrieve (e.g., "Model", "DateTimeOriginal")
+	 *
+	 * @return The value of the specified EXIF tag, or null if the tag doesn't exist
+	 *
+	 * @throws ImageProcessingException If metadata cannot be processed
+	 * @throws FileNotFoundException    If the source image file cannot be found
+	 * @throws IOException              If an I/O error occurs reading metadata
+	 */
 	public Object getExifMetaDataTag( String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
 		return getExifMetaData().get( tagName );
 	}
 
+	/**
+	 * Retrieves a specific IPTC metadata tag value by name.
+	 *
+	 * @param tagName The name of the IPTC tag to retrieve (e.g., "Caption", "Keywords")
+	 *
+	 * @return The value of the specified IPTC tag, or null if the tag doesn't exist
+	 *
+	 * @throws ImageProcessingException If metadata cannot be processed
+	 * @throws FileNotFoundException    If the source image file cannot be found
+	 * @throws IOException              If an I/O error occurs reading metadata
+	 */
 	public Object getIPTCMetaDataTag( String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
 		return getIPTCMetaData().get( tagName );
 	}
 
+	/**
+	 * Creates a copy of this image.
+	 *
+	 * @return A new BoxImage instance containing a copy of this image's data
+	 */
 	public BoxImage copy() {
 		BoxImage newImage = new BoxImage( getWidth(), getHeight(), ImageType.ARGB, "black" );
 
@@ -337,6 +603,19 @@ public class BoxImage {
 		return newImage;
 	}
 
+	/**
+	 * Draws an arc on the image.
+	 *
+	 * @param x          The x-coordinate of the upper-left corner of the bounding rectangle
+	 * @param y          The y-coordinate of the upper-left corner of the bounding rectangle
+	 * @param width      The width of the bounding rectangle
+	 * @param height     The height of the bounding rectangle
+	 * @param startAngle The starting angle in degrees (0 = 3 o'clock position)
+	 * @param archAngle  The angular extent of the arc in degrees
+	 * @param filled     true to fill the arc, false to draw only the outline
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawArc( int x, int y, int width, int height, int startAngle, int archAngle, boolean filled ) {
 
 		if ( filled ) {
@@ -348,18 +627,52 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Draws a cubic Bézier curve on the image.
+	 *
+	 * @param x1     The x-coordinate of the starting point
+	 * @param y1     The y-coordinate of the starting point
+	 * @param ctrlx1 The x-coordinate of the first control point
+	 * @param ctrly1 The y-coordinate of the first control point
+	 * @param ctrlx2 The x-coordinate of the second control point
+	 * @param ctrly2 The y-coordinate of the second control point
+	 * @param x2     The x-coordinate of the ending point
+	 * @param y2     The y-coordinate of the ending point
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawCubicCurve( int x1, int y1, int ctrlx1, int ctrly1, int ctrlx2, int ctrly2, int x2, int y2 ) {
 		this.graphics.draw( new CubicCurve2D.Double( x1, y1, ctrlx1, ctrly1, ctrlx2, ctrly2, x2, y2 ) );
 
 		return this;
 	}
 
+	/**
+	 * Draws a line between two points on the image.
+	 *
+	 * @param x1 The x-coordinate of the starting point
+	 * @param y1 The y-coordinate of the starting point
+	 * @param x2 The x-coordinate of the ending point
+	 * @param y2 The y-coordinate of the ending point
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawLine( int x1, int y1, int x2, int y2 ) {
 		this.graphics.drawLine( x1, y1, x2, y2 );
 
 		return this;
 	}
 
+	/**
+	 * Draws multiple connected lines or a polygon on the image.
+	 *
+	 * @param xCoords   An array of x-coordinates for the points
+	 * @param yCoords   An array of y-coordinates for the points
+	 * @param isPolygon true to close the shape as a polygon, false for a polyline
+	 * @param filled    true to fill the polygon (only applies if isPolygon is true), false to draw only the outline
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawLines( Array xCoords, Array yCoords, boolean isPolygon, boolean filled ) {
 		int[]	xPoints	= xCoords.stream().mapToInt( IntegerCaster::cast ).toArray();
 		int[]	yPoints	= yCoords.stream().mapToInt( IntegerCaster::cast ).toArray();
@@ -378,17 +691,50 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Draws a quadratic Bézier curve on the image.
+	 *
+	 * @param ctrlx1 The x-coordinate of the control point
+	 * @param ctrly1 The y-coordinate of the control point
+	 * @param x1     The x-coordinate of the starting point
+	 * @param y1     The y-coordinate of the starting point
+	 * @param x2     The x-coordinate of the ending point
+	 * @param y2     The y-coordinate of the ending point
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawQuadraticCurve( int ctrlx1, int ctrly1, int x1, int y1, int x2, int y2 ) {
 		this.graphics.draw( new QuadCurve2D.Double( ctrlx1, ctrly1, x1, y1, x2, y2 ) );
 
 		return this;
 	}
 
+	/**
+	 * Draws text on the image at the specified coordinates.
+	 *
+	 * @param str The text string to draw
+	 * @param x   The x-coordinate of the baseline of the text
+	 * @param y   The y-coordinate of the baseline of the text
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawText( String str, int x, int y ) {
 		this.graphics.drawString( str, x, y );
 		return this;
 	}
 
+	/**
+	 * Sets the drawing stroke properties for subsequent drawing operations.
+	 *
+	 * @param strokeConfig A struct containing stroke properties:
+	 *                     - width: The stroke width (float)
+	 *                     - endCaps: The end cap style ("butt", "round", "square")
+	 *                     - lineJoins: The line join style ("miter", "round", "bevel")
+	 *                     - miterLimit: The miter limit (float)
+	 *                     - dashArray: An array of dash pattern lengths (array)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage setDrawingStroke( IStruct strokeConfig ) {
 		StrokeBuilder builder = new StrokeBuilder();
 
@@ -429,12 +775,27 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Sets the drawing transparency for subsequent drawing operations.
+	 *
+	 * @param transparency The transparency percentage (0.0 to 100.0, where 0.0 is fully transparent and 100.0 is fully opaque)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage setDrawingTransparency( double transparency ) {
 		AlphaComposite composite = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, ( float ) ( transparency / 100.0 ) );
 		this.graphics.setComposite( composite );
 		return this;
 	}
 
+	/**
+	 * Shears the image along the specified dimension.
+	 *
+	 * @param amount The amount of shear to apply
+	 * @param dim    The dimension to shear along (HEIGHT or WIDTH)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage shear( double amount, Dimension dim ) {
 		Rectangle		rect	= new Rectangle( 0, 0, this.image.getWidth(), this.image.getHeight() );
 		AffineTransform	shear;
@@ -468,6 +829,13 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Sharpens the image by applying a convolution kernel.
+	 *
+	 * @param gain The sharpening intensity (0.0 to 10.0, where higher values produce more sharpening)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage sharpen( double gain ) {
 		float	step	= 0.1f;
 		float	num		= step * ( float ) gain;
@@ -484,6 +852,21 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Draws text on the image with font styling applied.
+	 *
+	 * @param str        The text string to draw
+	 * @param x          The x-coordinate of the baseline of the text
+	 * @param y          The y-coordinate of the baseline of the text
+	 * @param fontConfig A struct containing font properties:
+	 *                   - font: The font family name (string)
+	 *                   - style: The font style ("plain", "bold", "italic", "bolditalic")
+	 *                   - size: The font size in points (integer)
+	 *                   - strikeThrough: Whether to apply strikethrough (boolean)
+	 *                   - underline: Whether to underline the text (boolean)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawText( String str, int x, int y, IStruct fontConfig ) {
 		Map<TextAttribute, Object> attr = new HashMap<TextAttribute, Object>();
 
@@ -537,6 +920,16 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Resizes the image to the specified dimensions.
+	 *
+	 * @param width          The target width in pixels
+	 * @param height         The target height in pixels
+	 * @param interpolcation The interpolation method ("bicubic", "bilinear", "nearest")
+	 * @param blurFactor     The blur factor (currently unused, reserved for future use)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage resize( int width, int height, String interpolcation, int blurFactor ) {
 		BufferedImage	resizedImage	= new BufferedImage( width, height, this.image.getBufferedImage().getType() );
 		Graphics2D		resizedGraphics	= resizedImage.createGraphics();
@@ -552,6 +945,17 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Draws an oval on the image.
+	 *
+	 * @param x      The x-coordinate of the upper-left corner of the bounding rectangle
+	 * @param y      The y-coordinate of the upper-left corner of the bounding rectangle
+	 * @param width  The width of the bounding rectangle
+	 * @param height The height of the bounding rectangle
+	 * @param filled true to fill the oval, false to draw only the outline
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawOval( int x, int y, int width, int height, boolean filled ) {
 		if ( filled ) {
 			this.graphics.fillOval( x, y, width, height );
@@ -562,6 +966,18 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Draws a beveled rectangle with 3D effect on the image.
+	 *
+	 * @param x      The x-coordinate of the upper-left corner
+	 * @param y      The y-coordinate of the upper-left corner
+	 * @param width  The width of the rectangle
+	 * @param height The height of the rectangle
+	 * @param raised true for a raised bevel, false for a lowered bevel
+	 * @param filled true to fill the rectangle, false to draw only the outline
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawBeveledRect( int x, int y, int width, int height, boolean raised, boolean filled ) {
 
 		this.drawRect( x, y, width, height, filled );
@@ -588,6 +1004,18 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Creates a copy of a rectangular region of this image.
+	 *
+	 * @param x      The x-coordinate of the region to copy
+	 * @param y      The y-coordinate of the region to copy
+	 * @param width  The width of the region to copy
+	 * @param height The height of the region to copy
+	 * @param dx     The x-offset for optional secondary draw (0 for none)
+	 * @param dy     The y-offset for optional secondary draw (0 for none)
+	 *
+	 * @return A new BoxImage containing the copied region
+	 */
 	public BoxImage copy( int x, int y, int width, int height, int dx, int dy ) {
 		BoxImage newImage = new BoxImage( width, height, ImageType.ARGB, "black" );
 
@@ -600,16 +1028,41 @@ public class BoxImage {
 		return newImage;
 	}
 
+	/**
+	 * Draws another BoxImage onto this image at the specified coordinates.
+	 *
+	 * @param image The BoxImage to draw
+	 * @param x     The x-coordinate where the image should be drawn
+	 * @param y     The y-coordinate where the image should be drawn
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawImage( BoxImage image, int x, int y ) {
 		this.graphics.drawImage( image.getBufferedImage(), new AffineTransform( 1f, 0f, 0f, 1f, x, y ), null );
 
 		return this;
 	}
 
+	/**
+	 * Gets the underlying Java BufferedImage.
+	 *
+	 * @return The BufferedImage wrapped by this BoxImage
+	 */
 	public BufferedImage getBufferedImage() {
 		return this.image.getBufferedImage();
 	}
 
+	/**
+	 * Writes the image to a file at the specified path.
+	 * Automatically creates parent directories if they don't exist.
+	 * Currently saves as PNG format.
+	 *
+	 * @param path The file path where the image should be saved
+	 *
+	 * @return This BoxImage instance for method chaining
+	 *
+	 * @throws BoxRuntimeException If the image cannot be saved
+	 */
 	public BoxImage write( String path ) {
 		// TODO determine format
 		try {
@@ -627,12 +1080,28 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Crops the image to the specified rectangular region.
+	 *
+	 * @param x      The x-coordinate of the upper-left corner of the crop region
+	 * @param y      The y-coordinate of the upper-left corner of the crop region
+	 * @param width  The width of the crop region
+	 * @param height The height of the crop region
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage crop( int x, int y, int width, int height ) {
 		this.image.crop( x, y, width, height );
 
 		return this;
 	}
 
+	/**
+	 * Inverts the colors of the image to create a negative effect.
+	 * Each RGB value is subtracted from 255, while preserving alpha transparency.
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage negative() {
 		BufferedImage bufferedImage = this.image.getBufferedImage();
 		// Convert to negative
@@ -658,6 +1127,14 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Adds a solid color border around the image.
+	 *
+	 * @param thickness The thickness of the border in pixels
+	 * @param color     The color name or hex code for the border
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage addBorder( int thickness, String color ) {
 		Image			next	= new Image( this.image.getWidth() + ( thickness * 2 ), this.image.getHeight() + ( thickness * 2 ) );
 		BufferedImage	bfImage	= next.getBufferedImage();
@@ -674,6 +1151,13 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Transposes (flips or rotates) the image according to the specified operation.
+	 *
+	 * @param transpose The transpose operation ("90", "180", "270", "flipHorizontal", "flipVertical")
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage transpose( String transpose ) {
 		// TODO transfer colors and strokes
 		if ( transpose.equalsIgnoreCase( "vertical" ) ) {
@@ -703,16 +1187,44 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Gets the image data as a byte array.
+	 *
+	 * @return A byte array containing the image data
+	 */
 	public byte[] getBytes() {
 		return this.image.getByteArray();
 	}
 
+	/**
+	 * Clears a rectangular region on the image to transparent.
+	 *
+	 * @param x      The x-coordinate of the upper-left corner of the region
+	 * @param y      The y-coordinate of the upper-left corner of the region
+	 * @param width  The width of the region to clear
+	 * @param height The height of the region to clear
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage clearRect( int x, int y, int width, int height ) {
 		graphics.clearRect( x, y, width, height );
 
 		return this;
 	}
 
+	/**
+	 * Draws a rounded rectangle on the image.
+	 *
+	 * @param x         The x-coordinate of the upper-left corner
+	 * @param y         The y-coordinate of the upper-left corner
+	 * @param width     The width of the rectangle
+	 * @param height    The height of the rectangle
+	 * @param arcWidth  The horizontal diameter of the arc at the corners
+	 * @param arcHeight The vertical diameter of the arc at the corners
+	 * @param filled    true to fill the rectangle, false to draw only the outline
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawRoundRect( int x, int y, int width, int height, int arcWidth, int arcHeight, boolean filled ) {
 		if ( filled ) {
 			graphics.fillRoundRect( x, y, width, height, arcWidth, arcHeight );
@@ -723,6 +1235,17 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Draws a rectangle on the image.
+	 *
+	 * @param x      The x-coordinate of the upper-left corner
+	 * @param y      The y-coordinate of the upper-left corner
+	 * @param width  The width of the rectangle
+	 * @param height The height of the rectangle
+	 * @param filled true to fill the rectangle, false to draw only the outline
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage drawRect( int x, int y, int width, int height, boolean filled ) {
 		if ( filled ) {
 			graphics.fillRect( x, y, width, height );
@@ -733,15 +1256,37 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Fills a rectangle with the current drawing color.
+	 *
+	 * @param x      The x-coordinate of the upper-left corner
+	 * @param y      The y-coordinate of the upper-left corner
+	 * @param width  The width of the rectangle
+	 * @param height The height of the rectangle
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage fillRect( int x, int y, int width, int height ) {
 		graphics.fillRect( x, y, width, height );
 		return this;
 	}
 
+	/**
+	 * Gets the current drawing color.
+	 *
+	 * @return The current drawing color as a string (name or hex code)
+	 */
 	public String getDrawingColor() {
 		return this.drawingColor;
 	}
 
+	/**
+	 * Sets the color for subsequent drawing operations.
+	 *
+	 * @param color The color to set (color name like "red", "blue", or hex code like "#FF0000")
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage setDrawingColor( String color ) {
 		this.drawingColor = color;
 
@@ -752,6 +1297,13 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Sets the background color for subsequent drawing operations.
+	 *
+	 * @param color The color to set (color name like "white", "black", or hex code)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage setBackgroundColor( String color ) {
 		this.backgroundColor = color;
 
@@ -762,14 +1314,31 @@ public class BoxImage {
 		return this;
 	}
 
+	/**
+	 * Gets the width of the image in pixels.
+	 *
+	 * @return The image width
+	 */
 	public int getWidth() {
 		return this.image.getWidth();
 	}
 
+	/**
+	 * Gets the height of the image in pixels.
+	 *
+	 * @return The image height
+	 */
 	public int getHeight() {
 		return this.image.getHeight();
 	}
 
+	/**
+	 * Applies a blur filter to the image.
+	 *
+	 * @param radius The blur radius (higher values produce more blur)
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
 	public BoxImage blur( Integer radius ) {
 
 		this.image.blur( radius.floatValue() );
@@ -777,22 +1346,35 @@ public class BoxImage {
 		return this;
 	}
 
-	private static InputStream getInputStream( String imageInput ) throws MalformedURLException, IOException, URISyntaxException {
-
-		return getInputStream( URI.create( imageInput ) );
-	}
-
+	/**
+	 * Retrieves an InputStream for the given image input URI, which can be a URL or file path.
+	 *
+	 * @param imageInput The image input as a URI (URL or file path)
+	 *
+	 * @return An InputStream for the image data
+	 *
+	 * @throws MalformedURLException If the URL is malformed
+	 * @throws IOException           If an I/O error occurs
+	 * @throws URISyntaxException    If the URI syntax is incorrect
+	 */
 	private static InputStream getInputStream( URI imageInput ) throws MalformedURLException, IOException, URISyntaxException {
-
 		if ( imageInput.toString().toLowerCase().startsWith( "http" ) ) {
-
 			return resolveURLToInputStream( imageInput );
-
 		}
-
 		return new FileInputStream( FileSystemUtil.createFileUri( imageInput.toString() ).getPath() );
 	}
 
+	/**
+	 * Resolves a URL to an InputStream, handling HTTP redirects.
+	 *
+	 * @param imageInput The image input as a URI
+	 *
+	 * @return An InputStream for the image data
+	 *
+	 * @throws MalformedURLException If the URL is malformed
+	 * @throws IOException           If an I/O error occurs
+	 * @throws URISyntaxException    If the URI syntax is incorrect
+	 */
 	private static InputStream resolveURLToInputStream( URI imageInput ) throws MalformedURLException, IOException, URISyntaxException {
 		URL					url			= imageInput.toURL();
 		HttpURLConnection	connection	= null;
@@ -820,11 +1402,20 @@ public class BoxImage {
 		return connection.getInputStream();
 	}
 
+	/**
+	 * Converts a string input to a URI.
+	 * If the input is a valid URL, it is converted to a URI.
+	 * If not, it is treated as a local file path and converted to a file URI.
+	 *
+	 * @param input The input string (URL or file path)
+	 *
+	 * @return The corresponding URI
+	 */
 	public static URI stringToURI( String input ) {
 		try {
 			// Try to parse as a URL (e.g., http://, file://, etc.)
-			URL url = new URL( input );
-			return url.toURI();  // Also handles encoding
+			URI uri = URI.create( input );
+			return uri;  // Also handles encoding
 		} catch ( Exception e ) {
 			// Not a valid URL? Treat as a local file path
 			Path path = Paths.get( input );
