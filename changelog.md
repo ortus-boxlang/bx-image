@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Updated all GitHub actions
+- Updated all GitHub actions to latest according to templates
 - Updated templates to latest module template
 - Bump javaxt:javaxt-core from 2.1.9 to 2.1.11
 - Generate AI Instructions

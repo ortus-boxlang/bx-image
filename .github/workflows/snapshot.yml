@@ -1,4 +1,4 @@
-name: BoxLang Image Library Snapshots
+name: Snapshots
 
 on:
   push:
@@ -9,6 +9,10 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
+env:
+  MODULE_ID: ${{ github.event.repository.name }}
+  JDK_VERSION: 21
 
 jobs:
   #############################################
@@ -23,12 +27,39 @@ jobs:
       contents: read
       issues: read
 
+  ##########################################################################################
+  # Format Source Code
+  ##########################################################################################
+  format:
+    name: Code Auto-Formatting
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JDK_VERSION }}
+
+      - name: Format Java Source
+        run: |
+          ./gradlew spotlessApply --stacktrace
+
+      - name: Commit Format Changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: Apply cfformat changes
+
   #############################################
   # Build Snapshot Release
   #############################################
   build:
     uses: ./.github/workflows/release.yml
-    needs: [tests]
+    needs: [tests, format]
     secrets: inherit
     permissions:
       checks: write

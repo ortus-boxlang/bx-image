@@ -1,4 +1,4 @@
-name: BoxLang Image Library Test Suites
+name: Test Suites
 
 # We are a reusable Workflow only
 on:
@@ -7,9 +7,12 @@ on:
       SLACK_WEBHOOK_URL:
         required: false
 
+env:
+  MODULE_ID: ${{ github.event.repository.name }}
+
 jobs:
   tests:
-    name: Tests
+    name: Tests ${{ github.event.repository.name }}
     runs-on: ${{ matrix.os }}
     env:
       DB_USER: root
@@ -18,17 +21,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", "windows-latest" ]
-        jdkVersion: [ "21" ]
+        os: ["ubuntu-latest", "windows-latest"]
+        jdkVersion: ["21"]
         experimental: [false]
         #include:
-          #- jdkVersion: "17"
-          #  os: "windows-latest"
-          #  experimental: true
-          # Disabled for now until we can figure out the gradle matrix
-          #- jdkVersion: "17"
-          #  os: "ubuntu-latest"
-          #  experimental: true
+        #- jdkVersion: "17"
+        #  os: "windows-latest"
+        #  experimental: true
+        # Disabled for now until we can figure out the gradle matrix
+        #- jdkVersion: "17"
+        #  os: "ubuntu-latest"
+        #  experimental: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
@@ -38,11 +41,6 @@ jobs:
         with:
           distribution: "temurin"
           java-version: ${{ matrix.jdkVersion }}
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
-        with:
-          gradle-version: "8.7"
 
       # - name: Setup Database and Fixtures
       #   run: |
@@ -70,10 +68,22 @@ jobs:
 
       - name: Test Module
         run: |
-          gradle downloadBoxLang
-          # generate our module structure
-          gradle build -x test
-          gradle test --stacktrace --console=plain
+          ./gradlew downloadBoxLang
+          # this is done in order to build the module structure before testing
+          ./gradlew shadowJar test --stacktrace --console=plain
+
+      - name: Publish Test Reports
+        uses: mikepenz/action-junit-report@v6.0.1
+        if: always()
+        with:
+          report_paths: |
+            **/build/test-results/test/*.xml
+            **/surefire-reports/*.xml
+            **/failsafe-reports/*.xml
+          check_name: "Tests Report ${{ matrix.os }}-${{ matrix.jdkVersion }}"
+          include_passed: false
+          fail_on_failure: true
+          detailed_summary: true
 
       - name: Upload Test Results
         if: always()
@@ -84,24 +94,15 @@ jobs:
             **/build/reports/tests/**
             **/build/test-results/**
 
-  publish-test-results:
-    name: Publish Test Results
-    runs-on: ubuntu-latest
-    needs: tests
-    if: always()
-    permissions:
-      checks: write
-      pull-requests: write
-      contents: read
-      issues: read
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v6
-        with:
-          path: artifacts
-
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: |
-            artifacts/**/*.xml
+      - name: Inform Slack
+        if: ${{ failure() && github.ref == 'refs/heads/development' }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: coding
+          SLACK_COLOR: ${{ job.status }} # or a specific color like 'green' or '#ff00ff'
+          SLACK_ICON_EMOJI: ":bell:"
+          SLACK_MESSAGE: "${{ env.MODULE_ID }} Tests FAILED!  You broke the build! :("
+          SLACK_TITLE: "${{ env.MODULE_ID }} Build Failure"
+          SLACK_USERNAME: CI
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          MSG_MINIMAL: true
