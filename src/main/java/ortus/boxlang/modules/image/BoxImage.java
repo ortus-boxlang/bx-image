@@ -287,7 +287,7 @@ public class BoxImage {
 	 * Initializes or refreshes the Graphics2D context for drawing operations.
 	 * Disposes of any existing graphics context before creating a new one.
 	 * Preserves the current drawing and background colors.
-	 * 
+	 *
 	 * <p>
 	 * This method also ensures the BufferedImage is fully loaded by accessing
 	 * its width and height, which forces lazy-loaded images to be decoded.
