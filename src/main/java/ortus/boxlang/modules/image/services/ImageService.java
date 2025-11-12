@@ -223,6 +223,46 @@ public class ImageService extends BaseService {
 	}
 
 	/**
+	 * Remove an image from the cache by its unique identifier.
+	 *
+	 * @param id The unique identifier (UUID) of the cached image to remove
+	 *
+	 * @return true if the image was found and removed, false if it was not found
+	 */
+	public boolean removeCachedImage( String id ) {
+		getLogger().info( "Removing cached image with ID: {}", id );
+		return this.cachedImages.remove( id ) != null;
+	}
+
+	/**
+	 * Verify if an image with the given ID exists in the cache.
+	 *
+	 * @param id The unique identifier (UUID) of the cached image
+	 *
+	 * @return true if the image exists in the cache, false otherwise
+	 */
+	public boolean hasCachedImage( String id ) {
+		return this.cachedImages.containsKey( id );
+	}
+
+	/**
+	 * Remove all cached images from memory.
+	 */
+	public void clearCache() {
+		getLogger().info( "Clearing all cached images from memory. Total images cleared: {}", this.cachedImages.size() );
+		this.cachedImages.clear();
+	}
+
+	/**
+	 * How many images are currently cached.
+	 *
+	 * @return The number of cached images
+	 */
+	public int getCachedImageCount() {
+		return this.cachedImages.size();
+	}
+
+	/**
 	 * Caches an image in memory and returns a unique identifier for later retrieval.
 	 * The image is encoded as a Base64 PNG string and stored in a thread-safe concurrent map
 	 * with a UUID as the key.
