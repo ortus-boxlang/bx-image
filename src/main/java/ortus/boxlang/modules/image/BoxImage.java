@@ -287,13 +287,29 @@ public class BoxImage {
 	 * Initializes or refreshes the Graphics2D context for drawing operations.
 	 * Disposes of any existing graphics context before creating a new one.
 	 * Preserves the current drawing and background colors.
+	 * 
+	 * <p>
+	 * This method also ensures the BufferedImage is fully loaded by accessing
+	 * its width and height, which forces lazy-loaded images to be decoded.
+	 * This is critical for ensuring proper rendering when the image is used
+	 * immediately after loading without any manipulation operations.
+	 * </p>
 	 */
 	private void cacheGraphics() {
 		if ( this.graphics != null ) {
 			this.graphics.dispose();
 		}
 
-		this.graphics = this.image.getBufferedImage().createGraphics();
+		BufferedImage	bufferedImage	= this.image.getBufferedImage();
+
+		// Force the image to be fully loaded by accessing its dimensions
+		// This ensures lazy-loaded images are properly decoded before use
+		@SuppressWarnings( "unused" )
+		int				width			= bufferedImage.getWidth();
+		@SuppressWarnings( "unused" )
+		int				height			= bufferedImage.getHeight();
+
+		this.graphics = bufferedImage.createGraphics();
 
 		this.setDrawingColor( this.drawingColor );
 		this.setBackgroundColor( this.backgroundColor );
