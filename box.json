@@ -1,7 +1,7 @@
 {
-	"name": "BoxLang Image Library",
-	"version": "1.3.2",
-	"location": "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/bx-image/1.3.2/bx-image-1.3.2.zip",
+	"name": "BoxLang Fluent Image Library",
+	"version": "@build.version@+@build.number@",
+	"location": "https://downloads.ortussolutions.com/ortussolutions/boxlang-modules/bx-image/@build.version@/bx-image-@build.version@.zip",
 	"author": "Ortus Solutions",
 	"homepage": "https://github.com/ortus-boxlang/bx-image",
 	"documentation": "https://github.com/ortus-boxlang/bx-image",
@@ -11,13 +11,18 @@
 	},
 	"bugs": "https://github.com/ortus-boxlang/bx-image/issues",
 	"slug": "bx-image",
-	"shortDescription": "Boxlang Image processing module",
+	"shortDescription": "Powerful and fluent image manipulation module for BoxLang with extensive built-in functions",
 	"type": "boxlang-modules",
 	"keywords": [
-		"boxlang"
+		"boxlang",
+		"image",
+		"manipulation",
+		"graphics",
+		"photo",
+		"processing"
 	],
 	"boxlang": {
-		"minimumVersion": "1.3.0",
+		"minimumVersion": "1.6.0",
 		"moduleName": "image"
 	},
 	"private": false,
@@ -28,10 +33,9 @@
 		}
 	],
 	"devDependencies": {
+		"commandbox-boxlang": "*",
 		"commandbox-cfformat": "*",
 		"commandbox-docbox": "*",
-		"commandbox-dotenv": "*",
-		"commandbox-cfconfig": "*",
 		"testbox": "*"
 	},
 	"ignore": [
@@ -43,8 +47,5 @@
 		"/src/**",
 		"gradle/**"
 	],
-	"scripts": {
-		"setupTemplate": "task run taskFile=src/build/SetupTemplate.cfc",
-		"onRelease": "publish"
-	}
+	"scripts": {}
 }

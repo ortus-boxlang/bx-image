@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
@@ -18,30 +20,14 @@ import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 import ortus.boxlang.runtime.types.Array;
 
-public class GetReadableImageFormatsTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class GetReadableImageFormatsTest extends BaseIntegrationTest {
 
 	@DisplayName( "It can return an array of image formats" )
 	@Test
 	public void testGetReadableImageFormats() throws IOException {
-		instance.executeSource( """
-		                        result = getReadableImageFormats();
-		                        """, context );
+		runtime.executeSource( """
+		                       result = getReadableImageFormats();
+		                       """, context );
 
 		assertInstanceOf( ortus.boxlang.runtime.types.Array.class, variables.get( result ) );
 

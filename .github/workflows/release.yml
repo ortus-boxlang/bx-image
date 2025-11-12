@@ -1,6 +1,6 @@
 # This workflow is used to build releases
 # It can also be called by other workflows to reuse the release flow.
-name: BoxLang Image Library Release
+name: Release
 
 on:
   # If you push to main this will trigger a stable release
@@ -18,12 +18,14 @@ on:
         default: false
         type: boolean
 
+  # Manual Trigger
+  workflow_dispatch:
+
 env:
-  MODULE_ID: bx-image
-  SNAPSHOT: ${{ inputs.snapshot || false }}
+  MODULE_ID: ${{ github.event.repository.name }}
   JDK: 21
-  GRADLE: 8.7
   BUILD_ID: ${{ github.run_number }}
+  SNAPSHOT: ${{ inputs.snapshot || false }}
 
 jobs:
   #############################################
@@ -39,7 +41,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup CommandBox
         uses: Ortus-Solutions/setup-commandbox@v2.0.1
@@ -47,23 +49,25 @@ jobs:
           forgeboxAPIKey: ${{ secrets.FORGEBOX_API_TOKEN }}
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: ${{ env.JDK }}
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
-        with:
-          gradle-version: ${{ env.GRADLE }}
 
       - name: Setup Environment Variables For Build Process
         id: current_version
         run: |
           # Read Version from gradle.properties
-          echo "VERSION=`grep '^version=' gradle.properties | cut -d'=' -f2`" >> $GITHUB_ENV
+          TMPVERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
+          # Replace existing prerelease identifier with -snapshot or append -snapshot if none exists
+          # If we are on the development branch, we always append -snapshot
+          if [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
+            TMPVERSION=$(echo $TMPVERSION | sed 's/-.*$//')-snapshot
+          fi
+          # Set the version in the environment
+          echo "VERSION=$TMPVERSION" >> $GITHUB_ENV
 
-          # Branche
+          # Branch
           echo "Github Ref is $GITHUB_REF"
           echo "BRANCH=main" >> $GITHUB_ENV
 
@@ -84,8 +88,8 @@ jobs:
         run: |
           npm install -g markdownlint-cli
           markdownlint changelog.md --fix
-          gradle downloadBoxLang
-          gradle build -x test --stacktrace --console=plain
+          ./gradlew downloadBoxLang
+          ./gradlew build -x test --stacktrace --console=plain
 
       - name: Commit Changelog [unreleased] with latest version
         uses: EndBug/add-and-commit@v9.1.4
@@ -106,12 +110,10 @@ jobs:
 
       - name: Upload Build Artifacts
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: boxlang-build
           path: |
-            build/distributions/**
-            build/libs/**
             build/reports/tests/**
             changelog.md
 
@@ -126,19 +128,16 @@ jobs:
           SOURCE_DIR: "build/distributions"
           DEST_DIR: "ortussolutions/boxlang-modules/${{ env.MODULE_ID }}/${{ env.VERSION }}"
 
-      # - name: Upload API Docs to S3
-      #   uses: jakejarvis/s3-sync-action@master
-      #   with:
-      #     args: --acl public-read
-      #   env:
-      #     AWS_S3_BUCKET: "apidocs.ortussolutions.com"
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_SECRET }}
-      #     SOURCE_DIR: "build-coldbox/apidocs"
-      #     DEST_DIR: ""
-
-      # - name: Publish to Maven Central
-      #   run: |
+      - name: Upload API Docs to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read
+        env:
+          AWS_S3_BUCKET: "apidocs.ortussolutions.com"
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_SECRET }}
+          SOURCE_DIR: "build/docs/javadoc"
+          DEST_DIR: "boxlang-modules/${{ env.MODULE_ID }}/${{ env.VERSION }}"
 
       - name: Publish to ForgeBox
         run: |
@@ -184,17 +183,12 @@ jobs:
       issues: write
     steps:
       - name: Checkout Development Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: development
 
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
-        with:
-          gradle-version: ${{ env.GRADLE }}
-
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: boxlang-build
           path: .tmp
@@ -205,7 +199,7 @@ jobs:
 
       - name: Bump Version
         run: |
-          gradle bumpMinorVersion --stacktrace --console=plain
+          ./gradlew bumpMinorVersion --stacktrace --console=plain
           git pull
 
       - name: Commit Version Bump

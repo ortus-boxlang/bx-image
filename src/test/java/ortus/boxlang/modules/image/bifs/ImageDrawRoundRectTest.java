@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
@@ -19,34 +21,18 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageDrawRoundRectTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageDrawRoundRectTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should draw a rect with rounded corners" )
 	@Test
 	public void testDrawRoundRect() throws IOException {
 		String fileName = "logo-draw-round-rect.png";
-		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageDrawRoundRect( result, 50, 150, 200, 100, 10, 10 );
-		                        ImageWrite( result, "src/test/resources/generated/%s" );
-		                        // ImageWrite( result, "src/test/resources/test-images/%s" );
-		                                          """.formatted( fileName, fileName ), context );
+		runtime.executeSource( """
+		                                         result = ImageRead( "src/test/resources/logo.png" );
+		                       ImageDrawRoundRect( result, 50, 150, 200, 100, 10, 10 );
+		                       ImageWrite( result, "src/test/resources/generated/%s" );
+		                       // ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                         """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
@@ -58,12 +44,12 @@ public class ImageDrawRoundRectTest {
 	@Test
 	public void testDrawRoundRectFilled() throws IOException {
 		String fileName = "logo-draw-round-rect-filled.png";
-		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageDrawRoundRect( result, 50, 150, 200, 100, 10, 10, true );
-		                        ImageWrite( result, "src/test/resources/generated/%s" );
-		                        // ImageWrite( result, "src/test/resources/test-images/%s" );
-		                                          """.formatted( fileName, fileName ), context );
+		runtime.executeSource( """
+		                                         result = ImageRead( "src/test/resources/logo.png" );
+		                       ImageDrawRoundRect( result, 50, 150, 200, 100, 10, 10, true );
+		                       ImageWrite( result, "src/test/resources/generated/%s" );
+		                       // ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                         """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
@@ -75,12 +61,12 @@ public class ImageDrawRoundRectTest {
 	@Test
 	public void testDrawRoundRectMember() throws IOException {
 		String fileName = "logo-draw-round-rect-filled.png";
-		instance.executeSource( """
-		                                                      result = ImageRead( "src/test/resources/logo.png" );
-		                        result.drawRoundRect( 50, 150, 200, 100, 10, 10, true );
-		                                    ImageWrite( result, "src/test/resources/generated/%s" );
-		                                    // ImageWrite( result, "src/test/resources/test-images/%s" );
-		                                                      """.formatted( fileName, fileName ), context );
+		runtime.executeSource( """
+		                                                     result = ImageRead( "src/test/resources/logo.png" );
+		                       result.drawRoundRect( 50, 150, 200, 100, 10, 10, true );
+		                                   ImageWrite( result, "src/test/resources/generated/%s" );
+		                                   // ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                                     """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );

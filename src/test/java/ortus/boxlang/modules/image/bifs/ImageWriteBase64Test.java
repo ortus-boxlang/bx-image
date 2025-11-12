@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
@@ -16,28 +18,12 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageWriteBase64Test {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageWriteBase64Test extends BaseIntegrationTest {
 
 	@DisplayName( "It should return an image from a base64 string" )
 	@Test
 	public void testReadFromBase64() throws IOException {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = ImageRead( "src/test/resources/logo.png" );
 		      result = ImageWriteBase64( result, "png" );

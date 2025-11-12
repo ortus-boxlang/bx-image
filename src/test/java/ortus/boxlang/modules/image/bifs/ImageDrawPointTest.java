@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
@@ -19,34 +21,18 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageDrawPointTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageDrawPointTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should draw a pixel" )
 	@Test
 	public void testDrawPoint() throws IOException {
 		String fileName = "logo-draw-point.png";
-		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        ImageDrawPoint( result, 50, 50 );
-		                        ImageWrite( result, "src/test/resources/generated/%s" );
-		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
-		                                          """.formatted( fileName, fileName ), context );
+		runtime.executeSource( """
+		                                         result = ImageRead( "src/test/resources/logo.png" );
+		                       ImageDrawPoint( result, 50, 50 );
+		                       ImageWrite( result, "src/test/resources/generated/%s" );
+		                       //ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                         """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
@@ -58,12 +44,12 @@ public class ImageDrawPointTest {
 	@Test
 	public void testDrawPointMemberInvocation() throws IOException {
 		String fileName = "logo-draw-point.png";
-		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        result.drawPoint(50, 50 );
-		                        ImageWrite( result, "src/test/resources/generated/%s" );
-		                        //ImageWrite( result, "src/test/resources/test-images/%s" );
-		                                          """.formatted( fileName, fileName ), context );
+		runtime.executeSource( """
+		                                         result = ImageRead( "src/test/resources/logo.png" );
+		                       result.drawPoint(50, 50 );
+		                       ImageWrite( result, "src/test/resources/generated/%s" );
+		                       //ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                         """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );

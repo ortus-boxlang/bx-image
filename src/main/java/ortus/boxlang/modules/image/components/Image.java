@@ -22,8 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.modules.image.ImageEvents;
-import ortus.boxlang.modules.image.ImageKeys;
 import ortus.boxlang.modules.image.services.ImageService;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.components.Attribute;
 import ortus.boxlang.runtime.components.BoxComponent;
 import ortus.boxlang.runtime.components.Component;
@@ -42,7 +42,7 @@ import ortus.boxlang.runtime.validation.Validator;
 @BoxComponent( allowsBody = false )
 public class Image extends Component {
 
-	private ImageService	imageService	= ( ImageService ) runtime.getGlobalService( ImageKeys.imageService );
+	private ImageService	imageService	= ( ImageService ) runtime.getGlobalService( KeyDictionary.imageService );
 
 	static Key				locationKey		= Key.of( "location" );
 	static Key				shoutKey		= Key.of( "shout" );
@@ -52,7 +52,7 @@ public class Image extends Component {
 	public Image() {
 		super();
 		declaredAttributes	= new Attribute[] {
-		    new Attribute( ImageKeys.action, "string", Set.of( Validator.REQUIRED, Validator.valueOneOf(
+		    new Attribute( KeyDictionary.action, "string", Set.of( Validator.REQUIRED, Validator.valueOneOf(
 		        "border",
 		        "captcha",
 		        "convert",
@@ -63,24 +63,24 @@ public class Image extends Component {
 		        "write",
 		        "writeToBrowser"
 		    ) ) ),
-		    new Attribute( ImageKeys.angle, "string" ),
-		    new Attribute( ImageKeys.color, "string" ),
-		    new Attribute( ImageKeys.destination, "string" ),
-		    new Attribute( ImageKeys.difficulty, "string" ),
-		    new Attribute( ImageKeys.fontSize, "string" ),
-		    new Attribute( ImageKeys.format, "string" ),
-		    new Attribute( ImageKeys.height, "numeric" ),
-		    new Attribute( ImageKeys.isBase64, "string" ),
-		    new Attribute( ImageKeys.name, "string" ),
-		    new Attribute( ImageKeys.overwrite, "boolean", false ),
-		    new Attribute( ImageKeys.quality, "string" ),
-		    new Attribute( ImageKeys.source, "any" ),
-		    new Attribute( ImageKeys.structName, "string" ),
-		    new Attribute( ImageKeys.text, "string" ),
-		    new Attribute( ImageKeys.thickness, "string" ),
-		    new Attribute( ImageKeys.width, "numeric" ),
-		    new Attribute( ImageKeys.fonts, "string" ),
-		    new Attribute( ImageKeys.interpolation, "string" )
+		    new Attribute( KeyDictionary.angle, "string" ),
+		    new Attribute( KeyDictionary.color, "string" ),
+		    new Attribute( KeyDictionary.destination, "string" ),
+		    new Attribute( KeyDictionary.difficulty, "string" ),
+		    new Attribute( KeyDictionary.fontSize, "string" ),
+		    new Attribute( KeyDictionary.format, "string" ),
+		    new Attribute( KeyDictionary.height, "numeric" ),
+		    new Attribute( KeyDictionary.isBase64, "string" ),
+		    new Attribute( KeyDictionary.name, "string" ),
+		    new Attribute( KeyDictionary.overwrite, "boolean", false ),
+		    new Attribute( KeyDictionary.quality, "string" ),
+		    new Attribute( KeyDictionary.source, "any" ),
+		    new Attribute( KeyDictionary.structName, "string" ),
+		    new Attribute( KeyDictionary.text, "string" ),
+		    new Attribute( KeyDictionary.thickness, "string" ),
+		    new Attribute( KeyDictionary.width, "numeric" ),
+		    new Attribute( KeyDictionary.fonts, "string" ),
+		    new Attribute( KeyDictionary.interpolation, "string" )
 		};
 
 		logger				= imageService.getLogger();
@@ -102,15 +102,15 @@ public class Image extends Component {
 	 *
 	 */
 	public BodyResult _invoke( IBoxContext context, IStruct attributes, ComponentBody body, IStruct executionState ) {
-		String		action		= attributes.getAsString( ImageKeys.action );
+		String		action		= attributes.getAsString( KeyDictionary.action );
 		BoxImage	image		= null;
 		IStruct		eventData	= null;
 
 		switch ( action ) {
 			case "border" :
 				image = getImageFromContext( context, attributes );
-				String color = attributes.getAsString( ImageKeys.color );
-				int thickness = IntegerCaster.cast( attributes.get( ImageKeys.thickness ) );
+				String color = attributes.getAsString( KeyDictionary.color );
+				int thickness = IntegerCaster.cast( attributes.get( KeyDictionary.thickness ) );
 				image.addBorder( thickness, color );
 
 				putImageInContext( image, context, attributes );
@@ -130,7 +130,7 @@ public class Image extends Component {
 				image = getImageFromContext( context, attributes );
 				IStruct info = image.getExifMetaData();
 
-				StringCaster.attempt( attributes.get( ImageKeys.structName ) )
+				StringCaster.attempt( attributes.get( KeyDictionary.structName ) )
 				    .ifPresent( ( n ) -> {
 					    context.getDefaultAssignmentScope().assign( context, Key.of( n ), info );
 				    } );
@@ -144,8 +144,8 @@ public class Image extends Component {
 			case "resize" :
 				// Handle resize action
 				image = getImageFromContext( context, attributes );
-				int width = IntegerCaster.cast( attributes.get( ImageKeys.width ) );
-				int height = IntegerCaster.cast( attributes.get( ImageKeys.height ) );
+				int width = IntegerCaster.cast( attributes.get( KeyDictionary.width ) );
+				int height = IntegerCaster.cast( attributes.get( KeyDictionary.height ) );
 				image.resize( width, height, "bilinear", 1 );
 
 				putImageInContext( image, context, attributes );
@@ -155,7 +155,7 @@ public class Image extends Component {
 				// Handle rotate action
 				image = getImageFromContext( context, attributes );
 
-				int angle = IntegerCaster.cast( attributes.get( ImageKeys.angle ) );
+				int angle = IntegerCaster.cast( attributes.get( KeyDictionary.angle ) );
 
 				image.rotate( angle );
 
@@ -164,7 +164,7 @@ public class Image extends Component {
 			case "write" :
 				// Handle write action
 				image = getImageFromContext( context, attributes );
-				image.write( StringCaster.cast( attributes.get( ImageKeys.destination ) ) );
+				image.write( StringCaster.cast( attributes.get( KeyDictionary.destination ) ) );
 				break;
 			case "writeToBrowser" :
 
@@ -178,7 +178,7 @@ public class Image extends Component {
 				};
 
 				eventData = Struct.of(
-				    ImageKeys.image, getImageFromContext( context, attributes ),
+				    KeyDictionary.image, getImageFromContext( context, attributes ),
 				    Key.of( "action" ), action,
 				    Key.of( "handleAction" ), handleAction
 				);
@@ -206,14 +206,14 @@ public class Image extends Component {
 	}
 
 	private void putImageInContext( BoxImage image, IBoxContext context, IStruct attributes ) {
-		StringCaster.attempt( attributes.get( ImageKeys.name ) )
+		StringCaster.attempt( attributes.get( KeyDictionary.name ) )
 		    .ifPresent( ( n ) -> {
 			    context.getDefaultAssignmentScope().assign( context, Key.of( n ), image );
 		    } );
 	}
 
 	private BoxImage getImageFromContext( IBoxContext context, IStruct attributes ) {
-		Object source = attributes.get( ImageKeys.source );
+		Object source = attributes.get( KeyDictionary.source );
 
 		if ( source instanceof BoxImage i ) {
 			return i;
@@ -221,7 +221,7 @@ public class Image extends Component {
 
 		if ( source instanceof String pathOrURL ) {
 			try {
-				boolean isBase64 = BooleanCaster.cast( attributes.get( ImageKeys.isBase64 ) );
+				boolean isBase64 = BooleanCaster.cast( attributes.get( KeyDictionary.isBase64 ) );
 
 				if ( isBase64 ) {
 					return BoxImage.fromBase64( pathOrURL );

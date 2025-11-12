@@ -9,11 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Updated all GitHub actions to latest according to templates
+- Updated templates to latest module template
+- Bump javaxt:javaxt-core from 2.1.9 to 2.1.11
+- Generate AI Instructions
+- Dependabot updates
+- Updated Gradle wrapper to 8.14.1
+- Updated gradle build to latest module template
+- Added documentation to classes
+
+### Changed
+
+- All tests to inherit from BaseIntegrationTest for consistency
+- Refactored internal classes into functional packaging
+- Rewrote the ImageDrawTextTest to use more reliable image size assertions and work on all Operating Systems
+
+### Fixed
+
+- Resource leak when reading images into the input stream and not closing it.
+- Added jaxt library to gradle dependencies
+- Fixed writing of images to directories that don't exist. Now creates parent directories as needed.
+- image.scaleToFit() now works with a single value and more.
+- write() now works with no provided path, uses internally read source path.
+
 ## [1.3.2] - 2025-07-25
+
+### Changed
+
+- Removed logging from ImageService startup/shutdown
 
 ## [1.3.1] - 2025-07-24
 
+### Changed
+
+- Version bump maintenance release
+
 ## [1.3.0] - 2025-07-23
+
+### Fixed
 
 - BL-1216 Fix ImageScaleToFit BIF
 - BL-1217 Fix invoking resize as a member function

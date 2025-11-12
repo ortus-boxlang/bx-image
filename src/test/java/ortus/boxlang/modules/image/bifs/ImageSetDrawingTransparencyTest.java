@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
@@ -19,41 +21,25 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageSetDrawingTransparencyTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageSetDrawingTransparencyTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should draw with transparency" )
 	@Test
 	public void testDrawTransparency() throws IOException {
 		String fileName = "logo-draw-transparency.png";
-		instance.executeSource( """
-		                                                                              result = ImageRead( "src/test/resources/logo.png" );
-		                                                ImageSetDrawingTransparency( result, 100 );
-		                                                            ImageDrawOval( result, 50, 50, 200, 100, true );
+		runtime.executeSource( """
+		                                                                             result = ImageRead( "src/test/resources/logo.png" );
+		                                               ImageSetDrawingTransparency( result, 100 );
+		                                                           ImageDrawOval( result, 50, 50, 200, 100, true );
 
-		                                 ImageSetDrawingTransparency( result, 50 );
-		                                                            ImageDrawOval( result, 50, 150, 200, 100, true );
+		                                ImageSetDrawingTransparency( result, 50 );
+		                                                           ImageDrawOval( result, 50, 150, 200, 100, true );
 
-		                        ImageSetDrawingTransparency( result, 25 );
-		                                                            ImageDrawOval( result, 50, 225, 200, 100, true );
-		                                                            ImageWrite( result, "src/test/resources/generated/%s" );
-		                                                            //ImageWrite( result, "src/test/resources/test-images/%s" );
-		                                                                              """.formatted( fileName, fileName ), context );
+		                       ImageSetDrawingTransparency( result, 25 );
+		                                                           ImageDrawOval( result, 50, 225, 200, 100, true );
+		                                                           ImageWrite( result, "src/test/resources/generated/%s" );
+		                                                           //ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                                                             """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );
@@ -65,19 +51,19 @@ public class ImageSetDrawingTransparencyTest {
 	@Test
 	public void testDrawTransparencyMember() throws IOException {
 		String fileName = "logo-draw-transparency.png";
-		instance.executeSource( """
-		                                                                              result = ImageRead( "src/test/resources/logo.png" );
-		                                                result.setDrawingTransparency( 100 );
-		                                                            ImageDrawOval( result, 50, 50, 200, 100, true );
+		runtime.executeSource( """
+		                                                                             result = ImageRead( "src/test/resources/logo.png" );
+		                                               result.setDrawingTransparency( 100 );
+		                                                           ImageDrawOval( result, 50, 50, 200, 100, true );
 
-		                                 result.setDrawingTransparency( 50 );
-		                                                            ImageDrawOval( result, 50, 150, 200, 100, true );
+		                                result.setDrawingTransparency( 50 );
+		                                                           ImageDrawOval( result, 50, 150, 200, 100, true );
 
-		                        result.setDrawingTransparency( 25 );
-		                                                            ImageDrawOval( result, 50, 225, 200, 100, true );
-		                                                            ImageWrite( result, "src/test/resources/generated/%s" );
-		                                                            //ImageWrite( result, "src/test/resources/test-images/%s" );
-		                                                                              """.formatted( fileName, fileName ), context );
+		                       result.setDrawingTransparency( 25 );
+		                                                           ImageDrawOval( result, 50, 225, 200, 100, true );
+		                                                           ImageWrite( result, "src/test/resources/generated/%s" );
+		                                                           //ImageWrite( result, "src/test/resources/test-images/%s" );
+		                                                                             """.formatted( fileName, fileName ), context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/%s".formatted( fileName ) ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/%s".formatted( fileName ) ) );

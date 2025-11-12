@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,31 +14,15 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageReadTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageReadTest extends BaseIntegrationTest {
 
 	@DisplayName( "It can read a BoxImage" )
 	@Test
 	public void testExampleBIF() {
-		instance.executeSource( """
-		                                          result = ImageRead( "src/test/resources/logo.png" );
-		                        width = result.getWidth();
-		                                          """, context );
+		runtime.executeSource( """
+		                                         result = ImageRead( "src/test/resources/logo.png" );
+		                       width = result.getWidth();
+		                                         """, context );
 
 		// assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
 	}
@@ -44,9 +30,21 @@ public class ImageReadTest {
 	@DisplayName( "It can create a new image from a url" )
 	@Test
 	public void testImageFromURL() {
-		instance.executeSource(
+		runtime.executeSource(
 		    """
 		    result = ImageRead( "https://communitycdn.ortussolutions.com/original/2X/1/1459cdd448100319697645d3eb15894396f042df.png" );
+		    """,
+		    context );
+
+		// assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
+	}
+
+	@DisplayName( "It can create a new image from a url which will return a relocation header" )
+	@Test
+	public void testImageFromRelocation() {
+		runtime.executeSource(
+		    """
+		    result = ImageRead( "http://cfdocs.org/apple-touch-icon.png" );
 		    """,
 		    context );
 

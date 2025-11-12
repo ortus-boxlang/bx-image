@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -14,24 +16,7 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageSetDrawingColorTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
-
+public class ImageSetDrawingColorTest extends BaseIntegrationTest {
 	// TODO tests for color by name green/white/black/red etc
 	// TODO tests for hexadecimal
 	// TODO tests for rgb values
@@ -40,7 +25,7 @@ public class ImageSetDrawingColorTest {
 	@Test
 	public void testDefaultDrawingColor() {
 		// @formatter:off
-		instance.executeSource( """
+		runtime.executeSource( """
 			result = ImageRead( "src/test/resources/logo.png" ).getDrawingColor();
 		""", context );
 		// @formatter:on
@@ -52,7 +37,7 @@ public class ImageSetDrawingColorTest {
 	@Test
 	public void testSetDrawingColor() {
 		// @formatter:off
-		instance.executeSource( """
+		runtime.executeSource( """
 			result = ImageRead( "src/test/resources/logo.png" );
 			ImageSetDrawingColor( result, "green" );
 			result = result.getDrawingColor();
@@ -66,7 +51,7 @@ public class ImageSetDrawingColorTest {
 	@Test
 	public void testSetDrawingColorByName() {
 		// @formatter:off
-		instance.executeSource( """
+		runtime.executeSource( """
 			result = ImageRead( "src/test/resources/logo.png" );
 			ImageSetDrawingColor( "result", "green" );
 			result = result.getDrawingColor();
@@ -81,7 +66,7 @@ public class ImageSetDrawingColorTest {
 	@Test
 	public void testSetDrawingColorMember() {
 		// @formatter:off
-		instance.executeSource( """
+		runtime.executeSource( """
 			result = ImageRead( "src/test/resources/logo.png" );
 			result.setDrawingColor( "green" );
 			result = result.getDrawingColor();

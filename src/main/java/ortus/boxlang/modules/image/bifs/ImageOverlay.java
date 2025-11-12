@@ -3,7 +3,7 @@ package ortus.boxlang.modules.image.bifs;
 import java.util.Set;
 
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.ImageKeys;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
@@ -24,10 +24,10 @@ public class ImageOverlay extends BIF {
 	public ImageOverlay() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( false, "any", ImageKeys.image1, Set.of( Validator.REQUIRED ) ),
-		    new Argument( false, "any", ImageKeys.image2, Set.of( Validator.REQUIRED ) ),
-		    new Argument( false, "string", ImageKeys.rule, "SRC_OVER" ),
-		    new Argument( false, "numeric", ImageKeys.transparency, .25 )
+		    new Argument( false, "any", KeyDictionary.image1, Set.of( Validator.REQUIRED ) ),
+		    new Argument( false, "any", KeyDictionary.image2, Set.of( Validator.REQUIRED ) ),
+		    new Argument( false, "string", KeyDictionary.rule, "SRC_OVER" ),
+		    new Argument( false, "numeric", KeyDictionary.transparency, .25 )
 		};
 	}
 
@@ -38,15 +38,15 @@ public class ImageOverlay extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		BoxImage	theImage		= arguments.get( ImageKeys.image1 ) instanceof BoxImage
-		    ? ( BoxImage ) arguments.get( ImageKeys.image1 )
-		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.image1 ) );
+		BoxImage	theImage		= arguments.get( KeyDictionary.image1 ) instanceof BoxImage
+		    ? ( BoxImage ) arguments.get( KeyDictionary.image1 )
+		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.image1 ) );
 
-		BoxImage	theImageToDraw	= arguments.get( ImageKeys.image2 ) instanceof BoxImage
-		    ? ( BoxImage ) arguments.get( ImageKeys.image2 )
-		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.image2 ) );
+		BoxImage	theImageToDraw	= arguments.get( KeyDictionary.image2 ) instanceof BoxImage
+		    ? ( BoxImage ) arguments.get( KeyDictionary.image2 )
+		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.image2 ) );
 
-		theImage.overlay( theImageToDraw, arguments.getAsString( ImageKeys.rule ), arguments.getAsDouble( ImageKeys.transparency ) );
+		theImage.overlay( theImageToDraw, arguments.getAsString( KeyDictionary.rule ), arguments.getAsDouble( KeyDictionary.transparency ) );
 		return theImage;
 	}
 

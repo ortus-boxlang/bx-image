@@ -3,7 +3,7 @@ package ortus.boxlang.modules.image.bifs;
 import java.util.Set;
 
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.ImageKeys;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
@@ -25,14 +25,14 @@ public class ImageDrawArc extends BIF {
 	public ImageDrawArc() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "numeric", ImageKeys.x, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "numeric", ImageKeys.y, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "numeric", ImageKeys.width, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "numeric", ImageKeys.height, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "numeric", ImageKeys.startAngle, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "numeric", ImageKeys.archAngle, Set.of( Validator.REQUIRED ) ),
-		    new Argument( false, "boolean", ImageKeys.filled, false )
+		    new Argument( true, "any", KeyDictionary.name, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "numeric", KeyDictionary.x, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "numeric", KeyDictionary.y, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "numeric", KeyDictionary.width, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "numeric", KeyDictionary.height, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "numeric", KeyDictionary.startAngle, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "numeric", KeyDictionary.archAngle, Set.of( Validator.REQUIRED ) ),
+		    new Argument( false, "boolean", KeyDictionary.filled, false )
 		};
 	}
 
@@ -43,18 +43,18 @@ public class ImageDrawArc extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage
-		    ? ( BoxImage ) arguments.get( ImageKeys.name )
-		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
+		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
+		    ? ( BoxImage ) arguments.get( KeyDictionary.name )
+		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.name ) );
 
 		theImage.drawArc(
-		    IntegerCaster.cast( arguments.get( ImageKeys.x ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.y ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.width ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.height ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.startAngle ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.archAngle ) ),
-		    BooleanCaster.cast( arguments.get( ImageKeys.filled ) )
+		    IntegerCaster.cast( arguments.get( KeyDictionary.x ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.y ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.width ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.height ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.startAngle ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.archAngle ) ),
+		    BooleanCaster.cast( arguments.get( KeyDictionary.filled ) )
 		);
 
 		return theImage;

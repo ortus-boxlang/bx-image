@@ -3,7 +3,7 @@ package ortus.boxlang.modules.image.bifs;
 import java.util.Set;
 
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.ImageKeys;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.bifs.BoxMember;
@@ -24,13 +24,13 @@ public class ImageDrawQuadraticCurve extends BIF {
 	public ImageDrawQuadraticCurve() {
 		super();
 		declaredArguments = new Argument[] {
-		    new Argument( true, "any", ImageKeys.name, Set.of( Validator.REQUIRED ) ),
-		    new Argument( true, "numeric", ImageKeys.ctrlx1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.ctrly1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.x1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.y1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.x2, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
-		    new Argument( true, "numeric", ImageKeys.y2, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) )
+		    new Argument( true, "any", KeyDictionary.name, Set.of( Validator.REQUIRED ) ),
+		    new Argument( true, "numeric", KeyDictionary.ctrlx1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", KeyDictionary.ctrly1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", KeyDictionary.x1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", KeyDictionary.y1, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", KeyDictionary.x2, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) ),
+		    new Argument( true, "numeric", KeyDictionary.y2, Set.of( Validator.REQUIRED, Validator.NON_EMPTY ) )
 		};
 	}
 
@@ -41,17 +41,17 @@ public class ImageDrawQuadraticCurve extends BIF {
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		BoxImage theImage = arguments.get( ImageKeys.name ) instanceof BoxImage
-		    ? ( BoxImage ) arguments.get( ImageKeys.name )
-		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( ImageKeys.name ) );
+		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
+		    ? ( BoxImage ) arguments.get( KeyDictionary.name )
+		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.name ) );
 
 		theImage.drawQuadraticCurve(
-		    IntegerCaster.cast( arguments.get( ImageKeys.ctrlx1 ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.ctrly1 ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.x1 ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.y1 ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.x2 ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.y2 ) )
+		    IntegerCaster.cast( arguments.get( KeyDictionary.ctrlx1 ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.ctrly1 ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.x1 ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.y1 ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.x2 ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.y2 ) )
 		);
 
 		return theImage;

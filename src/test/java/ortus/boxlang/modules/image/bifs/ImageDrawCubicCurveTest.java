@@ -1,5 +1,7 @@
 package ortus.boxlang.modules.image.bifs;
 
+import ortus.boxlang.modules.image.BaseIntegrationTest;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
@@ -19,33 +21,17 @@ import ortus.boxlang.runtime.scopes.IScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.scopes.VariablesScope;
 
-public class ImageDrawCubicCurveTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
+public class ImageDrawCubicCurveTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should draw a cubic curve" )
 	@Test
 	public void testDrawCubicCurve() throws IOException {
-		instance.executeSource( """
-		                                                      result = ImageRead( "src/test/resources/logo.png" );
-		                        imageSetDrawingColor(result,"magenta")
-		                        imageDrawCubicCurve(result,0,100,256,100,0,0,256,256)
-		                                    ImageWrite( result, "src/test/resources/generated/logo-cubic-curve.png" );
-		                                                      """, context );
+		runtime.executeSource( """
+		                                                     result = ImageRead( "src/test/resources/logo.png" );
+		                       imageSetDrawingColor(result,"magenta")
+		                       imageDrawCubicCurve(result,0,100,256,100,0,0,256,256)
+		                                   ImageWrite( result, "src/test/resources/generated/logo-cubic-curve.png" );
+		                                                     """, context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-cubic-curve.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-cubic-curve.png" ) );
@@ -56,12 +42,12 @@ public class ImageDrawCubicCurveTest {
 	@DisplayName( "It should let you set the drawing color as a member function" )
 	@Test
 	public void testSetDrawingColorMember() throws IOException {
-		instance.executeSource( """
-		                                                      result = ImageRead( "src/test/resources/logo.png" );
-		                        imageSetDrawingColor(result,"magenta")
-		                        result.drawCubicCurve(0,100,256,100,0,0,256,256)
-		                                    ImageWrite( result, "src/test/resources/generated/logo-cubic-curve.png" );
-		                                                      """, context );
+		runtime.executeSource( """
+		                                                     result = ImageRead( "src/test/resources/logo.png" );
+		                       imageSetDrawingColor(result,"magenta")
+		                       result.drawCubicCurve(0,100,256,100,0,0,256,256)
+		                                   ImageWrite( result, "src/test/resources/generated/logo-cubic-curve.png" );
+		                                                     """, context );
 
 		var	actual		= Files.readAllBytes( Paths.get( "src/test/resources/generated/logo-cubic-curve.png" ) );
 		var	expected	= Files.readAllBytes( Paths.get( "src/test/resources/test-images/logo-cubic-curve.png" ) );

@@ -22,8 +22,8 @@ import java.net.URI;
 import java.util.Set;
 
 import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.modules.image.ImageKeys;
 import ortus.boxlang.modules.image.ImageType;
+import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.context.IBoxContext;
@@ -47,10 +47,10 @@ public class ImageNew extends BIF {
 		super();
 		declaredArguments = new Argument[] {
 		    new Argument( false, "any", Key.source, Set.of( Validator.REQUIRED ) ),
-		    new Argument( false, "numeric", ImageKeys.width ),
-		    new Argument( false, "numeric", ImageKeys.height ),
-		    new Argument( false, "string", ImageKeys.imageType ),
-		    new Argument( false, "string", ImageKeys.color, "black" ),
+		    new Argument( false, "numeric", KeyDictionary.width ),
+		    new Argument( false, "numeric", KeyDictionary.height ),
+		    new Argument( false, "string", KeyDictionary.imageType ),
+		    new Argument( false, "string", KeyDictionary.color, "black" ),
 		};
 	}
 
@@ -87,10 +87,10 @@ public class ImageNew extends BIF {
 		}
 
 		return new BoxImage(
-		    IntegerCaster.cast( arguments.get( ImageKeys.width ) ),
-		    IntegerCaster.cast( arguments.get( ImageKeys.height ) ),
-		    ImageType.valueOf( StringCaster.cast( arguments.get( ImageKeys.imageType ) ).toUpperCase() ),
-		    StringCaster.cast( arguments.get( ImageKeys.color ) )
+		    IntegerCaster.cast( arguments.get( KeyDictionary.width ) ),
+		    IntegerCaster.cast( arguments.get( KeyDictionary.height ) ),
+		    ImageType.valueOf( StringCaster.cast( arguments.get( KeyDictionary.imageType ) ).toUpperCase() ),
+		    StringCaster.cast( arguments.get( KeyDictionary.color ) )
 		);
 	}
 
