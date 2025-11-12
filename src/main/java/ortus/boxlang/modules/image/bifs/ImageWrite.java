@@ -28,20 +28,25 @@ public class ImageWrite extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Writes an image to a file. If no path is provided, writes to the original source path.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
-		String		providedPath	= arguments.getAsString( Key.path );
-		String		imagePath		= providedPath.substring( 0, 4 ).equalsIgnoreCase( "http" ) ? providedPath
-		    : FileSystemUtil.expandPath( context, providedPath ).absolutePath().toString();
-		BoxImage	theImage		= arguments.get( KeyDictionary.name ) instanceof BoxImage
+		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
 		    ? ( BoxImage ) arguments.get( KeyDictionary.name )
 		    : ( BoxImage ) context.getDefaultAssignmentScope().get( arguments.getAsString( KeyDictionary.name ) );
 
-		theImage.write( imagePath );
+		// If no path provided, write to original source path
+		if ( !arguments.containsKey( Key.path ) ) {
+			theImage.write();
+		} else {
+			String	providedPath	= arguments.getAsString( Key.path );
+			String	imagePath		= providedPath.substring( 0, 4 ).equalsIgnoreCase( "http" ) ? providedPath
+			    : FileSystemUtil.expandPath( context, providedPath ).absolutePath().toString();
+			theImage.write( imagePath );
+		}
 
 		return theImage;
 	}

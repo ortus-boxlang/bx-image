@@ -1132,6 +1132,33 @@ public class BoxImage {
 	}
 
 	/**
+	 * Writes the image back to its original source path.
+	 * Uses the path from which the image was loaded. If the image was not loaded from a file
+	 * (e.g., created from scratch or from a BufferedImage), this method will throw an exception.
+	 *
+	 * @return This BoxImage instance for method chaining
+	 *
+	 * @throws BoxRuntimeException If the image has no source path or cannot be saved
+	 */
+	public BoxImage write() {
+		if ( this.sourcePath == null || this.sourcePath.isEmpty() ) {
+			throw new BoxRuntimeException( "Cannot write image: no source path available. Use write(path) to specify a destination." );
+		}
+
+		// If sourcePath is a URI, extract the file path
+		String path = this.sourcePath;
+		if ( path.startsWith( "file:" ) ) {
+			try {
+				path = new URI( path ).getPath();
+			} catch ( URISyntaxException e ) {
+				throw new BoxRuntimeException( "Invalid source path URI: " + path, e );
+			}
+		}
+
+		return write( path );
+	}
+
+	/**
 	 * Writes the image to a file at the specified path.
 	 * Automatically creates parent directories if they don't exist.
 	 * Currently saves as PNG format.
