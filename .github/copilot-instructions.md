@@ -27,7 +27,7 @@ public class ImageMethodName extends BIF {
             // ... more arguments
         };
     }
-    
+
     // Implementation returns BoxImage for chaining
     public BoxImage _invoke(IBoxContext context, ArgumentsScope arguments) {
         BoxImage theImage = /* extract from arguments */;

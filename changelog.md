@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump javaxt:javaxt-core from 2.1.9 to 2.1.11
 - Generate AI Instructions
 - Dependabot updates
+- Updated Gradle wrapper to 8.14.1
 
 ## [1.3.2] - 2025-07-25
 
