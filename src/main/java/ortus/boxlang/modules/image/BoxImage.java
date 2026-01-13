@@ -1550,4 +1550,33 @@ public class BoxImage {
 			return path.toUri();  // Converts to file:// URI
 		}
 	}
+
+	/**
+	 * Splits the image into a grid of tiles based on the specified number of columns and rows.
+	 * Any remainder pixels from uneven division are discarded.
+	 *
+	 * @param columns The number of horizontal tiles to split the image into.
+	 * @param rows    The number of vertical tiles to split the image into.
+	 * 
+	 * @return An array of arrays containing BoxImage tiles. The outer array represents rows,
+	 *         and each inner array contains the tiles for that row.
+	 */
+	public Array splitGrid( int columns, int rows ) {
+		int				tileWidth	= this.getWidth() / columns;
+		int				tileHeight	= this.getHeight() / rows;
+		BufferedImage	sourceImage	= this.getBufferedImage();
+		Array			result		= new Array();
+
+		for ( int row = 0; row < rows; row++ ) {
+			Array rowArray = new Array();
+			for ( int col = 0; col < columns; col++ ) {
+				BufferedImage	subImage	= sourceImage.getSubimage( col * tileWidth, row * tileHeight, tileWidth, tileHeight );
+				BoxImage		tile		= new BoxImage( subImage );
+				rowArray.push( tile );
+			}
+			result.push( rowArray );
+		}
+
+		return result;
+	}
 }
