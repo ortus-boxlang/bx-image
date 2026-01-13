@@ -92,4 +92,6 @@ public class KeyDictionary {
 	public static final Key	y1					= Key.of( "y1" );
 	public static final Key	y2					= Key.of( "y2" );
 	public static final Key	yCoords				= Key.of( "yCoords" );
+	public static final Key	rows				= Key.of( "rows" );
+	public static final Key	columns				= Key.of( "columns" );
 }
