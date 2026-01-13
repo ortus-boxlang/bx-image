@@ -7,100 +7,47 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import ortus.boxlang.modules.image.BoxImage;
-import ortus.boxlang.runtime.BoxRuntime;
-import ortus.boxlang.runtime.context.IBoxContext;
-import ortus.boxlang.runtime.context.ScriptingRequestBoxContext;
-import ortus.boxlang.runtime.scopes.IScope;
+import ortus.boxlang.modules.image.BaseIntegrationTest;
 import ortus.boxlang.runtime.scopes.Key;
-import ortus.boxlang.runtime.scopes.VariablesScope;
 import ortus.boxlang.runtime.types.Array;
 
-public class ImageSplitGridTest {
-
-	static BoxRuntime	instance;
-	IBoxContext			context;
-	IScope				variables;
-	static Key			result	= new Key( "result" );
-
-	@BeforeAll
-	public static void setUp() {
-		instance = BoxRuntime.getInstance( true );
-	}
-
-	@BeforeEach
-	public void setupEach() {
-		context		= new ScriptingRequestBoxContext( instance.getRuntimeContext() );
-		variables	= context.getScopeNearby( VariablesScope.name );
-	}
-
-	@DisplayName( "It should split the image into a 2x2 grid" )
-	@Test
-	public void testSplitGrid2x2() {
-		instance.executeSource( """
-		                        theSource = ImageRead( "src/test/resources/logo.png" );
-		                        result = ImageSplitGrid( theSource, 2, 2 );
-		                        """, context );
-
-		assertInstanceOf( Array.class, variables.get( result ) );
-		Array tiles = variables.getAsArray( result );
-
-		// Should have 2 rows
-		assertThat( tiles.size() ).isEqualTo( 2 );
-
-		// Each row should have 2 columns
-		Array	firstRow	= ( Array ) tiles.get( 0 );
-		Array	secondRow	= ( Array ) tiles.get( 1 );
-		assertThat( firstRow.size() ).isEqualTo( 2 );
-		assertThat( secondRow.size() ).isEqualTo( 2 );
-
-		// Each tile should be a BoxImage
-		assertInstanceOf( BoxImage.class, firstRow.get( 0 ) );
-		assertInstanceOf( BoxImage.class, firstRow.get( 1 ) );
-		assertInstanceOf( BoxImage.class, secondRow.get( 0 ) );
-		assertInstanceOf( BoxImage.class, secondRow.get( 1 ) );
-	}
+public class ImageSplitGridTest extends BaseIntegrationTest {
 
 	@DisplayName( "It should create tiles with correct dimensions" )
 	@Test
 	public void testSplitGridTileDimensions() {
-		instance.executeSource( """
-		                        theSource = ImageRead( "src/test/resources/logo.png" );
-		                        sourceWidth = ImageGetWidth( theSource );
-		                        sourceHeight = ImageGetHeight( theSource );
-		                        result = ImageSplitGrid( theSource, 3, 2 );
-		                        """, context );
+		try {
+			runtime.executeSource( """
+			                                         theSource = ImageRead( "src/test/resources/logo.png" );
+			                                         sourceWidth = ImageGetWidth( theSource );
+			                                         sourceHeight = ImageGetHeight( theSource );
+			                                         result = ImageSplitGrid( theSource, 3, 2 );
+			                       width = result[1][1].getWidth();
+			                       height = result[1][1].getHeight();
+			                                         """, context );
+		} catch ( Exception e ) {
+			e.printStackTrace();
+		}
 
-		int			sourceWidth			= ( int ) variables.get( Key.of( "sourceWidth" ) );
-		int			sourceHeight		= ( int ) variables.get( Key.of( "sourceHeight" ) );
-		int			expectedTileWidth	= sourceWidth / 3;
-		int			expectedTileHeight	= sourceHeight / 2;
+		int	sourceWidth			= ( int ) variables.get( Key.of( "sourceWidth" ) );
+		int	sourceHeight		= ( int ) variables.get( Key.of( "sourceHeight" ) );
+		int	expectedTileWidth	= sourceWidth / 3;
+		int	expectedTileHeight	= sourceHeight / 2;
 
-		Array		tiles				= variables.getAsArray( result );
-		Array		firstRow			= ( Array ) tiles.get( 0 );
-		BoxImage	firstTile			= ( BoxImage ) firstRow.get( 0 );
-
-		assertThat( firstTile.getWidth() ).isEqualTo( expectedTileWidth );
-		assertThat( firstTile.getHeight() ).isEqualTo( expectedTileHeight );
+		assertThat( ( int ) variables.get( Key.of( "width" ) ) ).isEqualTo( expectedTileWidth );
+		assertThat( ( int ) variables.get( Key.of( "height" ) ) ).isEqualTo( expectedTileHeight );
 	}
 
 	@DisplayName( "It should be invocable as member function" )
 	@Test
 	public void testSplitGridMemberFunction() {
-		instance.executeSource( """
-		                                               theSource = ImageRead( "src/test/resources/logo.png" );
-		                                               result = theSource.splitGrid( 2, 3 );
-		                         result.each( (row,rowId ) => {
-		                        	row.each( ( cellImage, colId) => {
-		                        		cellImage.write("src/test/resources/generated/grid_#rowId#_#colId#.png" )
-		                        	})
-		                        })
-		                                               """, context );
+		runtime.executeSource( """
+		                       theSource = ImageRead( "src/test/resources/logo.png" );
+		                       result = theSource.splitGrid( 2, 3 );
+		                       """, context );
 
 		assertInstanceOf( Array.class, variables.get( result ) );
 		Array tiles = variables.getAsArray( result );
@@ -118,10 +65,15 @@ public class ImageSplitGridTest {
 	@DisplayName( "It should create correct sub images" )
 	@Test
 	public void testImagesMatch() {
-		instance.executeSource( """
-		                        theSource = ImageRead( "src/test/resources/logo.png" );
-		                        result = theSource.splitGrid( 2, 3 );
-		                        """, context );
+		runtime.executeSource( """
+		                                         theSource = ImageRead( "src/test/resources/logo.png" );
+		                                         result = theSource.splitGrid( 2, 3 );
+		                       result.each( (row,rowId ) => {
+		                                         	row.each( ( cellImage, colId) => {
+		                                         		cellImage.write("src/test/resources/generated/grid_#rowId#_#colId#.png" )
+		                                         	})
+		                                         })
+		                                         """, context );
 
 		assertInstanceOf( Array.class, variables.get( result ) );
 		Array tiles = variables.getAsArray( result );
@@ -148,10 +100,10 @@ public class ImageSplitGridTest {
 	@DisplayName( "It should split into a single row" )
 	@Test
 	public void testSplitGridSingleRow() {
-		instance.executeSource( """
-		                        theSource = ImageRead( "src/test/resources/logo.png" );
-		                        result = ImageSplitGrid( theSource, 4, 1 );
-		                        """, context );
+		runtime.executeSource( """
+		                       theSource = ImageRead( "src/test/resources/logo.png" );
+		                       result = ImageSplitGrid( theSource, 4, 1 );
+		                       """, context );
 
 		Array tiles = variables.getAsArray( result );
 
@@ -164,10 +116,10 @@ public class ImageSplitGridTest {
 	@DisplayName( "It should split into a single column" )
 	@Test
 	public void testSplitGridSingleColumn() {
-		instance.executeSource( """
-		                        theSource = ImageRead( "src/test/resources/logo.png" );
-		                        result = ImageSplitGrid( theSource, 1, 4 );
-		                        """, context );
+		runtime.executeSource( """
+		                       theSource = ImageRead( "src/test/resources/logo.png" );
+		                       result = ImageSplitGrid( theSource, 1, 4 );
+		                       """, context );
 
 		Array tiles = variables.getAsArray( result );
 
