@@ -379,6 +379,10 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		return info;
 	}
 
+	public String getFormat() {
+		return figureOutFormat();
+	}
+
 	/**
 	 * Converts the image to a byte array using the format determined from the source path.
 	 *
