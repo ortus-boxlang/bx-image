@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* BLMODULES-139 Update writeToBrowser to accept format attribute
+* BLMODULES-138 Improve base64 generation and auto detect format
+
 ## [1.4.0] - 2025-11-12
 
 ### Added
