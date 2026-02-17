@@ -77,6 +77,7 @@ import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.Struct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 import ortus.boxlang.runtime.util.FileSystemUtil;
+import ortus.boxlang.runtime.util.IBoxBinaryRepresentable;
 
 /**
  * BoxImage is the central wrapper class for image manipulation in the BoxLang Image module.
@@ -132,7 +133,7 @@ import ortus.boxlang.runtime.util.FileSystemUtil;
  * @see javaxt.io.Image The underlying image library
  * @see java.awt.Graphics2D The drawing context used for operations
  */
-public class BoxImage {
+public class BoxImage implements IBoxBinaryRepresentable {
 
 	/** Map of named colors to java.awt.Color instances */
 	public static final Map<String, Color>	COLORS;
@@ -148,6 +149,8 @@ public class BoxImage {
 
 	/** Default interpolation method for image scaling operations */
 	public static final String				DEFAULT_INTERPOLATION	= "bilinear";
+
+	private static final String				DEFAULT_FORMAT			= "jpg";
 
 	static {
 		COLORS = new HashMap<String, Color>();
@@ -221,10 +224,16 @@ public class BoxImage {
 	 * @param imageType The image type (ARGB, RGB, etc.)
 	 * @param color     The initial background color
 	 */
-	// TODO handle imageType
 	public BoxImage( int width, int height, ImageType imageType, String color ) {
-		this.image		= new Image( width, height );
-		this.graphics	= this.image.getBufferedImage().createGraphics();
+		int				bufferedType	= switch ( imageType ) {
+											case RGB -> BufferedImage.TYPE_INT_RGB;
+											case ARGB -> BufferedImage.TYPE_INT_ARGB;
+											case GRAYSCALE -> BufferedImage.TYPE_BYTE_GRAY;
+										};
+
+		BufferedImage	bufferedImage	= new BufferedImage( width, height, bufferedType );
+		this.image = new Image( bufferedImage );
+		this.cacheGraphics();
 
 		this.setDrawingColor( color );
 		this.fillRect( 0, 0, width, height );
@@ -368,6 +377,49 @@ public class BoxImage {
 		info.put( "source", this.getSourcePath() );
 
 		return info;
+	}
+
+	/**
+	 * Converts the image to a byte array using the format determined from the source path.
+	 *
+	 * @return A byte array representing the encoded image
+	 *
+	 * @throws IOException If encoding fails
+	 */
+	public byte[] toByteArray() {
+		return toByteArray( figureOutFormat() );
+	}
+
+	/**
+	 * Converts the image to a byte array in the specified format.
+	 *
+	 * @param format The image format (e.g., "png", "jpg", "gif")
+	 *
+	 * @return A byte array representing the encoded image
+	 *
+	 * @throws IOException If encoding fails
+	 */
+	public byte[] toByteArray( String format ) {
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		try {
+			ImageIO.write( this.image.getBufferedImage(), format, output );
+		} catch ( IOException e ) {
+			throw new BoxRuntimeException( "Failed to convert image to byte array: " + e.getMessage(), e );
+		}
+
+		return output.toByteArray();
+	}
+
+	/**
+	 * Converts the image to a Base64-encoded string using the format determined from the source path.
+	 *
+	 * @return A Base64-encoded string representing the image
+	 *
+	 * @throws IOException If encoding fails
+	 */
+	public String toBase64String() throws IOException {
+		return toBase64String( figureOutFormat() );
 	}
 
 	/**
@@ -1578,5 +1630,33 @@ public class BoxImage {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Determines the image format based on the source path's file extension.
+	 * If the source path is not set or does not have a valid extension, returns a default format.
+	 *
+	 * @return The determined image format (e.g., "png", "jpg") or a default format if undetermined
+	 */
+	private String figureOutFormat() {
+		if ( this.sourcePath == null || this.sourcePath.isEmpty() ) {
+			return DEFAULT_FORMAT;
+		}
+
+		String path = this.sourcePath;
+		if ( path.startsWith( "file:" ) ) {
+			try {
+				path = new URI( path ).getPath();
+			} catch ( URISyntaxException e ) {
+				throw new BoxRuntimeException( "Invalid source path URI: " + path, e );
+			}
+		}
+
+		int dotIndex = path.lastIndexOf( '.' );
+		if ( dotIndex != -1 && dotIndex < path.length() - 1 ) {
+			return path.substring( dotIndex + 1 ).toLowerCase();
+		}
+
+		return DEFAULT_FORMAT;
 	}
 }
