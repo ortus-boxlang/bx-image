@@ -153,13 +153,15 @@ public class ImageService extends BaseService {
 		    .orElse( "url" );
 
 		String	src			= "";
+		String	format		= StringCaster.attempt( attributes.get( KeyDictionary.format ) )
+		    .orElse( image.getFormat() );
 
 		if ( writeType.equals( "url" ) ) {
 			String imageId = cachceImage( image );
 			src = "/bxModules/bximage/index.bxm?id=" + imageId;
 		} else if ( writeType.equals( "base64" ) ) {
 			try {
-				src = "data:image/png;base64," + image.toBase64String( "png" );
+				src = "data:image/" + format + ";base64," + image.toBase64String( format );
 			} catch ( IOException e ) {
 				getLogger().error( "Error writing image to browser", e );
 			}
