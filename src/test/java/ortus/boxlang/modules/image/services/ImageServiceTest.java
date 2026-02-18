@@ -88,7 +88,7 @@ public class ImageServiceTest extends BaseIntegrationTest {
 
 		// Verify the output contains img tag with Base64 data URI
 		assertNotNull( output, "Output should not be null" );
-		assertTrue( output.contains( "<img src=\"data:image/png;base64," ), "Output should contain Base64 data URI" );
+		assertTrue( output.contains( "<img src=\"data:image/jpg;base64," ), "Output should contain Base64 data URI" );
 		assertTrue( output.contains( "alt=\"Base64 Image\"" ), "Output should contain alt attribute" );
 		assertTrue( output.contains( "class=\"test-class\"" ), "Output should contain class attribute" );
 	}
