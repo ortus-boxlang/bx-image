@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-* BLMODULES-139 Update writeToBrowser to accept format attribute
-* BLMODULES-138 Improve base64 generation and auto detect format
+## [1.5.0] - 2026-02-18
+
+- BLMODULES-139 Update writeToBrowser to accept format attribute
+- BLMODULES-138 Improve base64 generation and auto detect format
 
 ## [1.4.0] - 2025-11-12
 
@@ -74,7 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.4.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/ortus-boxlang/bx-image/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/ortus-boxlang/bx-image/compare/v1.3.0...v1.3.1
