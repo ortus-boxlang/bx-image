@@ -31,6 +31,9 @@ repositories {
     mavenCentral()
 	maven {
 		url "https://www.javaxt.com/maven"
+		content {
+			includeGroup "javaxt"
+		}
 	}
 }
 
