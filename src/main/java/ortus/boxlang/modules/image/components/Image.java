@@ -121,26 +121,26 @@ public class Image extends Component {
 				if ( captchaText == null || captchaText.isEmpty() ) {
 					throw new BoxRuntimeException( "The text attribute is required for the captcha action" );
 				}
-				int captchaWidth = attributes.get( KeyDictionary.width ) != null
+				int		captchaWidth		= attributes.get( KeyDictionary.width ) != null
 				    ? IntegerCaster.cast( attributes.get( KeyDictionary.width ) )
 				    : 200;
-				int captchaHeight = attributes.get( KeyDictionary.height ) != null
+				int		captchaHeight		= attributes.get( KeyDictionary.height ) != null
 				    ? IntegerCaster.cast( attributes.get( KeyDictionary.height ) )
 				    : 75;
-				int captchaFontSize = attributes.get( KeyDictionary.fontSize ) != null
+				int		captchaFontSize		= attributes.get( KeyDictionary.fontSize ) != null
 				    ? IntegerCaster.cast( attributes.get( KeyDictionary.fontSize ) )
 				    : 24;
-				String captchaDifficulty = attributes.getAsString( KeyDictionary.difficulty );
+				String	captchaDifficulty	= attributes.getAsString( KeyDictionary.difficulty );
 				if ( captchaDifficulty == null || captchaDifficulty.isEmpty() )
 					captchaDifficulty = "low";
-				String fontsAttr = attributes.getAsString( KeyDictionary.fonts );
-				String[] captchaFonts = ( fontsAttr == null || fontsAttr.isEmpty() )
+				String		fontsAttr		= attributes.getAsString( KeyDictionary.fonts );
+				String[]	captchaFonts	= ( fontsAttr == null || fontsAttr.isEmpty() )
 				    ? new String[ 0 ]
 				    : fontsAttr.split( "\\s*,\\s*" );
 
 				image = BoxImage.generateCaptcha( captchaText, captchaWidth, captchaHeight, captchaFontSize, captchaDifficulty, captchaFonts );
 
-				String captchaDest = StringCaster.cast( attributes.get( KeyDictionary.destination ) );
+				String captchaDest = attributes.getAsString( KeyDictionary.destination );
 				if ( captchaDest != null && !captchaDest.isEmpty() ) {
 					boolean captchaOverwrite = BooleanCaster.cast( attributes.get( KeyDictionary.overwrite ) );
 					if ( !captchaOverwrite && FileSystemUtil.exists( captchaDest ) ) {
@@ -152,8 +152,8 @@ public class Image extends Component {
 				putImageInContext( image, context, attributes );
 
 				// When no destination or name is given, stream directly to browser (matches cfimage behavior)
-				String captchaName = attributes.getAsString( KeyDictionary.name );
-				boolean hasCaptchaOutput = ( captchaDest != null && !captchaDest.isEmpty() )
+				String	captchaName			= attributes.getAsString( KeyDictionary.name );
+				boolean	hasCaptchaOutput	= ( captchaDest != null && !captchaDest.isEmpty() )
 				    || ( captchaName != null && !captchaName.isEmpty() );
 				if ( !hasCaptchaOutput ) {
 					imageService.writeToBrowser( context, image, attributes );

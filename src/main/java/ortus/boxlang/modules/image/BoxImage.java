@@ -1679,17 +1679,17 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			g.setFont( font );
 			g.setColor( captchaCharColor( difficulty, rng ) );
 
-			double maxAngle = switch ( difficulty.toLowerCase() ) {
-				case "medium" -> 15.0;
-				case "high" -> 25.0;
-				default -> 5.0;
-			};
-			double				angleDeg	= ( rng.nextDouble() * 2 - 1 ) * maxAngle;
-			int					jitter		= Math.max( 1, fontSize / 5 );
-			int					charX		= slotWidth * ( i + 1 ) + rng.nextInt( jitter ) * ( rng.nextBoolean() ? 1 : -1 );
-			int					charY		= baseY + rng.nextInt( jitter ) * ( rng.nextBoolean() ? 1 : -1 );
+			double			maxAngle	= switch ( difficulty.toLowerCase() ) {
+											case "medium" -> 15.0;
+											case "high" -> 25.0;
+											default -> 5.0;
+										};
+			double			angleDeg	= ( rng.nextDouble() * 2 - 1 ) * maxAngle;
+			int				jitter		= Math.max( 1, fontSize / 5 );
+			int				charX		= slotWidth * ( i + 1 ) + rng.nextInt( jitter ) * ( rng.nextBoolean() ? 1 : -1 );
+			int				charY		= baseY + rng.nextInt( jitter ) * ( rng.nextBoolean() ? 1 : -1 );
 
-			AffineTransform		saved		= g.getTransform();
+			AffineTransform	saved		= g.getTransform();
 			g.rotate( Math.toRadians( angleDeg ), charX, charY );
 			g.drawString( ch, charX, charY );
 			g.setTransform( saved );
@@ -1749,13 +1749,13 @@ public class BoxImage implements IBoxBinaryRepresentable {
 				GeneralPath	path	= new GeneralPath();
 				int			startY	= rng.nextInt( height );
 				path.moveTo( 0, startY );
-				int segments = 4;
-				int segWidth = width / segments;
+				int	segments	= 4;
+				int	segWidth	= width / segments;
 				for ( int s = 0; s < segments; s++ ) {
-					int ctrlX = segWidth * s + rng.nextInt( segWidth );
-					int ctrlY = rng.nextInt( height );
-					int endX = segWidth * ( s + 1 );
-					int endY = rng.nextInt( height );
+					int	ctrlX	= segWidth * s + rng.nextInt( segWidth );
+					int	ctrlY	= rng.nextInt( height );
+					int	endX	= segWidth * ( s + 1 );
+					int	endY	= rng.nextInt( height );
 					path.quadTo( ctrlX, ctrlY, endX, endY );
 				}
 				g.draw( path );

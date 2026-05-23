@@ -31,12 +31,15 @@ import org.junit.jupiter.api.Test;
 
 import ortus.boxlang.compiler.parser.BoxSourceType;
 import ortus.boxlang.modules.image.BaseIntegrationTest;
-import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.scopes.Key;
 
 /**
  * Tests for ImageGenerateCaptcha BIF.
  * Argument order matches ColdFusion: height, width, text [, difficulty [, fonts [, fontSize]]]
+ *
+ * Note: Module classes run in an isolated classloader, so we avoid Java-side casts
+ * to BoxImage. Instead we verify via BoxLang code (getWidth/getHeight) or check
+ * the class simple name as a string.
  */
 public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 
@@ -51,20 +54,21 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 	@Test
 	public void testGenerateCaptchaReturnType() {
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 75, 200, "ABCD" );
-		""", context );
+		                           result = ImageGenerateCaptcha( 75, 200, "ABCD" );
+		                       """, context );
 
-		assertThat( variables.get( result ) ).isInstanceOf( BoxImage.class );
+		assertThat( variables.get( result ) ).isNotNull();
+		assertThat( variables.get( result ).getClass().getSimpleName() ).isEqualTo( "BoxImage" );
 	}
 
 	@DisplayName( "It generates a captcha with the specified dimensions" )
 	@Test
 	public void testGenerateCaptchaDimensions() {
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 100, 300, "HELLO" );
-		    w = result.getWidth();
-		    h = result.getHeight();
-		""", context );
+		                           result = ImageGenerateCaptcha( 100, 300, "HELLO" );
+		                           w = result.getWidth();
+		                           h = result.getHeight();
+		                       """, context );
 
 		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 300 );
 		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 100 );
@@ -75,9 +79,9 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 	public void testGenerateCaptchaLow() throws IOException {
 		String filePath = GENERATED_DIR + "captcha-low.png";
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 75, 200, "WXYZ", "low" );
-		    ImageWrite( result, "%s" );
-		""".formatted( filePath ), context );
+		                           result = ImageGenerateCaptcha( 75, 200, "WXYZ", "low" );
+		                           ImageWrite( result, "%s" );
+		                       """.formatted( filePath ), context );
 
 		Path p = Paths.get( filePath );
 		assertThat( Files.exists( p ) ).isTrue();
@@ -89,9 +93,9 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 	public void testGenerateCaptchaMedium() throws IOException {
 		String filePath = GENERATED_DIR + "captcha-medium.png";
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 75, 200, "WXYZ", "medium" );
-		    ImageWrite( result, "%s" );
-		""".formatted( filePath ), context );
+		                           result = ImageGenerateCaptcha( 75, 200, "WXYZ", "medium" );
+		                           ImageWrite( result, "%s" );
+		                       """.formatted( filePath ), context );
 
 		Path p = Paths.get( filePath );
 		assertThat( Files.exists( p ) ).isTrue();
@@ -103,9 +107,9 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 	public void testGenerateCaptchaHigh() throws IOException {
 		String filePath = GENERATED_DIR + "captcha-high.png";
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 75, 200, "WXYZ", "high" );
-		    ImageWrite( result, "%s" );
-		""".formatted( filePath ), context );
+		                           result = ImageGenerateCaptcha( 75, 200, "WXYZ", "high" );
+		                           ImageWrite( result, "%s" );
+		                       """.formatted( filePath ), context );
 
 		Path p = Paths.get( filePath );
 		assertThat( Files.exists( p ) ).isTrue();
@@ -117,9 +121,9 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 	public void testGenerateCaptchaWithFonts() throws IOException {
 		String filePath = GENERATED_DIR + "captcha-fonts.png";
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 75, 200, "CODE", "low", "SansSerif,Serif" );
-		    ImageWrite( result, "%s" );
-		""".formatted( filePath ), context );
+		                           result = ImageGenerateCaptcha( 75, 200, "CODE", "low", "SansSerif,Serif" );
+		                           ImageWrite( result, "%s" );
+		                       """.formatted( filePath ), context );
 
 		Path p = Paths.get( filePath );
 		assertThat( Files.exists( p ) ).isTrue();
@@ -131,26 +135,27 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 	public void testGenerateCaptchaWithFontSize() throws IOException {
 		String filePath = GENERATED_DIR + "captcha-fontsize.png";
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 100, 400, "BIG", "low", "", 36 );
-		    ImageWrite( result, "%s" );
-		""".formatted( filePath ), context );
+		                           result = ImageGenerateCaptcha( 100, 400, "BIG", "low", "", 36 );
+		                           ImageWrite( result, "%s" );
+		                           w = result.getWidth();
+		                           h = result.getHeight();
+		                       """.formatted( filePath ), context );
 
 		Path p = Paths.get( filePath );
 		assertThat( Files.exists( p ) ).isTrue();
 		assertThat( Files.size( p ) ).isGreaterThan( 0L );
-		BoxImage img = ( BoxImage ) variables.get( result );
-		assertThat( img.getWidth() ).isEqualTo( 400 );
-		assertThat( img.getHeight() ).isEqualTo( 100 );
+		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 400 );
+		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 100 );
 	}
 
 	@DisplayName( "It matches the ColdFusion 3-arg form: ImageGenerateCaptcha(height, width, text)" )
 	@Test
 	public void testColdFusionCompatThreeArgs() {
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 35, 400, "loner" );
-		    w = result.getWidth();
-		    h = result.getHeight();
-		""", context );
+		                           result = ImageGenerateCaptcha( 35, 400, "loner" );
+		                           w = result.getWidth();
+		                           h = result.getHeight();
+		                       """, context );
 
 		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 400 );
 		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 35 );
@@ -160,33 +165,46 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 	@Test
 	public void testColdFusionCompatFourArgs() {
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 35, 400, "loner", "high" );
-		""", context );
+		                           result = ImageGenerateCaptcha( 35, 400, "loner", "high" );
+		                           w = result.getWidth();
+		                           h = result.getHeight();
+		                       """, context );
 
-		assertThat( variables.get( result ) ).isInstanceOf( BoxImage.class );
+		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 400 );
+		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 35 );
 	}
 
 	@DisplayName( "It matches the ColdFusion 6-arg form: ImageGenerateCaptcha(height, width, text, difficulty, fonts, fontSize)" )
 	@Test
 	public void testColdFusionCompatSixArgs() {
 		runtime.executeSource( """
-		    result = ImageGenerateCaptcha( 35, 400, "loner", "high", "serif,sansserif", 24 );
-		""", context );
+		                           result = ImageGenerateCaptcha( 35, 400, "loner", "high", "serif,sansserif", 24 );
+		                           w = result.getWidth();
+		                           h = result.getHeight();
+		                       """, context );
 
-		assertThat( variables.get( result ) ).isInstanceOf( BoxImage.class );
+		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 400 );
+		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 35 );
 	}
 
 	@DisplayName( "It generates a captcha via bx:image component with name" )
 	@Test
 	public void testCaptchaComponentWithName() {
+		// Template call stores image in variables scope
 		runtime.executeSource( """
-		    <bx:image action="captcha" text="COMP" width="250" height="80" name="myCaptcha" />
-		""", context, BoxSourceType.BOXTEMPLATE );
+		                           <bx:image action="captcha" text="COMP" width="250" height="80" name="myCaptcha" />
+		                       """, context, BoxSourceType.BOXTEMPLATE );
 
-		BoxImage img = ( BoxImage ) variables.get( Key.of( "myCaptcha" ) );
-		assertThat( img ).isNotNull();
-		assertThat( img.getWidth() ).isEqualTo( 250 );
-		assertThat( img.getHeight() ).isEqualTo( 80 );
+		assertThat( variables.get( Key.of( "myCaptcha" ) ) ).isNotNull();
+
+		// Get dimensions via script mode on the same context
+		runtime.executeSource( """
+		                           w = myCaptcha.getWidth();
+		                           h = myCaptcha.getHeight();
+		                       """, context );
+
+		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 250 );
+		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 80 );
 	}
 
 	@DisplayName( "It generates a captcha via bx:image component with destination" )
@@ -196,15 +214,21 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 		Files.deleteIfExists( Paths.get( filePath ) );
 
 		runtime.executeSource( """
-		    <bx:image action="captcha" text="COMP" width="200" height="75"
-		              difficulty="medium" destination="%s" overwrite=true name="myCaptcha" />
-		""".formatted( filePath ), context, BoxSourceType.BOXTEMPLATE );
+		                           <bx:image action="captcha" text="COMP" width="200" height="75"
+		                                     difficulty="medium" destination="%s" overwrite=true name="myCaptcha" />
+		                       """.formatted( filePath ), context, BoxSourceType.BOXTEMPLATE );
 
 		assertThat( Files.exists( Paths.get( filePath ) ) ).isTrue();
 		assertThat( Files.size( Paths.get( filePath ) ) ).isGreaterThan( 0L );
+		assertThat( variables.get( Key.of( "myCaptcha" ) ) ).isNotNull();
 
-		BoxImage img = ( BoxImage ) variables.get( Key.of( "myCaptcha" ) );
-		assertThat( img ).isNotNull();
+		runtime.executeSource( """
+		                           w = myCaptcha.getWidth();
+		                           h = myCaptcha.getHeight();
+		                       """, context );
+
+		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 200 );
+		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 75 );
 	}
 
 }

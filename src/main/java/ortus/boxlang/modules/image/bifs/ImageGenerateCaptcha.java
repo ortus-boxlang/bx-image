@@ -75,11 +75,11 @@ public class ImageGenerateCaptcha extends BIF {
 			difficulty = "low";
 		}
 
-		String[] fontList = ( fontsArg == null || fontsArg.isEmpty() )
+		String[]	fontList	= ( fontsArg == null || fontsArg.isEmpty() )
 		    ? new String[ 0 ]
 		    : fontsArg.split( "\\s*,\\s*" );
 
-		BoxImage captcha = BoxImage.generateCaptcha( text, width, height, fontSize, difficulty, fontList );
+		BoxImage	captcha		= BoxImage.generateCaptcha( text, width, height, fontSize, difficulty, fontList );
 
 		if ( destination != null && !destination.isEmpty() ) {
 			String resolvedPath = FileSystemUtil.expandPath( context, destination ).absolutePath().toString();
