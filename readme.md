@@ -240,6 +240,33 @@ img = imageReadBase64(base64String);
 img = imageNew("", 800, 600, "rgb", "white");
 ```
 
+### CAPTCHA Generation
+
+```javascript
+// Basic CAPTCHA (args: height, width, text)
+captcha = ImageGenerateCaptcha( 75, 200, "A3X9K2" );
+ImageWrite( captcha, "/path/to/captcha.png" );
+
+// With difficulty and fonts (ColdFusion-compatible arg order)
+captcha = ImageGenerateCaptcha( 35, 400, "loner" );
+captcha = ImageGenerateCaptcha( 35, 400, "loner", "high" );
+captcha = ImageGenerateCaptcha( 35, 400, "loner", "high", "serif,sansserif", 24 );
+
+// Via component — auto-streams to browser when no name/destination is given
+<bx:image action="captcha" text="A3X9K2" width="200" height="75" difficulty="medium" />
+
+// Store in variable for further processing
+<bx:image action="captcha" text="A3X9K2" width="200" height="75" name="captchaImg" />
+
+// Write directly to file
+<bx:image action="captcha" text="A3X9K2" destination="/path/to/captcha.png" />
+```
+
+**Difficulty levels:**
+- `low` — minimal character rotation, clean background
+- `medium` — moderate rotation, noise dots, crossing lines
+- `high` — heavy rotation, dense noise, wavy lines, random character colors
+
 ### Member Functions vs BIFs
 
 Most functions work both ways:
@@ -278,6 +305,7 @@ This module contributes the following BIFs:
 - [ImageDrawRoundRect](https://cfdocs.org/ImageDrawRoundRect)
 - [ImageDrawText](https://cfdocs.org/ImageDrawText)
 - [ImageFlip](https://cfdocs.org/ImageFlip)
+- [ImageGenerateCaptcha](https://cfdocs.org/ImageCreateCaptcha) - Generate a CAPTCHA image with distorted text. Args: `height, width, text [, difficulty [, fonts [, fontSize]]]`
 - [ImageGetBlob](https://cfdocs.org/ImageGetBlob)
 - [ImageGetBufferedImage](https://cfdocs.org/ImageGetBufferedImage)
 - [ImageGetExifMetaData](https://cfdocs.org/ImageGetExifMetaData)

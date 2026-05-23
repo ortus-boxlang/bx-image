@@ -51,6 +51,9 @@ import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.awt.BasicStroke;
+import java.awt.geom.GeneralPath;
 
 import javax.imageio.ImageIO;
 
@@ -1634,6 +1637,133 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Generates a CAPTCHA image with distorted text.
+	 * Matches the ColdFusion ImageCreateCaptcha() argument order: height, width, text, difficulty, fonts, fontSize.
+	 *
+	 * @param text       The text to render in the CAPTCHA
+	 * @param width      Image width in pixels
+	 * @param height     Image height in pixels
+	 * @param fontSize   Font size in points
+	 * @param difficulty Distortion level: "low", "medium", or "high"
+	 * @param fontNames  Array of font family names to randomly select per character (empty = use default)
+	 *
+	 * @return A new BoxImage containing the rendered CAPTCHA
+	 */
+	public static BoxImage generateCaptcha( String text, int width, int height, int fontSize, String difficulty, String[] fontNames ) {
+		Random			rng	= new Random();
+		BufferedImage	buf	= new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
+		Graphics2D		g	= buf.createGraphics();
+
+		g.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
+		g.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
+
+		// Fill background
+		g.setColor( captchaBackgroundColor( difficulty, rng ) );
+		g.fillRect( 0, 0, width, height );
+
+		// Noise dots (medium/high only)
+		drawCaptchaNoiseDots( g, width, height, difficulty, rng );
+
+		// Render each character with random per-character rotation
+		int	charCount	= text.length();
+		int	slotWidth	= width / ( charCount + 1 );
+		int	baseY		= height / 2 + fontSize / 3;
+
+		for ( int i = 0; i < charCount; i++ ) {
+			String	ch		= String.valueOf( text.charAt( i ) );
+			String	family	= captchaPickFont( fontNames, rng );
+			Font	font	= new Font( family, Font.BOLD, fontSize );
+			g.setFont( font );
+			g.setColor( captchaCharColor( difficulty, rng ) );
+
+			double maxAngle = switch ( difficulty.toLowerCase() ) {
+				case "medium" -> 15.0;
+				case "high" -> 25.0;
+				default -> 5.0;
+			};
+			double				angleDeg	= ( rng.nextDouble() * 2 - 1 ) * maxAngle;
+			int					jitter		= Math.max( 1, fontSize / 5 );
+			int					charX		= slotWidth * ( i + 1 ) + rng.nextInt( jitter ) * ( rng.nextBoolean() ? 1 : -1 );
+			int					charY		= baseY + rng.nextInt( jitter ) * ( rng.nextBoolean() ? 1 : -1 );
+
+			AffineTransform		saved		= g.getTransform();
+			g.rotate( Math.toRadians( angleDeg ), charX, charY );
+			g.drawString( ch, charX, charY );
+			g.setTransform( saved );
+		}
+
+		// Crossing lines (medium/high only)
+		drawCaptchaCrossingLines( g, width, height, difficulty, rng );
+
+		g.dispose();
+		return new BoxImage( buf );
+	}
+
+	private static Color captchaBackgroundColor( String difficulty, Random rng ) {
+		return switch ( difficulty.toLowerCase() ) {
+			case "high" -> new Color( 200 + rng.nextInt( 56 ), 200 + rng.nextInt( 56 ), 200 + rng.nextInt( 56 ) );
+			case "medium" -> new Color( 230, 240, 255 );
+			default -> new Color( 250, 250, 250 );
+		};
+	}
+
+	private static Color captchaCharColor( String difficulty, Random rng ) {
+		if ( "high".equalsIgnoreCase( difficulty ) ) {
+			return new Color( rng.nextInt( 150 ), rng.nextInt( 150 ), rng.nextInt( 150 ) );
+		}
+		return Color.BLACK;
+	}
+
+	private static String captchaPickFont( String[] fontNames, Random rng ) {
+		if ( fontNames == null || fontNames.length == 0 ) {
+			return DEFAULT_FONT_FAMILY;
+		}
+		return fontNames[ rng.nextInt( fontNames.length ) ];
+	}
+
+	private static void drawCaptchaNoiseDots( Graphics2D g, int width, int height, String difficulty, Random rng ) {
+		int dotCount = switch ( difficulty.toLowerCase() ) {
+			case "high" -> 300;
+			case "medium" -> 80;
+			default -> 0;
+		};
+		for ( int d = 0; d < dotCount; d++ ) {
+			g.setColor( new Color( rng.nextInt( 200 ), rng.nextInt( 200 ), rng.nextInt( 200 ), 180 ) );
+			g.fillOval( rng.nextInt( width ), rng.nextInt( height ), 2, 2 );
+		}
+	}
+
+	private static void drawCaptchaCrossingLines( Graphics2D g, int width, int height, String difficulty, Random rng ) {
+		int lineCount = switch ( difficulty.toLowerCase() ) {
+			case "high" -> 3 + rng.nextInt( 3 );
+			case "medium" -> 2 + rng.nextInt( 2 );
+			default -> 0;
+		};
+		for ( int l = 0; l < lineCount; l++ ) {
+			g.setColor( new Color( rng.nextInt( 180 ), rng.nextInt( 180 ), rng.nextInt( 180 ), 200 ) );
+			g.setStroke( new BasicStroke( 1.5f ) );
+			if ( "high".equalsIgnoreCase( difficulty ) ) {
+				GeneralPath	path	= new GeneralPath();
+				int			startY	= rng.nextInt( height );
+				path.moveTo( 0, startY );
+				int segments = 4;
+				int segWidth = width / segments;
+				for ( int s = 0; s < segments; s++ ) {
+					int ctrlX = segWidth * s + rng.nextInt( segWidth );
+					int ctrlY = rng.nextInt( height );
+					int endX = segWidth * ( s + 1 );
+					int endY = rng.nextInt( height );
+					path.quadTo( ctrlX, ctrlY, endX, endY );
+				}
+				g.draw( path );
+			} else {
+				g.drawLine( rng.nextInt( width / 2 ), rng.nextInt( height ), width / 2 + rng.nextInt( width / 2 ), rng.nextInt( height ) );
+			}
+		}
+		g.setStroke( new BasicStroke( 1.0f ) );
 	}
 
 	/**
