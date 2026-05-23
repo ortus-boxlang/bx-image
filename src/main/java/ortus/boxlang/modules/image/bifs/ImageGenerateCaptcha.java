@@ -33,8 +33,26 @@ import ortus.boxlang.runtime.util.FileSystemUtil;
 import ortus.boxlang.runtime.validation.Validator;
 
 /**
- * Generates a CAPTCHA image with distorted text.
- * Argument order matches ColdFusion's ImageCreateCaptcha(): height, width, text [, difficulty [, fonts [, fontSize]]]
+ * Generates a CAPTCHA image with distorted text designed to be human-readable but
+ * resistant to automated parsing.
+ *
+ * <p>
+ * Argument order is compatible with ColdFusion's {@code ImageCreateCaptcha()}:
+ * {@code height, width, text [, difficulty [, fonts [, fontSize]]]}
+ * </p>
+ *
+ * <h3>Examples</h3>
+ *
+ * <pre>
+ * // Basic usage
+ * captcha = ImageGenerateCaptcha( 75, 200, "A3X9K2" );
+ * ImageWrite( captcha, "/path/to/captcha.png" );
+ *
+ * // With difficulty and font options (ColdFusion-compatible positional form)
+ * captcha = ImageGenerateCaptcha( 35, 400, "loner" );
+ * captcha = ImageGenerateCaptcha( 35, 400, "loner", "high" );
+ * captcha = ImageGenerateCaptcha( 35, 400, "loner", "high", "serif,sansserif", 24 );
+ * </pre>
  */
 @BoxBIF
 public class ImageGenerateCaptcha extends BIF {
@@ -54,12 +72,36 @@ public class ImageGenerateCaptcha extends BIF {
 	}
 
 	/**
-	 * Generates and returns a CAPTCHA image.
+	 * Generates and returns a CAPTCHA image with distorted text.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
 	 *
-	 * @return The generated CAPTCHA as a BoxImage
+	 * @argument.height Height of the generated image in pixels. Defaults to 75.
+	 *
+	 * @argument.width Width of the generated image in pixels. Defaults to 200.
+	 *
+	 * @argument.text The text string to render in the CAPTCHA image. Required. Uppercase letters
+	 *                and digits are recommended for readability.
+	 *
+	 * @argument.difficulty Controls the level of visual distortion applied to the image.
+	 *                      One of {@code low} (minimal rotation, clean background),
+	 *                      {@code medium} (moderate rotation, noise dots, crossing lines), or
+	 *                      {@code high} (heavy rotation, dense noise, wavy lines, random character colors).
+	 *                      Defaults to {@code low}.
+	 *
+	 * @argument.fonts Comma-separated list of font family names to randomly select per character,
+	 *                 e.g. {@code "Arial,Verdana,Georgia"}. Defaults to the JVM's default sans-serif font.
+	 *
+	 * @argument.fontSize Font size in points. Defaults to 24.
+	 *
+	 * @argument.destination Optional file path to write the generated PNG to. If omitted the image
+	 *                       is only returned, not written to disk.
+	 *
+	 * @argument.overwrite When {@code true}, overwrites an existing file at {@code destination}.
+	 *                     Defaults to {@code false}.
+	 *
+	 * @return The generated CAPTCHA as a BoxImage.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		int		height		= IntegerCaster.cast( arguments.get( KeyDictionary.height ) );

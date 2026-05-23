@@ -1641,16 +1641,30 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 	/**
 	 * Generates a CAPTCHA image with distorted text.
-	 * Matches the ColdFusion ImageCreateCaptcha() argument order: height, width, text, difficulty, fonts, fontSize.
 	 *
-	 * @param text       The text to render in the CAPTCHA
-	 * @param width      Image width in pixels
-	 * @param height     Image height in pixels
-	 * @param fontSize   Font size in points
-	 * @param difficulty Distortion level: "low", "medium", or "high"
-	 * @param fontNames  Array of font family names to randomly select per character (empty = use default)
+	 * <p>
+	 * The image is created from scratch: a background is filled, optional noise dots are scattered,
+	 * each character is drawn individually with a random rotation and position jitter, and then
+	 * optional crossing lines are painted on top. The degree of all distortion is governed by the
+	 * {@code difficulty} parameter:
+	 * </p>
 	 *
-	 * @return A new BoxImage containing the rendered CAPTCHA
+	 * <ul>
+	 * <li><b>low</b> — near-white background, ±5° rotation per character, no noise or lines</li>
+	 * <li><b>medium</b> — light-blue background, ±15° rotation, 80 noise dots, 2–3 straight crossing lines</li>
+	 * <li><b>high</b> — random pastel background, ±25° rotation, 300 noise dots, 3–5 wavy bezier crossing
+	 * lines, random per-character colours</li>
+	 * </ul>
+	 *
+	 * @param text       The text string to render. Uppercase letters and digits are recommended.
+	 * @param width      Canvas width in pixels.
+	 * @param height     Canvas height in pixels.
+	 * @param fontSize   Font size in points.
+	 * @param difficulty Distortion level: {@code "low"}, {@code "medium"}, or {@code "high"}.
+	 * @param fontNames  Array of font family names to cycle through randomly per character.
+	 *                   Pass an empty array or {@code null} to use {@link #DEFAULT_FONT_FAMILY}.
+	 *
+	 * @return A new {@link BoxImage} containing the rendered CAPTCHA.
 	 */
 	public static BoxImage generateCaptcha( String text, int width, int height, int fontSize, String difficulty, String[] fontNames ) {
 		Random			rng	= new Random();
@@ -1702,6 +1716,15 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		return new BoxImage( buf );
 	}
 
+	/**
+	 * Returns a background {@link Color} appropriate for the requested CAPTCHA difficulty.
+	 *
+	 * @param difficulty {@code "low"}, {@code "medium"}, or {@code "high"}
+	 * @param rng        Shared random-number generator
+	 *
+	 * @return A light background colour — near-white for low, a fixed light blue for medium,
+	 *         or a randomised pastel for high
+	 */
 	private static Color captchaBackgroundColor( String difficulty, Random rng ) {
 		return switch ( difficulty.toLowerCase() ) {
 			case "high" -> new Color( 200 + rng.nextInt( 56 ), 200 + rng.nextInt( 56 ), 200 + rng.nextInt( 56 ) );
@@ -1710,6 +1733,16 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		};
 	}
 
+	/**
+	 * Returns the foreground {@link Color} to use for a single CAPTCHA character.
+	 * Low and medium difficulties always use black; high difficulty returns a random dark colour
+	 * so adjacent characters are visually distinct.
+	 *
+	 * @param difficulty {@code "low"}, {@code "medium"}, or {@code "high"}
+	 * @param rng        Shared random-number generator
+	 *
+	 * @return A {@link Color} for the character glyph
+	 */
 	private static Color captchaCharColor( String difficulty, Random rng ) {
 		if ( "high".equalsIgnoreCase( difficulty ) ) {
 			return new Color( rng.nextInt( 150 ), rng.nextInt( 150 ), rng.nextInt( 150 ) );
@@ -1717,6 +1750,16 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		return Color.BLACK;
 	}
 
+	/**
+	 * Picks a font family name at random from the supplied array.
+	 * Falls back to {@link #DEFAULT_FONT_FAMILY} when the array is {@code null} or empty,
+	 * which guarantees a valid logical font is always available regardless of the JVM environment.
+	 *
+	 * @param fontNames Array of font family names provided by the caller
+	 * @param rng       Shared random-number generator
+	 *
+	 * @return A font family name string suitable for passing to {@link Font#Font(String, int, int)}
+	 */
 	private static String captchaPickFont( String[] fontNames, Random rng ) {
 		if ( fontNames == null || fontNames.length == 0 ) {
 			return DEFAULT_FONT_FAMILY;
@@ -1724,6 +1767,17 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		return fontNames[ rng.nextInt( fontNames.length ) ];
 	}
 
+	/**
+	 * Scatters small noise dots over the CAPTCHA canvas.
+	 * The number of dots scales with difficulty: 0 for low, 80 for medium, 300 for high.
+	 * Each dot is a 2×2 semi-transparent oval drawn at a random position and colour.
+	 *
+	 * @param g          Active {@link Graphics2D} context
+	 * @param width      Canvas width in pixels
+	 * @param height     Canvas height in pixels
+	 * @param difficulty {@code "low"}, {@code "medium"}, or {@code "high"}
+	 * @param rng        Shared random-number generator
+	 */
 	private static void drawCaptchaNoiseDots( Graphics2D g, int width, int height, String difficulty, Random rng ) {
 		int dotCount = switch ( difficulty.toLowerCase() ) {
 			case "high" -> 300;
@@ -1736,6 +1790,23 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		}
 	}
 
+	/**
+	 * Draws random lines across the CAPTCHA canvas to interfere with automated character segmentation.
+	 *
+	 * <ul>
+	 * <li><b>low</b> — no lines drawn</li>
+	 * <li><b>medium</b> — 2–3 straight diagonal lines</li>
+	 * <li><b>high</b> — 3–5 quadratic bezier (wavy) lines spanning the full canvas width</li>
+	 * </ul>
+	 *
+	 * The stroke width is 1.5 px for all lines; the stroke is reset to 1.0 px after drawing.
+	 *
+	 * @param g          Active {@link Graphics2D} context
+	 * @param width      Canvas width in pixels
+	 * @param height     Canvas height in pixels
+	 * @param difficulty {@code "low"}, {@code "medium"}, or {@code "high"}
+	 * @param rng        Shared random-number generator
+	 */
 	private static void drawCaptchaCrossingLines( Graphics2D g, int width, int height, String difficulty, Random rng ) {
 		int lineCount = switch ( difficulty.toLowerCase() ) {
 			case "high" -> 3 + rng.nextInt( 3 );
