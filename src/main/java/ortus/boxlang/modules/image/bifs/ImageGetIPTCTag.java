@@ -51,10 +51,17 @@ public class ImageGetIPTCTag extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Returns a specific IPTC metadata tag value from an image.
+	 * Accepts either a BoxImage instance or a file path string.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name A BoxImage instance or a file path string to read the IPTC tag from.
+	 *
+	 * @argument.tagName The name of the IPTC tag to retrieve.
+	 *
+	 * @return The value of the specified IPTC tag, or null if not found.
 	 */
 	public Object _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		try {

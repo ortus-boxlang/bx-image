@@ -37,10 +37,30 @@ public class ImageDrawCubicCurve extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Draws a cubic B\u00e9zier curve on the image using two control points.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.x1 The x coordinate of the start point.
+	 *
+	 * @argument.y1 The y coordinate of the start point.
+	 *
+	 * @argument.ctrlx1 The x coordinate of the first control point.
+	 *
+	 * @argument.ctrly1 The y coordinate of the first control point.
+	 *
+	 * @argument.ctrlx2 The x coordinate of the second control point.
+	 *
+	 * @argument.ctrly2 The y coordinate of the second control point.
+	 *
+	 * @argument.x2 The x coordinate of the end point.
+	 *
+	 * @argument.y2 The y coordinate of the end point.
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

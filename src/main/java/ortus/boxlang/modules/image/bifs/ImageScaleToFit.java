@@ -40,6 +40,16 @@ public class ImageScaleToFit extends BIF {
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to scale.
+	 *
+	 * @argument.width The target width. Omit or pass null to scale based on height only.
+	 *
+	 * @argument.height The target height. Omit or pass null to scale based on width only.
+	 *
+	 * @argument.interpolation The interpolation algorithm. One of "bilinear", "bicubic", or "nearest". Defaults to "bilinear".
+	 *
+	 * @return The BoxImage instance after scaling.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage				theImage		= arguments.get( KeyDictionary.name ) instanceof BoxImage

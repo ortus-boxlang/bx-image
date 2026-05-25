@@ -28,10 +28,18 @@ public class ImageTranslateDrawingAxis extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Translates the drawing axis by the specified x and y offsets.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.x The horizontal translation offset. Defaults to 0.
+	 *
+	 * @argument.y The vertical translation offset. Defaults to 0.
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

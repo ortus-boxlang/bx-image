@@ -34,10 +34,18 @@ public class ImageShear extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Shears (skews) the image along the specified axis by the given amount.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to shear.
+	 *
+	 * @argument.amount The shear amount.
+	 *
+	 * @argument.direction The shear direction: "horizontal" or "vertical". Defaults to "horizontal".
+	 *
+	 * @return The BoxImage instance after shearing.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

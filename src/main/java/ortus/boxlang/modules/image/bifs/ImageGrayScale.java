@@ -30,10 +30,14 @@ public class ImageGrayScale extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Converts the image to grayscale (also available as ImageGreyScale).
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @return The BoxImage instance with grayscale applied.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

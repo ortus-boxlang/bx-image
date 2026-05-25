@@ -35,10 +35,26 @@ public class ImageDrawQuadraticCurve extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Draws a quadratic B\u00e9zier curve on the image using a single control point.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.ctrlx1 The x coordinate of the control point.
+	 *
+	 * @argument.ctrly1 The y coordinate of the control point.
+	 *
+	 * @argument.x1 The x coordinate of the start point.
+	 *
+	 * @argument.y1 The y coordinate of the start point.
+	 *
+	 * @argument.x2 The x coordinate of the end point.
+	 *
+	 * @argument.y2 The y coordinate of the end point.
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

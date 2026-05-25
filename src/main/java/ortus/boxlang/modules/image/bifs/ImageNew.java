@@ -55,10 +55,24 @@ public class ImageNew extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Creates a new BoxImage from a variety of sources: file path, URL, BufferedImage, existing BoxImage,
+	 * or by specifying width, height, image type, and background color.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.source A BufferedImage, BoxImage, file path, or URL to load the image from.
+	 *                  If empty, creates a blank image using width, height, imageType, and color.
+	 *
+	 * @argument.width Width of the new image in pixels. Required when creating a blank image.
+	 *
+	 * @argument.height Height of the new image in pixels. Required when creating a blank image.
+	 *
+	 * @argument.imageType The image type. One of "rgb", "argb", or "grayscale". Defaults to "rgb".
+	 *
+	 * @argument.color The background color for the new image. Can be a hex value or named color. Defaults to "black".
+	 *
+	 * @return A new BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		Object source = arguments.get( Key.source );

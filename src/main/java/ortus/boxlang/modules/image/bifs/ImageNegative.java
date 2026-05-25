@@ -31,10 +31,14 @@ public class ImageNegative extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Inverts the colors of the image to create a negative effect.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @return The BoxImage instance with inverted colors.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

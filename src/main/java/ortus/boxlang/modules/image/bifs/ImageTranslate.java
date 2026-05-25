@@ -31,10 +31,18 @@ public class ImageTranslate extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Translates (repositions) the image by the specified x and y offsets.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to translate.
+	 *
+	 * @argument.x The horizontal translation offset in pixels.
+	 *
+	 * @argument.y The vertical translation offset in pixels.
+	 *
+	 * @return The BoxImage instance after translation.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

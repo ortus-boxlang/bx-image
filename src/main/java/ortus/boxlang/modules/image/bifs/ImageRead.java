@@ -27,10 +27,14 @@ public class ImageRead extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Reads an image from a file path or URL and returns a BoxImage object.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.path The file path or URL of the image to read.
+	 *
+	 * @return A new BoxImage loaded from the specified path.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		String	providedPath	= arguments.getAsString( Key.path );

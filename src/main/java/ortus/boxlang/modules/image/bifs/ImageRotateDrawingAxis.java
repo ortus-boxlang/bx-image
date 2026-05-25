@@ -35,10 +35,20 @@ public class ImageRotateDrawingAxis extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Rotates the drawing axis by the specified angle around the given pivot point.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.angle The rotation angle in degrees.
+	 *
+	 * @argument.x The x coordinate of the pivot point. Defaults to 0.
+	 *
+	 * @argument.y The y coordinate of the pivot point. Defaults to 0.
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage
