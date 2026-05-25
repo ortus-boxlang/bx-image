@@ -46,13 +46,13 @@ public class ImageDrawQuadraticCurve extends BIF {
 	 *
 	 * @argument.ctrly1 The y coordinate of the control point.
 	 *
-	 * @argument.x1 The x coordinate of the start point.
+	 *                  @argument.x1 The x coordinate of the start point.
 	 *
-	 * @argument.y1 The y coordinate of the start point.
+	 *                  @argument.y1 The y coordinate of the start point.
 	 *
-	 * @argument.x2 The x coordinate of the end point.
+	 *                  @argument.x2 The x coordinate of the end point.
 	 *
-	 * @argument.y2 The y coordinate of the end point.
+	 *                  @argument.y2 The y coordinate of the end point.
 	 *
 	 * @return The BoxImage instance.
 	 */

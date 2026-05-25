@@ -40,13 +40,13 @@ public class ImageDrawLine extends BIF {
 	 *
 	 * @argument.name The image or name of variable that references an image to operate on.
 	 *
-	 * @argument.x1 The x coordinate of the start point.
+	 *                @argument.x1 The x coordinate of the start point.
 	 *
-	 * @argument.y1 The y coordinate of the start point.
+	 *                @argument.y1 The y coordinate of the start point.
 	 *
-	 * @argument.x2 The x coordinate of the end point.
+	 *                @argument.x2 The x coordinate of the end point.
 	 *
-	 * @argument.y2 The y coordinate of the end point.
+	 *                @argument.y2 The y coordinate of the end point.
 	 *
 	 * @return The BoxImage instance.
 	 */
