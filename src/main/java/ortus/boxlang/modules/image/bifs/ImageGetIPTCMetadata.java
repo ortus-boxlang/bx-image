@@ -51,10 +51,15 @@ public class ImageGetIPTCMetadata extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Returns all IPTC metadata from an image as a structured key-value map.
+	 * Accepts either a BoxImage instance or a file path string.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name A BoxImage instance or a file path string to read IPTC metadata from.
+	 *
+	 * @return A struct containing all IPTC metadata key-value pairs.
 	 */
 	public IStruct _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		try {

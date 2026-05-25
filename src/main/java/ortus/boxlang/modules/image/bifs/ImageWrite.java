@@ -32,6 +32,12 @@ public class ImageWrite extends BIF {
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to write.
+	 *
+	 * @argument.path The file path to write to. If omitted, writes to the original source path.
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage	theImage		= arguments.get( KeyDictionary.name ) instanceof BoxImage

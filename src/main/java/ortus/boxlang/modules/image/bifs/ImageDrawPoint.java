@@ -31,10 +31,18 @@ public class ImageDrawPoint extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Draws a single pixel at the specified coordinates on the image.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.x The x coordinate of the point.
+	 *
+	 * @argument.y The y coordinate of the point.
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

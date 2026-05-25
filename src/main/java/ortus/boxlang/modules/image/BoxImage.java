@@ -18,6 +18,7 @@
 package ortus.boxlang.modules.image;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Font;
@@ -28,6 +29,7 @@ import java.awt.Shape;
 import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -51,6 +53,7 @@ import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -1613,7 +1616,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 *
 	 * @param columns The number of horizontal tiles to split the image into.
 	 * @param rows    The number of vertical tiles to split the image into.
-	 * 
+	 *
 	 * @return An array of arrays containing BoxImage tiles. The outer array represents rows,
 	 *         and each inner array contains the tiles for that row.
 	 */
@@ -1634,6 +1637,204 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Generates a CAPTCHA image with distorted text.
+	 *
+	 * <p>
+	 * The image is created from scratch: a background is filled, optional noise dots are scattered,
+	 * each character is drawn individually with a random rotation and position jitter, and then
+	 * optional crossing lines are painted on top. The degree of all distortion is governed by the
+	 * {@code difficulty} parameter:
+	 * </p>
+	 *
+	 * <ul>
+	 * <li><b>low</b> — near-white background, ±5° rotation per character, no noise or lines</li>
+	 * <li><b>medium</b> — light-blue background, ±15° rotation, 80 noise dots, 2–3 straight crossing lines</li>
+	 * <li><b>high</b> — random pastel background, ±25° rotation, 300 noise dots, 3–5 wavy bezier crossing
+	 * lines, random per-character colours</li>
+	 * </ul>
+	 *
+	 * @param text       The text string to render. Uppercase letters and digits are recommended.
+	 * @param width      Canvas width in pixels.
+	 * @param height     Canvas height in pixels.
+	 * @param fontSize   Font size in points.
+	 * @param difficulty Distortion level: {@code "low"}, {@code "medium"}, or {@code "high"}.
+	 * @param fontNames  Array of font family names to cycle through randomly per character.
+	 *                   Pass an empty array or {@code null} to use {@link #DEFAULT_FONT_FAMILY}.
+	 *
+	 * @return A new {@link BoxImage} containing the rendered CAPTCHA.
+	 */
+	public static BoxImage generateCaptcha( String text, int width, int height, int fontSize, String difficulty, String[] fontNames ) {
+		Random			rng	= new Random();
+		BufferedImage	buf	= new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
+		Graphics2D		g	= buf.createGraphics();
+
+		g.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
+		g.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
+
+		// Fill background
+		g.setColor( captchaBackgroundColor( difficulty, rng ) );
+		g.fillRect( 0, 0, width, height );
+
+		// Noise dots (medium/high only)
+		drawCaptchaNoiseDots( g, width, height, difficulty, rng );
+
+		// Render each character with random per-character rotation
+		int	charCount	= text.length();
+		int	slotWidth	= width / ( charCount + 1 );
+		int	baseY		= height / 2 + fontSize / 3;
+
+		for ( int i = 0; i < charCount; i++ ) {
+			String	ch		= String.valueOf( text.charAt( i ) );
+			String	family	= captchaPickFont( fontNames, rng );
+			Font	font	= new Font( family, Font.BOLD, fontSize );
+			g.setFont( font );
+			g.setColor( captchaCharColor( difficulty, rng ) );
+
+			double			maxAngle	= switch ( difficulty.toLowerCase() ) {
+											case "medium" -> 15.0;
+											case "high" -> 25.0;
+											default -> 5.0;
+										};
+			double			angleDeg	= ( rng.nextDouble() * 2 - 1 ) * maxAngle;
+			int				jitter		= Math.max( 1, fontSize / 5 );
+			int				charX		= slotWidth * ( i + 1 ) + rng.nextInt( jitter ) * ( rng.nextBoolean() ? 1 : -1 );
+			int				charY		= baseY + rng.nextInt( jitter ) * ( rng.nextBoolean() ? 1 : -1 );
+
+			AffineTransform	saved		= g.getTransform();
+			g.rotate( Math.toRadians( angleDeg ), charX, charY );
+			g.drawString( ch, charX, charY );
+			g.setTransform( saved );
+		}
+
+		// Crossing lines (medium/high only)
+		drawCaptchaCrossingLines( g, width, height, difficulty, rng );
+
+		g.dispose();
+		return new BoxImage( buf );
+	}
+
+	/**
+	 * Returns a background {@link Color} appropriate for the requested CAPTCHA difficulty.
+	 *
+	 * @param difficulty {@code "low"}, {@code "medium"}, or {@code "high"}
+	 * @param rng        Shared random-number generator
+	 *
+	 * @return A light background colour — near-white for low, a fixed light blue for medium,
+	 *         or a randomised pastel for high
+	 */
+	private static Color captchaBackgroundColor( String difficulty, Random rng ) {
+		return switch ( difficulty.toLowerCase() ) {
+			case "high" -> new Color( 200 + rng.nextInt( 56 ), 200 + rng.nextInt( 56 ), 200 + rng.nextInt( 56 ) );
+			case "medium" -> new Color( 230, 240, 255 );
+			default -> new Color( 250, 250, 250 );
+		};
+	}
+
+	/**
+	 * Returns the foreground {@link Color} to use for a single CAPTCHA character.
+	 * Low and medium difficulties always use black; high difficulty returns a random dark colour
+	 * so adjacent characters are visually distinct.
+	 *
+	 * @param difficulty {@code "low"}, {@code "medium"}, or {@code "high"}
+	 * @param rng        Shared random-number generator
+	 *
+	 * @return A {@link Color} for the character glyph
+	 */
+	private static Color captchaCharColor( String difficulty, Random rng ) {
+		if ( "high".equalsIgnoreCase( difficulty ) ) {
+			return new Color( rng.nextInt( 150 ), rng.nextInt( 150 ), rng.nextInt( 150 ) );
+		}
+		return Color.BLACK;
+	}
+
+	/**
+	 * Picks a font family name at random from the supplied array.
+	 * Falls back to {@link #DEFAULT_FONT_FAMILY} when the array is {@code null} or empty,
+	 * which guarantees a valid logical font is always available regardless of the JVM environment.
+	 *
+	 * @param fontNames Array of font family names provided by the caller
+	 * @param rng       Shared random-number generator
+	 *
+	 * @return A font family name string suitable for passing to {@link Font#Font(String, int, int)}
+	 */
+	private static String captchaPickFont( String[] fontNames, Random rng ) {
+		if ( fontNames == null || fontNames.length == 0 ) {
+			return DEFAULT_FONT_FAMILY;
+		}
+		return fontNames[ rng.nextInt( fontNames.length ) ];
+	}
+
+	/**
+	 * Scatters small noise dots over the CAPTCHA canvas.
+	 * The number of dots scales with difficulty: 0 for low, 80 for medium, 300 for high.
+	 * Each dot is a 2×2 semi-transparent oval drawn at a random position and colour.
+	 *
+	 * @param g          Active {@link Graphics2D} context
+	 * @param width      Canvas width in pixels
+	 * @param height     Canvas height in pixels
+	 * @param difficulty {@code "low"}, {@code "medium"}, or {@code "high"}
+	 * @param rng        Shared random-number generator
+	 */
+	private static void drawCaptchaNoiseDots( Graphics2D g, int width, int height, String difficulty, Random rng ) {
+		int dotCount = switch ( difficulty.toLowerCase() ) {
+			case "high" -> 300;
+			case "medium" -> 80;
+			default -> 0;
+		};
+		for ( int d = 0; d < dotCount; d++ ) {
+			g.setColor( new Color( rng.nextInt( 200 ), rng.nextInt( 200 ), rng.nextInt( 200 ), 180 ) );
+			g.fillOval( rng.nextInt( width ), rng.nextInt( height ), 2, 2 );
+		}
+	}
+
+	/**
+	 * Draws random lines across the CAPTCHA canvas to interfere with automated character segmentation.
+	 *
+	 * <ul>
+	 * <li><b>low</b> — no lines drawn</li>
+	 * <li><b>medium</b> — 2–3 straight diagonal lines</li>
+	 * <li><b>high</b> — 3–5 quadratic bezier (wavy) lines spanning the full canvas width</li>
+	 * </ul>
+	 *
+	 * The stroke width is 1.5 px for all lines; the stroke is reset to 1.0 px after drawing.
+	 *
+	 * @param g          Active {@link Graphics2D} context
+	 * @param width      Canvas width in pixels
+	 * @param height     Canvas height in pixels
+	 * @param difficulty {@code "low"}, {@code "medium"}, or {@code "high"}
+	 * @param rng        Shared random-number generator
+	 */
+	private static void drawCaptchaCrossingLines( Graphics2D g, int width, int height, String difficulty, Random rng ) {
+		int lineCount = switch ( difficulty.toLowerCase() ) {
+			case "high" -> 3 + rng.nextInt( 3 );
+			case "medium" -> 2 + rng.nextInt( 2 );
+			default -> 0;
+		};
+		for ( int l = 0; l < lineCount; l++ ) {
+			g.setColor( new Color( rng.nextInt( 180 ), rng.nextInt( 180 ), rng.nextInt( 180 ), 200 ) );
+			g.setStroke( new BasicStroke( 1.5f ) );
+			if ( "high".equalsIgnoreCase( difficulty ) ) {
+				GeneralPath	path	= new GeneralPath();
+				int			startY	= rng.nextInt( height );
+				path.moveTo( 0, startY );
+				int	segments	= 4;
+				int	segWidth	= width / segments;
+				for ( int s = 0; s < segments; s++ ) {
+					int	ctrlX	= segWidth * s + rng.nextInt( segWidth );
+					int	ctrlY	= rng.nextInt( height );
+					int	endX	= segWidth * ( s + 1 );
+					int	endY	= rng.nextInt( height );
+					path.quadTo( ctrlX, ctrlY, endX, endY );
+				}
+				g.draw( path );
+			} else {
+				g.drawLine( rng.nextInt( width / 2 ), rng.nextInt( height ), width / 2 + rng.nextInt( width / 2 ), rng.nextInt( height ) );
+			}
+		}
+		g.setStroke( new BasicStroke( 1.0f ) );
 	}
 
 	/**

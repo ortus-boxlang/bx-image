@@ -32,10 +32,20 @@ public class ImageOverlay extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Overlays one image onto another using the specified compositing rule and transparency.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.image1 The base image (or name of variable) to overlay onto.
+	 *
+	 * @argument.image2 The image (or name of variable) to overlay on top.
+	 *
+	 * @argument.rule The compositing rule. Defaults to "SRC_OVER".
+	 *
+	 * @argument.transparency The transparency level for the overlay (0.0 to 1.0). Defaults to 0.25.
+	 *
+	 * @return The BoxImage instance with the overlay applied.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage	theImage		= arguments.get( KeyDictionary.image1 ) instanceof BoxImage

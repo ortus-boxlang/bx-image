@@ -35,10 +35,22 @@ public class ImageResize extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Resizes the image to the specified width and height using the given interpolation method and blur factor.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to resize.
+	 *
+	 * @argument.width The new width in pixels.
+	 *
+	 * @argument.height The new height in pixels.
+	 *
+	 * @argument.interpolation The interpolation algorithm. One of "bilinear", "bicubic", or "nearest". Defaults to "bilinear".
+	 *
+	 * @argument.blurFactor The blur factor applied during resizing. Defaults to 1.
+	 *
+	 * @return The BoxImage instance after resizing.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

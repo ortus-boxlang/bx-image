@@ -30,10 +30,16 @@ public class ImageRotate extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Rotates the image by the specified angle in degrees.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to rotate.
+	 *
+	 * @argument.angle The angle of rotation in degrees.
+	 *
+	 * @return The BoxImage instance after rotation.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

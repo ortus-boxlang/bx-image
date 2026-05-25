@@ -27,10 +27,14 @@ public class ImageReadBase64 extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Reads an image from a Base64-encoded string and returns a BoxImage object.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.string The Base64-encoded image string.
+	 *
+	 * @return A new BoxImage decoded from the Base64 input.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		try {

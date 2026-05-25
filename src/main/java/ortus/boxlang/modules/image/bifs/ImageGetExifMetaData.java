@@ -51,10 +51,15 @@ public class ImageGetExifMetaData extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Returns all EXIF metadata from an image as a structured key-value map.
+	 * Accepts either a BoxImage instance or a file path string.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name A BoxImage instance or a file path string to read EXIF metadata from.
+	 *
+	 * @return A struct containing all EXIF metadata key-value pairs.
 	 */
 	public IStruct _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		try {

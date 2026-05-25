@@ -35,10 +35,24 @@ public class ImageDrawRect extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Draws a rectangle on the image at the specified position and dimensions.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.x The x coordinate of the upper-left corner of the rectangle.
+	 *
+	 * @argument.y The y coordinate of the upper-left corner of the rectangle.
+	 *
+	 * @argument.width The width of the rectangle.
+	 *
+	 * @argument.height The height of the rectangle.
+	 *
+	 * @argument.filled Whether to fill the rectangle. Defaults to false.
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

@@ -30,10 +30,16 @@ public class ImageSharpen extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Sharpens the image by applying a gain-based sharpening filter.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to sharpen.
+	 *
+	 * @argument.gain The sharpening gain factor. Higher values produce more sharpening. Defaults to 1.
+	 *
+	 * @return The BoxImage instance after sharpening.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

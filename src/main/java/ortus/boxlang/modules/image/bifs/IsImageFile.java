@@ -33,10 +33,14 @@ public class IsImageFile extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Determines whether the given file path or URL points to a valid image file.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.value The file path or URL of the image to check.
+	 *
+	 * @return True if the path points to a readable image, false otherwise.
 	 */
 	public Boolean _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		String	passedInPath	= StringCaster.cast( arguments.get( Key.value ) );

@@ -49,6 +49,15 @@ public class Image extends Component {
 
 	BoxLangLogger			logger;
 
+	/**
+	 * Creates the Image component and declares supported attributes.
+	 *
+	 * <p>
+	 * This component mirrors CFML style image operations through an action-based
+	 * attribute contract. The declared attributes are validated by the component
+	 * framework before execution.
+	 * </p>
+	 */
 	public Image() {
 		super();
 		declaredAttributes	= new Attribute[] {
@@ -87,18 +96,71 @@ public class Image extends Component {
 	}
 
 	/**
-	 * An example component that says hello
+	 * Performs image operations based on the {@code action} attribute.
+	 *
+	 * <p>
+	 * Supported actions: {@code border}, {@code captcha}, {@code convert}, {@code info},
+	 * {@code read}, {@code resize}, {@code rotate}, {@code write}, {@code writeToBrowser}.
+	 * </p>
 	 *
 	 * @param context        The context in which the Component is being invoked
 	 * @param attributes     The attributes to the Component
 	 * @param body           The body of the Component
 	 * @param executionState The execution state of the Component
 	 *
-	 * @attribute.name The name of the person greeting us.
+	 * @attribute.action The image operation to perform. Required. One of:
+	 *                   {@code border}, {@code captcha}, {@code convert}, {@code info},
+	 *                   {@code read}, {@code resize}, {@code rotate}, {@code write}, {@code writeToBrowser}.
 	 *
-	 * @attribute.location The location of the person.
+	 * @attribute.source The image variable, file path, or URL to operate on.
+	 *                   Required for all actions except {@code captcha}.
 	 *
-	 * @attribute.shout Whether the person is shouting or not.
+	 * @attribute.name Variable name in which to store the resulting image.
+	 *                 Used by {@code read}, {@code resize}, {@code border}, {@code captcha}.
+	 *
+	 * @attribute.destination File path to write the image to.
+	 *                        Used by {@code write}, {@code convert}, {@code rotate}, {@code captcha}.
+	 *
+	 * @attribute.overwrite When {@code true}, overwrites an existing file at {@code destination}.
+	 *                      Defaults to {@code false}.
+	 *
+	 * @attribute.width Target width in pixels. Used by {@code resize} and {@code captcha}.
+	 *
+	 * @attribute.height Target height in pixels. Used by {@code resize} and {@code captcha}.
+	 *
+	 * @attribute.angle Rotation angle in degrees. Used by {@code rotate}.
+	 *
+	 * @attribute.color Border color as a named color or hex value. Used by {@code border}.
+	 *
+	 * @attribute.thickness Border thickness in pixels. Used by {@code border}.
+	 *
+	 * @attribute.text The text string to render in the CAPTCHA image.
+	 *                 Required for {@code captcha} action.
+	 *
+	 * @attribute.difficulty CAPTCHA distortion level: {@code low}, {@code medium}, or {@code high}.
+	 *                       Defaults to {@code low}. Used by {@code captcha}.
+	 *
+	 * @attribute.fonts Comma-separated font family names for CAPTCHA text rendering,
+	 *                  e.g. {@code "Arial,Verdana,Georgia"}. Used by {@code captcha}.
+	 *
+	 * @attribute.fontSize Font size in points for CAPTCHA text. Defaults to 24.
+	 *                     Used by {@code captcha}.
+	 *
+	 * @attribute.structName Variable name in which to store the image info struct.
+	 *                       Used by {@code info}.
+	 *
+	 * @attribute.format Image format for conversion, e.g. {@code png}, {@code jpg}.
+	 *                   Used by {@code convert} and {@code writeToBrowser}.
+	 *
+	 * @attribute.quality Output quality (0–1) for lossy formats such as JPEG.
+	 *                    Used by {@code write} and {@code writeToBrowser}.
+	 *
+	 * @attribute.isBase64 When {@code true}, treats the {@code source} value as a Base64-encoded
+	 *                     image string. Used by {@code read}.
+	 *
+	 * @attribute.interpolation Interpolation algorithm for resizing.
+	 *                          One of {@code bilinear}, {@code bicubic}, {@code nearestNeighbor}.
+	 *                          Defaults to {@code bilinear}. Used by {@code resize}.
 	 *
 	 */
 	public BodyResult _invoke( IBoxContext context, IStruct attributes, ComponentBody body, IStruct executionState ) {
@@ -116,9 +178,50 @@ public class Image extends Component {
 				putImageInContext( image, context, attributes );
 
 				break;
-			case "captcha" :
-				// Handle captcha action
+			case "captcha" : {
+				String captchaText = attributes.getAsString( KeyDictionary.text );
+				if ( captchaText == null || captchaText.isEmpty() ) {
+					throw new BoxRuntimeException( "The text attribute is required for the captcha action" );
+				}
+				int		captchaWidth		= attributes.get( KeyDictionary.width ) != null
+				    ? IntegerCaster.cast( attributes.get( KeyDictionary.width ) )
+				    : 200;
+				int		captchaHeight		= attributes.get( KeyDictionary.height ) != null
+				    ? IntegerCaster.cast( attributes.get( KeyDictionary.height ) )
+				    : 75;
+				int		captchaFontSize		= attributes.get( KeyDictionary.fontSize ) != null
+				    ? IntegerCaster.cast( attributes.get( KeyDictionary.fontSize ) )
+				    : 24;
+				String	captchaDifficulty	= attributes.getAsString( KeyDictionary.difficulty );
+				if ( captchaDifficulty == null || captchaDifficulty.isEmpty() )
+					captchaDifficulty = "low";
+				String		fontsAttr		= attributes.getAsString( KeyDictionary.fonts );
+				String[]	captchaFonts	= ( fontsAttr == null || fontsAttr.isEmpty() )
+				    ? new String[ 0 ]
+				    : fontsAttr.split( "\\s*,\\s*" );
+
+				image = BoxImage.generateCaptcha( captchaText, captchaWidth, captchaHeight, captchaFontSize, captchaDifficulty, captchaFonts );
+
+				String captchaDest = attributes.getAsString( KeyDictionary.destination );
+				if ( captchaDest != null && !captchaDest.isEmpty() ) {
+					boolean captchaOverwrite = BooleanCaster.cast( attributes.get( KeyDictionary.overwrite ) );
+					if ( !captchaOverwrite && FileSystemUtil.exists( captchaDest ) ) {
+						throw new BoxRuntimeException( "Unable to write captcha image, destination exists: " + captchaDest );
+					}
+					image.write( captchaDest );
+				}
+
+				putImageInContext( image, context, attributes );
+
+				// When no destination or name is given, stream directly to browser (matches cfimage behavior)
+				String	captchaName			= attributes.getAsString( KeyDictionary.name );
+				boolean	hasCaptchaOutput	= ( captchaDest != null && !captchaDest.isEmpty() )
+				    || ( captchaName != null && !captchaName.isEmpty() );
+				if ( !hasCaptchaOutput ) {
+					imageService.writeToBrowser( context, image, attributes );
+				}
 				break;
+			}
 			case "convert" :
 				// Handle convert action
 				image = getImageFromContext( context, attributes );
@@ -194,6 +297,20 @@ public class Image extends Component {
 		return DEFAULT_RETURN;
 	}
 
+	/**
+	 * Writes the provided image to the requested destination when allowed.
+	 *
+	 * <p>
+	 * If overwrite is false and the destination already exists, this method throws
+	 * an exception to prevent accidental file replacement.
+	 * </p>
+	 *
+	 * @param image      The image to write
+	 * @param attributes Component attributes that provide destination and overwrite
+	 *                   values
+	 *
+	 * @throws BoxRuntimeException When overwrite is disabled and destination exists
+	 */
 	private void writeIfAble( BoxImage image, IStruct attributes ) {
 		String	destination	= StringCaster.cast( attributes.get( Key.destination ) );
 		boolean	overwrite	= BooleanCaster.cast( attributes.get( Key.overwrite ) );
@@ -205,6 +322,13 @@ public class Image extends Component {
 		image.write( destination );
 	}
 
+	/**
+	 * Stores the image in the default assignment scope when a target name is provided.
+	 *
+	 * @param image      The image to place in the context
+	 * @param context    The current execution context
+	 * @param attributes Component attributes that may contain a target name
+	 */
 	private void putImageInContext( BoxImage image, IBoxContext context, IStruct attributes ) {
 		StringCaster.attempt( attributes.get( KeyDictionary.name ) )
 		    .ifPresent( ( n ) -> {
@@ -212,6 +336,26 @@ public class Image extends Component {
 		    } );
 	}
 
+	/**
+	 * Resolves the source attribute into a BoxImage instance.
+	 *
+	 * <p>
+	 * Supported source inputs are:
+	 * </p>
+	 * <ul>
+	 * <li>An existing BoxImage instance</li>
+	 * <li>A Base64-encoded image string when isBase64=true</li>
+	 * <li>A URL string (http, https, file)</li>
+	 * <li>A local file path string</li>
+	 * </ul>
+	 *
+	 * @param context    The current execution context
+	 * @param attributes Component attributes containing source and optional flags
+	 *
+	 * @return The resolved BoxImage
+	 *
+	 * @throws BoxRuntimeException When source is missing or cannot be read
+	 */
 	private BoxImage getImageFromContext( IBoxContext context, IStruct attributes ) {
 		Object source = attributes.get( KeyDictionary.source );
 

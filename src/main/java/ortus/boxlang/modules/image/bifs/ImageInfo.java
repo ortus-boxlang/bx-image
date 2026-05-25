@@ -29,10 +29,14 @@ public class ImageInfo extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Returns a struct containing detailed information about the image (dimensions, type, color model, etc.).
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @return A struct of image metadata.
 	 */
 	public IStruct _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

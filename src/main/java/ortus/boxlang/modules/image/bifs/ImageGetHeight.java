@@ -28,10 +28,14 @@ public class ImageGetHeight extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Returns the height of the image in pixels.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @return The image height in pixels.
 	 */
 	public Integer _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

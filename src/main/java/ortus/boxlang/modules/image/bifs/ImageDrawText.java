@@ -35,10 +35,22 @@ public class ImageDrawText extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Draws text on the image at the specified coordinates with optional attribute overrides.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.str The text string to draw on the image.
+	 *
+	 * @argument.x The x coordinate at which to draw the text.
+	 *
+	 * @argument.y The y coordinate at which to draw the text.
+	 *
+	 * @argument.attributeCollection An optional struct of text rendering attributes (font, size, style, color, etc.).
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage	theImage	= arguments.get( KeyDictionary.name ) instanceof BoxImage

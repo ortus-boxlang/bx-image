@@ -34,10 +34,22 @@ public class ImageDrawLines extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Draws a series of connected lines (polyline or polygon) on the image.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.xCoords An array of x coordinates for each point in the line series.
+	 *
+	 * @argument.yCoords An array of y coordinates for each point in the line series.
+	 *
+	 * @argument.isPolygon Whether to close the shape by connecting the last point to the first. Defaults to false.
+	 *
+	 * @argument.filled Whether to fill the polygon. Only applies when isPolygon is true. Defaults to false.
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

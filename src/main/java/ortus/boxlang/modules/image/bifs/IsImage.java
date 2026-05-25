@@ -25,10 +25,14 @@ public class IsImage extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Determines whether the given value is a BoxImage object.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.value The value to check.
+	 *
+	 * @return True if the value is a BoxImage, false otherwise.
 	 */
 	public Boolean _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		return arguments.get( Key.value ) instanceof BoxImage;

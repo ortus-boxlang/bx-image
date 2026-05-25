@@ -28,10 +28,16 @@ public class ImageWriteBase64 extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Writes the image to a Base64-encoded string in the specified format.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to encode.
+	 *
+	 * @argument.format The image format (e.g., "png", "jpg", "gif").
+	 *
+	 * @return A Base64-encoded string representation of the image.
 	 */
 	public String _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

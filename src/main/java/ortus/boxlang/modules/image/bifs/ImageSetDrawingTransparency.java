@@ -31,10 +31,16 @@ public class ImageSetDrawingTransparency extends BIF {
 	}
 
 	/**
-	 * ExampleBIF
+	 * Sets the transparency level for subsequent drawing operations.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
+	 *
+	 * @argument.name The image or name of variable that references an image to operate on.
+	 *
+	 * @argument.percent The transparency percentage (0.0 = opaque, 100.0 = fully transparent).
+	 *
+	 * @return The BoxImage instance.
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		BoxImage theImage = arguments.get( KeyDictionary.name ) instanceof BoxImage

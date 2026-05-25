@@ -97,7 +97,7 @@ public class ImageGetExifMetaDataTest extends BaseIntegrationTest {
 		assertThat( exifData.get( "Scene Type" ) ).isEqualTo( "Directly photographed image" );
 		assertThat( exifData.get( "Sensing Method" ) ).isEqualTo( "One-chip color area sensor" );
 		assertThat( exifData.get( "Sharpness" ) ).isEqualTo( "None" );
-		assertThat( exifData.get( "Shutter Speed Value" ) ).isEqualTo( "1/99 sec" );
+		assertThat( exifData.get( "Shutter Speed Value" ) ).isEqualTo( "1/100 sec" );
 		assertThat( exifData.get( "Software" ) ).isEqualTo( "GIMP 2.10.34" );
 		assertThat( exifData.get( "Sub-Sec Time" ) ).isEqualTo( "772" );
 		assertThat( exifData.get( "Sub-Sec Time Digitized" ) ).isEqualTo( "772" );
@@ -174,7 +174,7 @@ public class ImageGetExifMetaDataTest extends BaseIntegrationTest {
 		assertThat( exifData.get( "Scene Type" ) ).isEqualTo( "Directly photographed image" );
 		assertThat( exifData.get( "Sensing Method" ) ).isEqualTo( "One-chip color area sensor" );
 		assertThat( exifData.get( "Sharpness" ) ).isEqualTo( "None" );
-		assertThat( exifData.get( "Shutter Speed Value" ) ).isEqualTo( "1/99 sec" );
+		assertThat( exifData.get( "Shutter Speed Value" ) ).isEqualTo( "1/100 sec" );
 		assertThat( exifData.get( "Software" ) ).isEqualTo( "GIMP 2.10.34" );
 		assertThat( exifData.get( "Sub-Sec Time" ) ).isEqualTo( "772" );
 		assertThat( exifData.get( "Sub-Sec Time Digitized" ) ).isEqualTo( "772" );

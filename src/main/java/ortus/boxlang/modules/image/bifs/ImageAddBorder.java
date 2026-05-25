@@ -34,18 +34,29 @@ public class ImageAddBorder extends BIF {
 	}
 
 	/**
-	 * Add a border to the image.
+	 * Adds a border around the image with the specified thickness, color, and border type.
+	 *
+	 * <pre>
+	 * // Add a red border
+	 * image.addBorder( 5, "red" );
+	 *
+	 * // Add a thick blue border
+	 * image.addBorder( 10, "blue" );
+	 *
+	 * // Add a reflected border
+	 * image.addBorder( 5, "black", "reflect" );
+	 * </pre>
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
 	 *
 	 * @argument.name The image or name of variable that references an image to operate on
 	 *
-	 * @argument.thickness Border thickness
+	 * @argument.thickness Border thickness in pixels
 	 *
-	 * @argument.color Border color: hex or constant color
+	 * @argument.color Border color: hex value or named color. Defaults to "black".
 	 *
-	 * @argument.borderType Borer type - one of zero | constant | copy | reflect | wrap
+	 * @argument.borderType Border type - one of zero | constant | copy | reflect | wrap
 	 *
 	 * @return The BoxImage instance.
 	 */
