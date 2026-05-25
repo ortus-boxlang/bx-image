@@ -9,13 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.5.0] - 2026-02-18
-
-- BLMODULES-139 Update writeToBrowser to accept format attribute
-- BLMODULES-138 Improve base64 generation and auto detect format
-
-## [1.4.0] - 2025-11-12
-
 ### Added
 
 - `ImageGenerateCaptcha( height, width, text [, difficulty [, fonts [, fontSize]]] )` BIF for generating CAPTCHA images with configurable dimensions, font size, difficulty level (`low`/`medium`/`high`), and font list. Argument order is ColdFusion-compatible.
