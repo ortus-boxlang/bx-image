@@ -51,8 +51,11 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-imaging
 	implementation 'org.apache.commons:commons-imaging:1.0.0-alpha6'
-	implementation "javaxt:javaxt-core:2.1.11"
 	implementation "com.drewnoakes:metadata-extractor:2.20.0"
+
+    // Not used right now since javaxt.com has issues, doing manual jar
+	// implementation "javaxt:javaxt-core:2.1.11"
+    implementation files( 'src/test/resources/javaxt/javaxt-core.jar' )
 
 	// Test Frameworks
 	testImplementation "org.junit.jupiter:junit-jupiter:6.+"

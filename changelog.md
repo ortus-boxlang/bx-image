@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ImageGenerateCaptcha( height, width, text [, difficulty [, fonts [, fontSize]]] )` BIF for generating CAPTCHA images with configurable dimensions, font size, difficulty level (`low`/`medium`/`high`), and font list. Argument order is ColdFusion-compatible.
 - `<bx:image action="captcha">` component support with `text`, `width`, `height`, `fontSize`, `difficulty`, `fonts`, `destination`, `overwrite`, and `name` attributes. When neither `name` nor `destination` is specified, the image is automatically streamed to the browser.
 
+### Fixed
+
+- javaxt.com has been down for weeks, moving to single compiled jar and looking for alternatives.
+
 ## [1.5.0] - 2026-02-18
 
 - BLMODULES-139 Update writeToBrowser to accept format attribute
