@@ -49,6 +49,15 @@ public class Image extends Component {
 
 	BoxLangLogger			logger;
 
+	/**
+	 * Creates the Image component and declares supported attributes.
+	 *
+	 * <p>
+	 * This component mirrors CFML style image operations through an action-based
+	 * attribute contract. The declared attributes are validated by the component
+	 * framework before execution.
+	 * </p>
+	 */
 	public Image() {
 		super();
 		declaredAttributes	= new Attribute[] {
@@ -288,6 +297,20 @@ public class Image extends Component {
 		return DEFAULT_RETURN;
 	}
 
+	/**
+	 * Writes the provided image to the requested destination when allowed.
+	 *
+	 * <p>
+	 * If overwrite is false and the destination already exists, this method throws
+	 * an exception to prevent accidental file replacement.
+	 * </p>
+	 *
+	 * @param image      The image to write
+	 * @param attributes Component attributes that provide destination and overwrite
+	 *                   values
+	 *
+	 * @throws BoxRuntimeException When overwrite is disabled and destination exists
+	 */
 	private void writeIfAble( BoxImage image, IStruct attributes ) {
 		String	destination	= StringCaster.cast( attributes.get( Key.destination ) );
 		boolean	overwrite	= BooleanCaster.cast( attributes.get( Key.overwrite ) );
@@ -299,6 +322,13 @@ public class Image extends Component {
 		image.write( destination );
 	}
 
+	/**
+	 * Stores the image in the default assignment scope when a target name is provided.
+	 *
+	 * @param image      The image to place in the context
+	 * @param context    The current execution context
+	 * @param attributes Component attributes that may contain a target name
+	 */
 	private void putImageInContext( BoxImage image, IBoxContext context, IStruct attributes ) {
 		StringCaster.attempt( attributes.get( KeyDictionary.name ) )
 		    .ifPresent( ( n ) -> {
@@ -306,6 +336,26 @@ public class Image extends Component {
 		    } );
 	}
 
+	/**
+	 * Resolves the source attribute into a BoxImage instance.
+	 *
+	 * <p>
+	 * Supported source inputs are:
+	 * </p>
+	 * <ul>
+	 * <li>An existing BoxImage instance</li>
+	 * <li>A Base64-encoded image string when isBase64=true</li>
+	 * <li>A URL string (http, https, file)</li>
+	 * <li>A local file path string</li>
+	 * </ul>
+	 *
+	 * @param context    The current execution context
+	 * @param attributes Component attributes containing source and optional flags
+	 *
+	 * @return The resolved BoxImage
+	 *
+	 * @throws BoxRuntimeException When source is missing or cannot be read
+	 */
 	private BoxImage getImageFromContext( IBoxContext context, IStruct attributes ) {
 		Object source = attributes.get( KeyDictionary.source );
 
