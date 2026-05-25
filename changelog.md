@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-05-25
+
 ### Added
 
 - `ImageGenerateCaptcha( height, width, text [, difficulty [, fonts [, fontSize]]] )` BIF for generating CAPTCHA images with configurable dimensions, font size, difficulty level (`low`/`medium`/`high`), and font list. Argument order is ColdFusion-compatible.
@@ -86,7 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.5.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/ortus-boxlang/bx-image/compare/v1.3.1...v1.3.2
