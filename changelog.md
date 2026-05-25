@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - javaxt.com has been down for weeks, moving to single compiled jar and looking for alternatives.
+- `ModuleConfig.bx` version was not dynamic.
 
 ## [1.5.0] - 2026-02-18
 
