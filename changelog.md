@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.7.0] - 2026-05-30
-
 ### Added
 
 - WebP image format support for reading and writing via the `org.sejda.imageio:webp-imageio` ImageIO plugin. All BIFs that read or write images (`ImageRead`, `ImageWrite`, `ImageWriteBase64`, `ImageReadBase64`, `IsImageFile`) now handle WebP natively.
