@@ -1852,8 +1852,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	private static java.awt.image.BufferedImage prepareForFormat( java.awt.image.BufferedImage image, String format ) {
 		boolean alphaUnsupported = "jpg".equalsIgnoreCase( format ) || "jpeg".equalsIgnoreCase( format );
 		if ( alphaUnsupported && image.getColorModel().hasAlpha() ) {
-			java.awt.image.BufferedImage rgb = new java.awt.image.BufferedImage( image.getWidth(), image.getHeight(), java.awt.image.BufferedImage.TYPE_INT_RGB );
-			java.awt.Graphics2D g = rgb.createGraphics();
+			java.awt.image.BufferedImage	rgb	= new java.awt.image.BufferedImage( image.getWidth(), image.getHeight(),
+			    java.awt.image.BufferedImage.TYPE_INT_RGB );
+			java.awt.Graphics2D				g	= rgb.createGraphics();
 			g.setColor( java.awt.Color.WHITE );
 			g.fillRect( 0, 0, image.getWidth(), image.getHeight() );
 			g.drawImage( image, 0, 0, null );
