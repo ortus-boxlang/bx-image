@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - WebP image format support for reading and writing via the `org.sejda.imageio:webp-imageio` ImageIO plugin. All BIFs that read or write images (`ImageRead`, `ImageWrite`, `ImageWriteBase64`, `ImageReadBase64`, `IsImageFile`) now handle WebP natively.
-- `GetReadableImageFormats()` and `GetWriteableImageFormats()` now include `webp` in their results.
+- GIF image format support for reading and writing. Java's built-in ImageIO GIF codec is now fully exposed through `ImageRead`, `ImageWrite`, and `ImageWriteBase64`.
+- `GetReadableImageFormats()` and `GetWriteableImageFormats()` now include `webp` and `gif` in their results.
 
 ### Fixed
 
