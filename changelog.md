@@ -13,12 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - WebP image format support for reading and writing via the `org.sejda.imageio:webp-imageio` ImageIO plugin. All BIFs that read or write images (`ImageRead`, `ImageWrite`, `ImageWriteBase64`, `ImageReadBase64`, `IsImageFile`) now handle WebP natively.
 - GIF image format support for reading and writing. Java's built-in ImageIO GIF codec is now fully exposed through `ImageRead`, `ImageWrite`, and `ImageWriteBase64`.
-- `GetReadableImageFormats()` and `GetWriteableImageFormats()` now include `webp` and `gif` in their results.
+- BMP image format support for reading and writing, with automatic ARGB→RGB conversion on write (BMP does not support alpha channels).
+- TIFF image format support for reading and writing via Java 9+ built-in ImageIO plugin.
+- `GetReadableImageFormats()` and `GetWriteableImageFormats()` now include `webp`, `gif`, `bmp`, and `tiff` in their results.
 
 ### Fixed
 
 - `ImageWrite` and `img.write(path)` were hardcoded to always produce PNG data regardless of the destination file extension. Writing to `.jpg`, `.webp`, or any non-PNG path now correctly encodes in the target format.
-- Writing a PNG image (which has an alpha channel) to a JPEG destination no longer fails — the image is automatically composited onto a white background before encoding, since JPEG does not support transparency.
+- Writing an image with an alpha channel to JPEG or BMP no longer fails — the image is automatically composited onto a white background before encoding, since these formats do not support transparency.
 
 ### Updated
 

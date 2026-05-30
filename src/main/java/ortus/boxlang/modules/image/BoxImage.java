@@ -1850,7 +1850,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * Convert ARGB images to RGB with a white background when needed.
 	 */
 	private static java.awt.image.BufferedImage prepareForFormat( java.awt.image.BufferedImage image, String format ) {
-		boolean alphaUnsupported = "jpg".equalsIgnoreCase( format ) || "jpeg".equalsIgnoreCase( format );
+		boolean alphaUnsupported = "jpg".equalsIgnoreCase( format ) || "jpeg".equalsIgnoreCase( format ) || "bmp".equalsIgnoreCase( format );
 		if ( alphaUnsupported && image.getColorModel().hasAlpha() ) {
 			java.awt.image.BufferedImage	rgb	= new java.awt.image.BufferedImage( image.getWidth(), image.getHeight(),
 			    java.awt.image.BufferedImage.TYPE_INT_RGB );
