@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-05-30
+
+### Added
+
+- WebP image format support for reading and writing via the `org.sejda.imageio:webp-imageio` ImageIO plugin. All BIFs that read or write images (`ImageRead`, `ImageWrite`, `ImageWriteBase64`, `ImageReadBase64`, `IsImageFile`) now handle WebP natively.
+- `GetReadableImageFormats()` and `GetWriteableImageFormats()` now include `webp` in their results.
+
+### Fixed
+
+- `ImageWrite` and `img.write(path)` were hardcoded to always produce PNG data regardless of the destination file extension. Writing to `.jpg`, `.webp`, or any non-PNG path now correctly encodes in the target format.
+- Writing a PNG image (which has an alpha channel) to a JPEG destination no longer fails — the image is automatically composited onto a white background before encoding, since JPEG does not support transparency.
+
+### Updated
+
+- Replaced `org.apache.commons.imaging.Imaging.writeImage()` with `javax.imageio.ImageIO.write()` as the underlying write mechanism, enabling format detection from the file extension and support for any registered ImageIO plugin (JPG, PNG, WebP, GIF, BMP, TIFF).
+
 ## [1.6.0] - 2026-05-25
 
 ### Added
