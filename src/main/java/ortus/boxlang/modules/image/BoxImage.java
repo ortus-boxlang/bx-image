@@ -410,6 +410,8 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, output );
 		} catch ( IOException e ) {
 			throw new BoxRuntimeException( "Failed to convert image to byte array: " + e.getMessage(), e );
+		} catch ( Error e ) {
+			throw new BoxRuntimeException( "Native library required to encode format [" + format + "] is not available on this platform", e );
 		}
 
 		return output.toByteArray();
@@ -438,7 +440,11 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	public String toBase64String( String format ) throws IOException {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-		ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, output );
+		try {
+			ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, output );
+		} catch ( Error e ) {
+			throw new BoxRuntimeException( "Native library required to encode format [" + format + "] is not available on this platform", e );
+		}
 
 		return Base64.getEncoder().encodeToString( output.toByteArray() );
 	}
@@ -1262,6 +1268,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			throw e;
 		} catch ( Exception e ) {
 			throw new BoxRuntimeException( "Unable to save image", e );
+		} catch ( Error e ) {
+			String format = getFormatFromPath( path );
+			throw new BoxRuntimeException( "Native library required to write format [" + format + "] is not available on this platform", e );
 		}
 
 		return this;

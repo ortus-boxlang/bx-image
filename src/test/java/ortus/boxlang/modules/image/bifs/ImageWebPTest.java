@@ -2,6 +2,13 @@ package ortus.boxlang.modules.image.bifs;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+
+import javax.imageio.ImageIO;
+
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,9 +18,23 @@ import ortus.boxlang.runtime.types.Array;
 
 public class ImageWebPTest extends BaseIntegrationTest {
 
+	private static boolean WEBP_WRITE_SUPPORTED;
+
+	@BeforeAll
+	static void detectWebPWriteSupport() {
+		try {
+			ByteArrayOutputStream	baos	= new ByteArrayOutputStream();
+			BufferedImage			img		= new BufferedImage( 1, 1, BufferedImage.TYPE_INT_RGB );
+			WEBP_WRITE_SUPPORTED = ImageIO.write( img, "webp", baos );
+		} catch ( Throwable t ) {
+			WEBP_WRITE_SUPPORTED = false;
+		}
+	}
+
 	@DisplayName( "It should write a PNG image as WebP to the specified path" )
 	@Test
 	public void testWriteWebP() {
+		Assumptions.assumeTrue( WEBP_WRITE_SUPPORTED, "WebP native write library not available on this platform" );
 		String outputFile = "src/test/resources/generated/test-write.webp";
 
 		// @formatter:off
@@ -30,6 +51,7 @@ public class ImageWebPTest extends BaseIntegrationTest {
 	@DisplayName( "It should write and read back a WebP image with matching dimensions" )
 	@Test
 	public void testWriteAndReadWebP() {
+		Assumptions.assumeTrue( WEBP_WRITE_SUPPORTED, "WebP native write library not available on this platform" );
 		String outputFile = "src/test/resources/generated/test-roundtrip.webp";
 
 		// @formatter:off
@@ -49,6 +71,8 @@ public class ImageWebPTest extends BaseIntegrationTest {
 	@DisplayName( "It should return a non-empty Base64 string when writing WebP via ImageWriteBase64" )
 	@Test
 	public void testWriteBase64WebP() {
+		Assumptions.assumeTrue( WEBP_WRITE_SUPPORTED, "WebP native write library not available on this platform" );
+
 		// @formatter:off
 		runtime.executeSource( """
 			img = ImageRead( "src/test/resources/logo.png" );
@@ -76,6 +100,8 @@ public class ImageWebPTest extends BaseIntegrationTest {
 	@DisplayName( "It should include webp in the writeable image formats" )
 	@Test
 	public void testGetWriteableFormatsIncludesWebP() {
+		Assumptions.assumeTrue( WEBP_WRITE_SUPPORTED, "WebP native write library not available on this platform" );
+
 		// @formatter:off
 		runtime.executeSource( """
 			result = GetWriteableImageFormats();

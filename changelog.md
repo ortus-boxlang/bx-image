@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Updated
 
 - Replaced `org.apache.commons.imaging.Imaging.writeImage()` with `javax.imageio.ImageIO.write()` as the underlying write mechanism, enabling format detection from the file extension and support for any registered ImageIO plugin (JPG, PNG, WebP, GIF, BMP, TIFF).
+- Added `com.twelvemonkeys.imageio:imageio-webp` as a pure-Java WebP reader, ensuring WebP reading works cross-platform including macOS ARM64 (Apple Silicon). WebP writing still requires the native `webp-imageio` library which supports Linux and Intel macOS; on unsupported platforms a clear `BoxRuntimeException` is thrown instead of a raw `UnsatisfiedLinkError`.
 
 ## [1.6.0] - 2026-05-25
 
