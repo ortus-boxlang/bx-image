@@ -52,6 +52,8 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-imaging
 	implementation 'org.apache.commons:commons-imaging:1.0.0-alpha6'
 	implementation "com.drewnoakes:metadata-extractor:2.20.0"
+	// WebP ImageIO plugin (also enables JPG/PNG fix via ImageIO.write)
+	implementation 'org.sejda.imageio:webp-imageio:0.1.6'
 
     // Not used right now since javaxt.com has issues, doing manual jar
 	// implementation "javaxt:javaxt-core:2.1.11"
