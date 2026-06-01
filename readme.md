@@ -282,6 +282,7 @@ captcha = ImageGenerateCaptcha( 35, 400, "loner", "high", "serif,sansserif", 24 
 ```
 
 **Difficulty levels:**
+
 - `low` — minimal character rotation, clean background
 - `medium` — moderate rotation, noise dots, crossing lines
 - `high` — heavy rotation, dense noise, wavy lines, random character colors
