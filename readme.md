@@ -23,9 +23,11 @@ The BoxLang Image module provides comprehensive image manipulation functionality
 **Key Features:**
 
 - 📸 Read/write images from files, URLs, or Base64
-- ✂️ Crop, resize, rotate, flip, and scale images
-- 🎨 Draw shapes, text, lines, and curves
+- 🖼️ Broad format support: PNG, JPEG, WebP, GIF, BMP, TIFF
+- ✂️ Crop, resize, rotate, flip, scale, split, and shear images
+- 🎨 Draw shapes, text, lines, bezier curves, and points
 - 🎭 Apply filters: blur, sharpen, grayscale, negative
+- 🤖 Generate CAPTCHA images with configurable difficulty
 - 📊 Extract EXIF and IPTC metadata
 - ⚡ Fluent API with method chaining
 - 🔧 50+ built-in functions and member methods
@@ -120,13 +122,17 @@ img = imageRead("https://example.com/img")   // Load from URL
 img = imageReadBase64(base64String)          // Load from Base64
 img = imageNew("", 800, 600, "rgb", "white") // Create blank canvas
 
-img.write("output.png")                      // Write to specified file
+img.write("output.png")                      // Write to specified file (format from extension)
 img.write()                                  // Write back to original source file
 base64 = imageWriteBase64(img)               // Export as Base64
+base64 = imageWriteBase64(img, "jpg")        // Export as Base64 with format
 blob = imageGetBlob(img)                     // Export as binary
+imageWriteToBrowser(img)                     // Stream directly to HTTP response
+formats = GetReadableImageFormats()          // List readable formats
+formats = GetWriteableImageFormats()         // List writable formats
 ```
 
-**Note:** The parameterless `write()` method saves the image back to its original source path. This is useful when you want to modify an image in place. For images created from scratch (not loaded from a file), you must provide a path.
+**Note:** The `write()` and `ImageWrite()` methods auto-detect the output format from the file extension (e.g., `.png`, `.jpg`, `.webp`, `.gif`, `.bmp`, `.tiff`). For formats that don't support transparency (JPEG, BMP), images with alpha channels are automatically composited onto a white background.
 
 #### Transformations
 
@@ -211,6 +217,19 @@ img.paste(source, x, y)                      // Paste at position
 img.copy(x, y, width, height)                // Copy region to new image
 ```
 
+#### Image Splitting
+
+```javascript
+// Split into a grid of tiles (returns array of arrays)
+tiles = img.splitGrid(columns, rows)          // 2D array: tiles[row][col]
+tiles = ImageSplitGrid(img, columns, rows)    // BIF equivalent
+
+// Example: split a 600×400 image into 3×2 grid (6 tiles, each 200×200)
+grid = ImageRead("panorama.jpg").splitGrid(3, 2);
+// grid[1][1] = top-left, grid[1][2] = top-center, etc.
+eachTile = grid[2][1];  // second row, first column
+```
+
 #### Image Information
 
 ```javascript
@@ -263,6 +282,7 @@ captcha = ImageGenerateCaptcha( 35, 400, "loner", "high", "serif,sansserif", 24 
 ```
 
 **Difficulty levels:**
+
 - `low` — minimal character rotation, clean background
 - `medium` — moderate rotation, noise dots, crossing lines
 - `high` — heavy rotation, dense noise, wavy lines, random character colors
@@ -334,6 +354,7 @@ This module contributes the following BIFs:
 - [ImageSharpen](https://cfdocs.org/ImageSharpen)
 - [ImageShear](https://cfdocs.org/ImageShear)
 - [ImageShearDrawingAxis](https://cfdocs.org/ImageShearDrawingAxis)
+- [ImageSplitGrid](https://cfdocs.org/ImageSplitGrid) - Split an image into a grid of tiles. Returns a 2D array: `tiles[row][col]`
 - [ImageTranslate](https://cfdocs.org/ImageTranslate)
 - [ImageTranslateDrawingAxis](https://cfdocs.org/ImageTranslateDrawingAxis)
 - [ImageWrite](https://cfdocs.org/ImageWrite)
@@ -378,12 +399,13 @@ The `<bx:image>` component supports the following actions:
 
 - `read` - Load an image from file or URL
 - `write` - Save image to file
-- `writeToBrowser` - Stream image to HTTP response
+- `writeToBrowser` - Stream image to HTTP response (supports `format` attribute)
 - `resize` - Change image dimensions
 - `rotate` - Rotate image by angle
 - `border` - Add border around image
 - `info` - Get image metadata
 - `convert` - Convert image format
+- `captcha` - Generate a CAPTCHA image (v1.6.0+)
 
 **Common Attributes:**
 
@@ -422,6 +444,23 @@ When writing images, parent directories are automatically created if they don't 
 // Creates 'output/thumbs/' directory if needed
 img.write("output/thumbs/photo.jpg");
 ```
+
+### Format Detection
+
+The `write()` and `ImageWrite()` methods now auto-detect the output format from the file extension rather than defaulting to PNG. For example:
+
+```javascript
+// Correctly writes JPEG, WebP, GIF, BMP, or TIFF based on extension
+img.write("photo.jpg");   // → JPEG
+img.write("photo.webp");  // → WebP
+img.write("photo.gif");   // → GIF
+img.write("photo.bmp");   // → BMP
+img.write("photo.tiff");  // → TIFF
+```
+
+### Alpha Channel Handling
+
+When writing to formats that do not support transparency (JPEG, BMP), images with alpha channels are automatically composited onto a white background. This prevents write failures and produces visually correct output.
 
 ## Examples
 

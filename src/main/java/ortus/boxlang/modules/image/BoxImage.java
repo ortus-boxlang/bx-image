@@ -57,9 +57,6 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.imaging.ImageFormats;
-import org.apache.commons.imaging.Imaging;
-
 import com.drew.imaging.FileType;
 import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageProcessingException;
@@ -410,9 +407,11 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 
 		try {
-			ImageIO.write( this.image.getBufferedImage(), format, output );
+			ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, output );
 		} catch ( IOException e ) {
 			throw new BoxRuntimeException( "Failed to convert image to byte array: " + e.getMessage(), e );
+		} catch ( Error e ) {
+			throw new BoxRuntimeException( "Native library required to encode format [" + format + "] is not available on this platform", e );
 		}
 
 		return output.toByteArray();
@@ -441,7 +440,11 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	public String toBase64String( String format ) throws IOException {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-		ImageIO.write( this.image.getBufferedImage(), format, output );
+		try {
+			ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, output );
+		} catch ( Error e ) {
+			throw new BoxRuntimeException( "Native library required to encode format [" + format + "] is not available on this platform", e );
+		}
 
 		return Base64.getEncoder().encodeToString( output.toByteArray() );
 	}
@@ -1251,17 +1254,23 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws BoxRuntimeException If the image cannot be saved
 	 */
 	public BoxImage write( String path ) {
-		// TODO determine format
 		try {
 			File	targetFile	= new File( path );
-			// Create parent directories if they don't exist using BoxLang FileSystemUtil
 			File	parentDir	= targetFile.getParentFile();
 			if ( parentDir != null && !parentDir.exists() ) {
 				FileSystemUtil.createDirectory( parentDir.getAbsolutePath() );
 			}
-			Imaging.writeImage( this.image.getBufferedImage(), targetFile, ImageFormats.PNG );
+			String format = getFormatFromPath( path );
+			if ( !ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, targetFile ) ) {
+				throw new BoxRuntimeException( "No suitable ImageIO writer found for format: " + format );
+			}
+		} catch ( BoxRuntimeException e ) {
+			throw e;
 		} catch ( Exception e ) {
 			throw new BoxRuntimeException( "Unable to save image", e );
+		} catch ( Error e ) {
+			String format = getFormatFromPath( path );
+			throw new BoxRuntimeException( "Native library required to write format [" + format + "] is not available on this platform", e );
 		}
 
 		return this;
@@ -1835,6 +1844,33 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			}
 		}
 		g.setStroke( new BasicStroke( 1.0f ) );
+	}
+
+	private static String getFormatFromPath( String path ) {
+		int dotIndex = path.lastIndexOf( '.' );
+		if ( dotIndex != -1 && dotIndex < path.length() - 1 ) {
+			return path.substring( dotIndex + 1 ).toLowerCase();
+		}
+		return DEFAULT_FORMAT;
+	}
+
+	/**
+	 * JPEG (and some other formats) do not support alpha channels.
+	 * Convert ARGB images to RGB with a white background when needed.
+	 */
+	private static java.awt.image.BufferedImage prepareForFormat( java.awt.image.BufferedImage image, String format ) {
+		boolean alphaUnsupported = "jpg".equalsIgnoreCase( format ) || "jpeg".equalsIgnoreCase( format ) || "bmp".equalsIgnoreCase( format );
+		if ( alphaUnsupported && image.getColorModel().hasAlpha() ) {
+			java.awt.image.BufferedImage	rgb	= new java.awt.image.BufferedImage( image.getWidth(), image.getHeight(),
+			    java.awt.image.BufferedImage.TYPE_INT_RGB );
+			java.awt.Graphics2D				g	= rgb.createGraphics();
+			g.setColor( java.awt.Color.WHITE );
+			g.fillRect( 0, 0, image.getWidth(), image.getHeight() );
+			g.drawImage( image, 0, 0, null );
+			g.dispose();
+			return rgb;
+		}
+		return image;
 	}
 
 	/**

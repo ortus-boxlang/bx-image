@@ -63,6 +63,39 @@ public class ImageWriteTest extends BaseIntegrationTest {
 		assertThat( width ).isEqualTo( 64 );
 	}
 
+	@DisplayName( "It should write an image as JPEG when the destination path has a .jpg extension" )
+	@Test
+	public void testWriteJpg() throws IOException {
+		String outputFile = "src/test/resources/generated/test-write.jpg";
+
+		// @formatter:off
+		runtime.executeSource( """
+			img = ImageRead( "src/test/resources/logo.png" );
+			img.scaleToFit( 64 );
+			img.write( "%s" );
+			reloaded = ImageRead( "%s" );
+			width = reloaded.getWidth();
+		""".formatted( outputFile, outputFile ), context );
+		// @formatter:on
+
+		int width = ( int ) variables.get( Key.of( "width" ) );
+		assertThat( width ).isEqualTo( 64 );
+	}
+
+	@DisplayName( "It should return a non-empty Base64 string when writing a JPEG via ImageWriteBase64" )
+	@Test
+	public void testWriteJpgFromBase64() {
+		// @formatter:off
+		runtime.executeSource( """
+			img = ImageRead( "src/test/resources/logo.png" );
+			result = ImageWriteBase64( img, "jpg" );
+		""", context );
+		// @formatter:on
+
+		String result = ( String ) variables.get( Key.of( "result" ) );
+		assertThat( result ).isNotEmpty();
+	}
+
 	@DisplayName( "It should throw an exception when writing an image with no source path" )
 	@Test
 	public void testWriteWithoutSourcePath() {

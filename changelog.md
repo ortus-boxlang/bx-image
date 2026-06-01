@@ -13,6 +13,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- WebP image format support for reading and writing via the `org.sejda.imageio:webp-imageio` ImageIO plugin. All BIFs that read or write images (`ImageRead`, `ImageWrite`, `ImageWriteBase64`, `ImageReadBase64`, `IsImageFile`) now handle WebP natively.
+- GIF image format support for reading and writing. Java's built-in ImageIO GIF codec is now fully exposed through `ImageRead`, `ImageWrite`, and `ImageWriteBase64`.
+- BMP image format support for reading and writing, with automatic ARGB→RGB conversion on write (BMP does not support alpha channels).
+- TIFF image format support for reading and writing via Java 9+ built-in ImageIO plugin.
+- `GetReadableImageFormats()` and `GetWriteableImageFormats()` now include `webp`, `gif`, `bmp`, and `tiff` in their results.
+
+### Fixed
+
+- `ImageWrite` and `img.write(path)` were hardcoded to always produce PNG data regardless of the destination file extension. Writing to `.jpg`, `.webp`, or any non-PNG path now correctly encodes in the target format.
+- Writing an image with an alpha channel to JPEG or BMP no longer fails — the image is automatically composited onto a white background before encoding, since these formats do not support transparency.
+
+### Updated
+
+- Replaced `org.apache.commons.imaging.Imaging.writeImage()` with `javax.imageio.ImageIO.write()` as the underlying write mechanism, enabling format detection from the file extension and support for any registered ImageIO plugin (JPG, PNG, WebP, GIF, BMP, TIFF).
+- Added `com.twelvemonkeys.imageio:imageio-webp` as a pure-Java WebP reader, ensuring WebP reading works cross-platform including macOS ARM64 (Apple Silicon). WebP writing still requires the native `webp-imageio` library which supports Linux and Intel macOS; on unsupported platforms a clear `BoxRuntimeException` is thrown instead of a raw `UnsatisfiedLinkError`.
+
+## [1.6.0] - 2026-05-25
+
+### Added
+
 - `ImageGenerateCaptcha( height, width, text [, difficulty [, fonts [, fontSize]]] )` BIF for generating CAPTCHA images with configurable dimensions, font size, difficulty level (`low`/`medium`/`high`), and font list. Argument order is ColdFusion-compatible.
 - `<bx:image action="captcha">` component support with `text`, `width`, `height`, `fontSize`, `difficulty`, `fonts`, `destination`, `overwrite`, and `name` attributes. When neither `name` nor `destination` is specified, the image is automatically streamed to the browser.
 
@@ -73,12 +93,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - BL-1217 Fix invoking resize as a member function
 
 ## [1.1.0] - 2025-02-13
-
-## [1.0.1] - 2024-12-30
-
-## [1.0.1] - 2024-12-30
-
-## [1.0.1] - 2024-12-30
 
 ## [1.0.1] - 2024-06-27
 
