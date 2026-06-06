@@ -86,26 +86,26 @@ box install bx-image --save
 
 ```javascript
 // Read and manipulate an image
-img = imageRead("photo.jpg");
-img.scaleToFit(800, 600)
-   .blur(2)
-   .sharpen(1)
-	.write("photo-optimized.jpg");
+img = imageRead( "photo.jpg" )
+	.scaleToFit(800, 600)
+	.blur(2)
+	.sharpen(1)
+	.write("photo-optimized.jpg")
 
 // Create a new image with drawing
-canvas = imageNew("", 400, 300, "rgb", "white");
+canvas = imageNew("", 400, 300, "rgb", "white")
 canvas.setDrawingColor("blue")
       .drawRect(50, 50, 300, 200, true)
       .setDrawingColor("red")
       .drawText("Hello BoxLang!", 150, 150)
-	  .write("greeting.png");
+	  .write("greeting.png")
 
 // Chain operations
 imageRead("logo.png")
     .crop(10, 10, 200, 200)
     .grayScale()
     .rotate(45)
-    .write("logo-transformed.png");
+    .write("logo-transformed.png")
 ```
 
 ## Quick Reference
