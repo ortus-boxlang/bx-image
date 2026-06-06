@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `ImageReadBase64()` and `BoxImage.fromBase64()` now accept data URIs with a `data:image/<format>;base64,` prefix, matching the output format produced by `ImageWriteBase64()` and `ImageService.writeImageToBrowser()`.
+
 ## [1.7.0] - 2026-06-01
 
 ### Added

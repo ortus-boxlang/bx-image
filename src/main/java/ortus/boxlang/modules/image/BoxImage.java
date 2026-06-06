@@ -213,6 +213,13 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws IOException If the Base64 string cannot be decoded or the image format is invalid
 	 */
 	public static BoxImage fromBase64( String base64String ) throws IOException {
+		// Strip data URI prefix (e.g. "data:image/png;base64,") if present
+		if ( base64String.startsWith( "data:" ) ) {
+			int commaIndex = base64String.indexOf( ',' );
+			if ( commaIndex != -1 ) {
+				base64String = base64String.substring( commaIndex + 1 );
+			}
+		}
 		return new BoxImage( ImageIO.read( new ByteArrayInputStream( Base64.getDecoder().decode( base64String ) ) ) );
 	}
 
