@@ -17,6 +17,7 @@
  */
 package ortus.boxlang.modules.image.components;
 
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -164,11 +165,12 @@ public class Image extends Component {
 	 *
 	 */
 	public BodyResult _invoke( IBoxContext context, IStruct attributes, ComponentBody body, IStruct executionState ) {
-		String		action		= attributes.getAsString( KeyDictionary.action );
-		BoxImage	image		= null;
-		IStruct		eventData	= null;
+		String		action				= attributes.getAsString( KeyDictionary.action );
+		String		normalizedAction	= action.trim().toLowerCase( Locale.ROOT );
+		BoxImage	image				= null;
+		IStruct		eventData			= null;
 
-		switch ( action ) {
+		switch ( normalizedAction ) {
 			case "border" :
 				image = getImageFromContext( context, attributes );
 				String color = attributes.getAsString( KeyDictionary.color );
@@ -269,7 +271,7 @@ public class Image extends Component {
 				image = getImageFromContext( context, attributes );
 				image.write( StringCaster.cast( attributes.get( KeyDictionary.destination ) ) );
 				break;
-			case "writeToBrowser" :
+			case "writetobrowser" :
 
 				imageService.writeToBrowser( context, getImageFromContext( context, attributes ), attributes );
 
@@ -280,11 +282,16 @@ public class Image extends Component {
 					wasHandled.set( true );
 				};
 
-				eventData = Struct.of(
-				    KeyDictionary.image, getImageFromContext( context, attributes ),
-				    Key.of( "action" ), action,
-				    Key.of( "handleAction" ), handleAction
-				);
+				eventData = attributes.get( KeyDictionary.source ) == null
+				    ? Struct.of(
+				        Key.of( "action" ), action,
+				        Key.of( "handleAction" ), handleAction
+				    )
+				    : Struct.of(
+				        KeyDictionary.image, getImageFromContext( context, attributes ),
+				        Key.of( "action" ), action,
+				        Key.of( "handleAction" ), handleAction
+				    );
 
 				announce( ImageEvents.IMAGE_WRITE_TO_BROWSER, eventData );
 

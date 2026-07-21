@@ -193,8 +193,18 @@ public class ImageService extends BaseService {
 		    || key.equals( KeyDictionary.image1 )
 		    || key.equals( KeyDictionary.image2 )
 		    || key.equals( KeyDictionary.source )
+		    || key.equals( KeyDictionary.destination )
 		    || key.equals( KeyDictionary.overwrite )
-		    || key.equals( KeyDictionary.action );
+		    || key.equals( KeyDictionary.action )
+		    || key.equals( KeyDictionary.format )
+		    || key.equals( KeyDictionary.quality )
+		    || key.equals( KeyDictionary.isBase64 )
+		    || key.equals( KeyDictionary.structName )
+		    || key.equals( KeyDictionary.interpolation )
+		    || key.equals( KeyDictionary.text )
+		    || key.equals( KeyDictionary.difficulty )
+		    || key.equals( KeyDictionary.fonts )
+		    || key.equals( KeyDictionary.fontSize );
 	}
 
 	/**

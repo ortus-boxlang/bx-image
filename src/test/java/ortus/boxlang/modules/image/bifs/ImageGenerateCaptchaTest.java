@@ -18,6 +18,7 @@
 package ortus.boxlang.modules.image.bifs;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import ortus.boxlang.compiler.parser.BoxSourceType;
 import ortus.boxlang.modules.image.BaseIntegrationTest;
 import ortus.boxlang.runtime.scopes.Key;
+import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 
 /**
  * Tests for ImageGenerateCaptcha BIF.
@@ -205,6 +207,37 @@ public class ImageGenerateCaptchaTest extends BaseIntegrationTest {
 
 		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 250 );
 		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 80 );
+	}
+
+	@DisplayName( "It handles uppercase captcha action in the image component" )
+	@Test
+	public void testCaptchaComponentUppercaseAction() {
+		runtime.executeSource( """
+		                           <bx:image action="CAPTCHA" text="COMP" width="250" height="80" name="myCaptcha" />
+		                       """, context, BoxSourceType.BOXTEMPLATE );
+
+		assertThat( variables.get( Key.of( "myCaptcha" ) ) ).isNotNull();
+
+		runtime.executeSource( """
+		                           w = myCaptcha.getWidth();
+		                           h = myCaptcha.getHeight();
+		                       """, context );
+
+		assertThat( ( int ) variables.get( Key.of( "w" ) ) ).isEqualTo( 250 );
+		assertThat( ( int ) variables.get( Key.of( "h" ) ) ).isEqualTo( 80 );
+	}
+
+	@DisplayName( "It rejects invalid source-less image component actions clearly" )
+	@Test
+	public void testUnknownComponentActionWithoutSource() {
+		BoxRuntimeException exception = assertThrows( BoxRuntimeException.class, () -> {
+			runtime.executeSource( """
+			                           <bx:image action="CHACAPT" text="COMP" width="250" height="80" />
+			                       """, context, BoxSourceType.BOXTEMPLATE );
+		} );
+
+		assertThat( exception.getMessage() ).contains( "Input [action] for component [Image] must be one of" );
+		assertThat( exception.getMessage() ).doesNotContain( "You must supply a source" );
 	}
 
 	@DisplayName( "It generates a captcha via bx:image component with destination" )
