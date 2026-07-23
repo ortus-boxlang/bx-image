@@ -66,11 +66,13 @@ public class ImageService extends BaseService {
 
 	BoxLangLogger								logger;
 
+	private static final String					MODULE_PUBLIC_PATH	= "/bxModules/bximage/public/index.bxm";
+
 	/**
 	 * A cache for images that have been processed and are ready to be served.
 	 * The key is the image ID, and the value is the image data in Base64 format.
 	 */
-	private final ConcurrentMap<String, String>	cachedImages	= new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, String>	cachedImages		= new ConcurrentHashMap<>();
 
 	/**
 	 * Creates a new ImageService instance using the singleton BoxRuntime instance.
@@ -158,7 +160,7 @@ public class ImageService extends BaseService {
 
 		if ( writeType.equals( "url" ) ) {
 			String imageId = cachceImage( image );
-			src = "/bxModules/bximage/index.bxm?id=" + imageId;
+			src = MODULE_PUBLIC_PATH + "?id=" + imageId;
 		} else if ( writeType.equals( "base64" ) ) {
 			try {
 				src = "data:image/" + format + ";base64," + image.toBase64String( format );

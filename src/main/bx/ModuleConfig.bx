@@ -39,6 +39,13 @@ class {
 	this.mapping = "bximage";
 
 	/**
+	 * The public BoxLang mapping for your module.  This is the mapping that will be used by
+	 * developers to access your module features.  This mapping is registered without the
+	 * bxModules or /bxmodules prefix. Ex: test, /test
+	 */
+	this.publicMapping = "public";
+
+	/**
 	 * Who built the module
 	 */
 	this.author = "Jacob Beers";

@@ -55,7 +55,7 @@ public class ImageServiceTest extends BaseIntegrationTest {
 
 		// Verify the output contains img tag with URL
 		assertNotNull( output, "Output should not be null" );
-		assertTrue( output.contains( "<img src=\"/bxModules/bximage/index.bxm?id=" ), "Output should contain module URL" );
+		assertTrue( output.contains( "<img src=\"/bxModules/bximage/public/index.bxm?id=" ), "Output should contain module URL" );
 		assertTrue( output.contains( "alt=\"Test Image\"" ), "Output should contain alt attribute" );
 		assertTrue( output.contains( "width=\"100\"" ), "Output should contain width attribute" );
 		assertTrue( output.contains( "height=\"100\"" ), "Output should contain height attribute" );
@@ -267,7 +267,7 @@ public class ImageServiceTest extends BaseIntegrationTest {
 
 		// Verify it defaults to URL type
 		assertNotNull( output, "Output should not be null" );
-		assertTrue( output.contains( "/bxModules/bximage/index.bxm?id=" ), "Should default to URL write type" );
+		assertTrue( output.contains( "/bxModules/bximage/public/index.bxm?id=" ), "Should default to URL write type" );
 	}
 
 	@DisplayName( "It has a valid logger instance" )
