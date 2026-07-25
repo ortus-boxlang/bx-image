@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-07-25
+
 ### Fixed
 
 - `ImageReadBase64()` and `BoxImage.fromBase64()` now accept data URIs with a `data:image/<format>;base64,` prefix, matching the output format produced by `ImageWriteBase64()` and `ImageService.writeImageToBrowser()`.
@@ -104,7 +106,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.7.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.4.0...v1.5.0
