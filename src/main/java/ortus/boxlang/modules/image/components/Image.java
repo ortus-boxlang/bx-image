@@ -380,11 +380,11 @@ public class Image extends Component {
 
 				// Check if it's a local file path or a URL
 				if ( pathOrURL.startsWith( "http://" ) || pathOrURL.startsWith( "https://" ) || pathOrURL.startsWith( "file://" ) ) {
-					logger.info( "Image URL detected: {}", pathOrURL );
+					logger.debug( "Image URL detected: {}", pathOrURL );
 					// It's a URL, pass it directly
 					return new BoxImage( pathOrURL );
 				} else {
-					logger.info( "Assuming local file path for image: {}", pathOrURL );
+					logger.debug( "Assuming local file path for image: {}", pathOrURL );
 					// It's a local file path, convert to proper file URI
 					return new BoxImage( FileSystemUtil.createFileUri( pathOrURL ) );
 				}

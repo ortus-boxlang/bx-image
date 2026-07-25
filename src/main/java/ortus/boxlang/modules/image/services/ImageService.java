@@ -109,7 +109,7 @@ public class ImageService extends BaseService {
 	 */
 	@Override
 	public void onShutdown( Boolean arg0 ) {
-		getLogger().info( "+ Image Service shutdown requested" );
+		getLogger().debug( "+ Image Service shutdown requested" );
 	}
 
 	/**
@@ -118,7 +118,7 @@ public class ImageService extends BaseService {
 	 */
 	@Override
 	public void onStartup() {
-		getLogger().info( "+ Image Service started" );
+		getLogger().debug( "+ Image Service started" );
 	}
 
 	/**
@@ -244,7 +244,7 @@ public class ImageService extends BaseService {
 	 * @return true if the image was found and removed, false if it was not found
 	 */
 	public boolean removeCachedImage( String id ) {
-		getLogger().info( "Removing cached image with ID: {}", id );
+		getLogger().debug( "Removing cached image with ID: {}", id );
 		return this.cachedImages.remove( id ) != null;
 	}
 
@@ -263,7 +263,7 @@ public class ImageService extends BaseService {
 	 * Remove all cached images from memory.
 	 */
 	public void clearCache() {
-		getLogger().info( "Clearing all cached images from memory. Total images cleared: {}", this.cachedImages.size() );
+		getLogger().debug( "Clearing all cached images from memory. Total images cleared: {}", this.cachedImages.size() );
 		this.cachedImages.clear();
 	}
 
