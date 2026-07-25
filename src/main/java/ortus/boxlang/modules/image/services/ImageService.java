@@ -66,11 +66,13 @@ public class ImageService extends BaseService {
 
 	BoxLangLogger								logger;
 
+	private static final String					MODULE_PUBLIC_PATH	= "/bxModules/bximage/public/index.bxm";
+
 	/**
 	 * A cache for images that have been processed and are ready to be served.
 	 * The key is the image ID, and the value is the image data in Base64 format.
 	 */
-	private final ConcurrentMap<String, String>	cachedImages	= new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, String>	cachedImages		= new ConcurrentHashMap<>();
 
 	/**
 	 * Creates a new ImageService instance using the singleton BoxRuntime instance.
@@ -107,7 +109,7 @@ public class ImageService extends BaseService {
 	 */
 	@Override
 	public void onShutdown( Boolean arg0 ) {
-		// getLogger().info( "+ Image Service shutdown requested" );
+		getLogger().debug( "+ Image Service shutdown requested" );
 	}
 
 	/**
@@ -116,7 +118,7 @@ public class ImageService extends BaseService {
 	 */
 	@Override
 	public void onStartup() {
-		// getLogger().info( "+ Image Service started" );
+		getLogger().debug( "+ Image Service started" );
 	}
 
 	/**
@@ -158,7 +160,7 @@ public class ImageService extends BaseService {
 
 		if ( writeType.equals( "url" ) ) {
 			String imageId = cachceImage( image );
-			src = "/bxModules/bximage/index.bxm?id=" + imageId;
+			src = MODULE_PUBLIC_PATH + "?id=" + imageId;
 		} else if ( writeType.equals( "base64" ) ) {
 			try {
 				src = "data:image/" + format + ";base64," + image.toBase64String( format );
@@ -193,8 +195,18 @@ public class ImageService extends BaseService {
 		    || key.equals( KeyDictionary.image1 )
 		    || key.equals( KeyDictionary.image2 )
 		    || key.equals( KeyDictionary.source )
+		    || key.equals( KeyDictionary.destination )
 		    || key.equals( KeyDictionary.overwrite )
-		    || key.equals( KeyDictionary.action );
+		    || key.equals( KeyDictionary.action )
+		    || key.equals( KeyDictionary.format )
+		    || key.equals( KeyDictionary.quality )
+		    || key.equals( KeyDictionary.isBase64 )
+		    || key.equals( KeyDictionary.structName )
+		    || key.equals( KeyDictionary.interpolation )
+		    || key.equals( KeyDictionary.text )
+		    || key.equals( KeyDictionary.difficulty )
+		    || key.equals( KeyDictionary.fonts )
+		    || key.equals( KeyDictionary.fontSize );
 	}
 
 	/**
@@ -232,7 +244,7 @@ public class ImageService extends BaseService {
 	 * @return true if the image was found and removed, false if it was not found
 	 */
 	public boolean removeCachedImage( String id ) {
-		getLogger().info( "Removing cached image with ID: {}", id );
+		getLogger().debug( "Removing cached image with ID: {}", id );
 		return this.cachedImages.remove( id ) != null;
 	}
 
@@ -251,7 +263,7 @@ public class ImageService extends BaseService {
 	 * Remove all cached images from memory.
 	 */
 	public void clearCache() {
-		getLogger().info( "Clearing all cached images from memory. Total images cleared: {}", this.cachedImages.size() );
+		getLogger().debug( "Clearing all cached images from memory. Total images cleared: {}", this.cachedImages.size() );
 		this.cachedImages.clear();
 	}
 

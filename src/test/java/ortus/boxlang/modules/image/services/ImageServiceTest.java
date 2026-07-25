@@ -55,7 +55,7 @@ public class ImageServiceTest extends BaseIntegrationTest {
 
 		// Verify the output contains img tag with URL
 		assertNotNull( output, "Output should not be null" );
-		assertTrue( output.contains( "<img src=\"/bxModules/bximage/index.bxm?id=" ), "Output should contain module URL" );
+		assertTrue( output.contains( "<img src=\"/bxModules/bximage/public/index.bxm?id=" ), "Output should contain module URL" );
 		assertTrue( output.contains( "alt=\"Test Image\"" ), "Output should contain alt attribute" );
 		assertTrue( output.contains( "width=\"100\"" ), "Output should contain width attribute" );
 		assertTrue( output.contains( "height=\"100\"" ), "Output should contain height attribute" );
@@ -109,6 +109,13 @@ public class ImageServiceTest extends BaseIntegrationTest {
 		                           "image": "shouldNotAppear",
 		                           "source": "shouldNotAppear",
 		                           "action": "shouldNotAppear",
+		                            "text": "captchaAnswer",
+		                            "difficulty": "high",
+		                            "fonts": "Serif",
+		                            "fontSize": "24",
+		                            "destination": "shouldNotAppear",
+		                            "format": "png",
+		                            "quality": "1",
 		                           "alt": "Test"
 		                       };
 
@@ -129,6 +136,14 @@ public class ImageServiceTest extends BaseIntegrationTest {
 		assertTrue( !output.contains( "source=" ), "Output should not contain source attribute" );
 		assertTrue( !output.contains( "action=" ), "Output should not contain action attribute" );
 		assertTrue( !output.contains( "writeType=" ), "Output should not contain writeType attribute" );
+		assertTrue( !output.contains( "text=" ), "Output should not contain captcha text attribute" );
+		assertTrue( !output.contains( "captchaAnswer" ), "Output should not contain captcha text value" );
+		assertTrue( !output.contains( "difficulty=" ), "Output should not contain difficulty attribute" );
+		assertTrue( !output.contains( "fonts=" ), "Output should not contain fonts attribute" );
+		assertTrue( !output.contains( "fontSize=" ), "Output should not contain fontSize attribute" );
+		assertTrue( !output.contains( "destination=" ), "Output should not contain destination attribute" );
+		assertTrue( !output.contains( "format=" ), "Output should not contain format attribute" );
+		assertTrue( !output.contains( "quality=" ), "Output should not contain quality attribute" );
 		assertTrue( output.contains( "alt=\"Test\"" ), "Output should contain alt attribute" );
 	}
 
@@ -252,7 +267,7 @@ public class ImageServiceTest extends BaseIntegrationTest {
 
 		// Verify it defaults to URL type
 		assertNotNull( output, "Output should not be null" );
-		assertTrue( output.contains( "/bxModules/bximage/index.bxm?id=" ), "Should default to URL write type" );
+		assertTrue( output.contains( "/bxModules/bximage/public/index.bxm?id=" ), "Should default to URL write type" );
 	}
 
 	@DisplayName( "It has a valid logger instance" )
