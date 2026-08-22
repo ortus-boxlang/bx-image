@@ -41,7 +41,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup CommandBox
         uses: Ortus-Solutions/setup-commandbox@v2.0.1
@@ -146,7 +146,7 @@ jobs:
           cd $GITHUB_WORKSPACE
 
       - name: Create Github Release
-        uses: taiki-e/create-gh-release-action@v1.10.0
+        uses: taiki-e/create-gh-release-action@v1.11.0
         continue-on-error: true
         if: env.SNAPSHOT == 'false'
         id: create_release
@@ -183,7 +183,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout Development Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: development
 
