@@ -167,6 +167,28 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		COLORS.put( "red", Color.red );
 		COLORS.put( "white", Color.white );
 		COLORS.put( "yellow", Color.yellow );
+
+		// Force ImageIO to rescan for plugins using THIS class's own
+		// classloader. BoxLang gives every module its own isolated
+		// ClassLoader for its bundled libs/ (see ModuleConfig.bx's own
+		// docblock: "Every Module will have it's own ClassLoader..."), but
+		// javax.imageio.ImageIO's static IIORegistry is built once, lazily,
+		// using whichever thread's context classloader happens to be active
+		// the very first time ANYTHING in the whole JVM process touches
+		// ImageIO - which may not be this module's own classloader at all,
+		// and is never rescanned automatically afterward. Without this, the
+		// WebP writer/reader plugins bundled in this module's own libs/
+		// (webp-imageio, imageio-webp) are never discovered, and
+		// ImageIO.write()/getImageWritersByFormatName("webp") silently
+		// report no suitable writer even though it's right there on this
+		// module's own classpath.
+		ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+		try {
+			Thread.currentThread().setContextClassLoader( BoxImage.class.getClassLoader() );
+			ImageIO.scanForPlugins();
+		} finally {
+			Thread.currentThread().setContextClassLoader( previousClassLoader );
+		}
 	}
 
 	/** Path or URL from which the image was loaded, if applicable */
