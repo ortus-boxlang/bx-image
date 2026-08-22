@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-07-25
+
 ### Fixed
 
 - `ImageIO`'s WebP writer/reader (`webp-imageio`, `imageio-webp`, bundled in this module's own `libs/`) was never discovered when this module ran inside a host that gives it its own isolated `ClassLoader` (e.g. BoxLang's own per-module `ClassLoader` - see `ModuleConfig.bx`'s own docblock). `javax.imageio.ImageIO`'s static plugin registry is built once, lazily, using whichever thread's context classloader is active the very first time *anything* in the whole JVM process touches `ImageIO` - which may not be this module's own classloader at all, and is never rescanned automatically afterward. `BoxImage`'s own static initializer now explicitly forces a rescan (`ImageIO.scanForPlugins()`) using its own classloader, so the bundled WebP plugins are always found regardless of load order or which classloader first touched `ImageIO`. Previously, `.write("*.webp")` could fail with `"No suitable ImageIO writer found for format: webp"` even though the writer was right there on this module's own classpath.

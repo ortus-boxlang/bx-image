@@ -18,6 +18,7 @@
 package ortus.boxlang.modules.image;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Font;
@@ -28,6 +29,7 @@ import java.awt.Shape;
 import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -52,8 +54,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.awt.BasicStroke;
-import java.awt.geom.GeneralPath;
 
 import javax.imageio.ImageIO;
 
@@ -1654,7 +1654,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 *
 	 * @param columns The number of horizontal tiles to split the image into.
 	 * @param rows    The number of vertical tiles to split the image into.
-	 * 
+	 *
 	 * @return An array of arrays containing BoxImage tiles. The outer array represents rows,
 	 *         and each inner array contains the tiles for that row.
 	 */
