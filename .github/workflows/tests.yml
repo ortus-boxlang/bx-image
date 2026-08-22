@@ -70,7 +70,7 @@ jobs:
         run: |
           ./gradlew downloadBoxLang
           # this is done in order to build the module structure before testing
-          ./gradlew shadowJar test --stacktrace --console=plain
+          ./gradlew shadowJar test isolationTest --stacktrace --console=plain
 
       - name: Publish Test Reports
         uses: mikepenz/action-junit-report@v6.4.0
@@ -78,6 +78,7 @@ jobs:
         with:
           report_paths: |
             **/build/test-results/test/*.xml
+            **/build/test-results/isolationTest/*.xml
             **/surefire-reports/*.xml
             **/failsafe-reports/*.xml
           check_name: "Tests Report ${{ matrix.os }}-${{ matrix.jdkVersion }}"

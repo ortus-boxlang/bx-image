@@ -234,6 +234,62 @@ test {
 }
 
 /**
+ * Dedicated source set + Test task for WebPClassLoaderIsolationTest.
+ *
+ * The normal `test` task's classpath is NOT a valid environment to
+ * reproduce BoxLang's own per-module ClassLoader isolation: Gradle's
+ * `testImplementation` configuration extends `implementation` by default,
+ * so this module's own bundled WebP codecs (`webp-imageio`,
+ * `imageio-webp`, both declared as `implementation` deps above) are
+ * already directly on the flat `test` classpath - meaning `ImageIO`
+ * discovers WebP there regardless of whether BoxImage's own static
+ * initializer fix ever runs, which defeats the whole point of a
+ * regression test for this bug. This isolationTest source set is kept
+ * deliberately free of any dependency on the main source set or its
+ * runtime deps, so the ONLY route by which its JVM can see the WebP
+ * codecs at all is through BoxImage's own isolated ClassLoader wrapping
+ * the actual shaded module jar - exactly like BoxLang's real module
+ * loader does.
+ */
+sourceSets {
+	isolationTest {
+		java {
+			srcDir 'src/isolationTest/java'
+		}
+	}
+}
+
+configurations {
+	isolationTestImplementation
+	isolationTestRuntimeOnly
+}
+
+dependencies {
+	if ( file( '../boxlang/build/libs/boxlang-' + boxlangVersion + '.jar' ).exists() ) {
+		isolationTestImplementation files( '../boxlang/build/libs/boxlang-' + boxlangVersion + '.jar' )
+	} else {
+		isolationTestImplementation files( 'src/test/resources/libs/boxlang-' + boxlangVersion + '.jar' )
+	}
+	isolationTestImplementation "org.junit.jupiter:junit-jupiter:6.+"
+	isolationTestImplementation "com.google.truth:truth:1.+"
+	isolationTestRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+task isolationTest( type: Test ) {
+	description = 'Regression test proving BoxImage discovers its bundled WebP ImageIO plugins when loaded through an isolated ClassLoader, exactly like BoxLang loads modules.'
+	group = 'verification'
+	testClassesDirs = sourceSets.isolationTest.output.classesDirs
+	classpath = sourceSets.isolationTest.runtimeClasspath
+	useJUnitPlatform()
+	testLogging {
+		showStandardStreams = true
+	}
+	dependsOn shadowJar
+	systemProperty 'bx.image.shadedJarPath', shadowJar.archiveFile.get().asFile.absolutePath
+}
+check.dependsOn isolationTest
+
+/**
  * TEMPORARY until we publish to maven
  * Task to download the latest jar from https://ortus-temp.s3.amazonaws.com/jericho/libs/boxlang-1.0.0.jar
  */
