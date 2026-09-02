@@ -4,6 +4,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 
 import javax.imageio.ImageIO;
 
@@ -11,6 +15,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import ortus.boxlang.modules.image.BaseIntegrationTest;
 import ortus.boxlang.runtime.scopes.Key;
@@ -18,7 +23,12 @@ import ortus.boxlang.runtime.types.Array;
 
 public class ImageWebPTest extends BaseIntegrationTest {
 
-	private static boolean WEBP_WRITE_SUPPORTED;
+	private static final String	WEBP_FIXTURE	= "UklGRlQAAABXRUJQVlA4WAoAAAAQAAAAAQAAAQAAQUxQSAUAAAAAb3OviQBWUDggKAAAALABAJ0BKgIAAgACADQljAJ0AQ4kAxAA8kGkZwGgrWTvS9JdLi0AAAA=";
+
+	private static boolean		WEBP_WRITE_SUPPORTED;
+
+	@TempDir
+	Path						tempDir;
 
 	@BeforeAll
 	static void detectWebPWriteSupport() {
@@ -66,6 +76,23 @@ public class ImageWebPTest extends BaseIntegrationTest {
 
 		int width = ( int ) variables.get( Key.of( "width" ) );
 		assertThat( width ).isEqualTo( 64 );
+	}
+
+	@DisplayName( "It should read an existing WebP image without requiring WebP write support" )
+	@Test
+	public void testReadExistingWebP() throws IOException {
+		Path inputFile = tempDir.resolve( "fixture.webp" );
+		Files.write( inputFile, Base64.getDecoder().decode( WEBP_FIXTURE ) );
+
+		// @formatter:off
+		runtime.executeSource( """
+			img = ImageRead( "%s" );
+			result = [ img.getWidth(), img.getHeight() ];
+			""".formatted( inputFile ), context );
+		// @formatter:on
+
+		Array dimensions = ( Array ) variables.get( Key.of( "result" ) );
+		assertThat( dimensions ).containsExactly( 2, 2 ).inOrder();
 	}
 
 	@DisplayName( "It should return a non-empty Base64 string when writing WebP via ImageWriteBase64" )

@@ -56,10 +56,13 @@ import java.util.Map;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import com.drew.imaging.FileType;
 import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageProcessingException;
+import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 
 import javaxt.io.Image;
 import ortus.boxlang.modules.image.util.EnumConverterUtil;
@@ -312,7 +315,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		bas.reset();
 		iptcData = ImageMetadataUtil.readIPTCMetaData( bas );
 		bas.reset();
-		this.image = new Image( bas );
+		this.image = this.fileType == FileType.WebP
+		    ? new Image( readWebP( data ) )
+		    : new Image( bas );
 
 		this.cacheGraphics();
 	}
@@ -1569,6 +1574,29 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		this.image.blur( radius.floatValue() );
 
 		return this;
+	}
+
+	/**
+	 * Reads WebP data with the bundled pure-Java reader. The native WebP reader does not
+	 * support Apple Silicon and may be selected first by ImageIO's global registry.
+	 *
+	 * @param data WebP image bytes
+	 *
+	 * @return The decoded image
+	 *
+	 * @throws IOException If the image cannot be decoded
+	 */
+	private static BufferedImage readWebP( byte[] data ) throws IOException {
+		ImageReader reader = new WebPImageReaderSpi().createReaderInstance( null );
+		try ( ImageInputStream input = ImageIO.createImageInputStream( new ByteArrayInputStream( data ) ) ) {
+			if ( input == null ) {
+				throw new IOException( "Unable to create an input stream for the WebP image" );
+			}
+			reader.setInput( input );
+			return reader.read( 0 );
+		} finally {
+			reader.dispose();
+		}
 	}
 
 	/**
