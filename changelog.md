@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `ImageRead()` now uses the bundled pure-Java WebP reader, and the native WebP writer now includes an Apple Silicon binary. WebP reading and writing are both supported on Apple Silicon.
+
 ## [1.9.0] - 2026-08-22
 
 ## [1.8.0] - 2026-07-25
