@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-09-26
+
+## [1.10.0] - 2026-09-02
+
 ### Fixed
 
 - `ImageReadBase64()` and `BoxImage.fromBase64()` always reported the image's format as the hardcoded default (`"jpg"`) regardless of what was actually decoded, because format detection only ever inspected `sourcePath`'s file extension - and a base64-decoded image never has a source path. `figureOutFormat()` now also consults the real file type detected from the decoded bytes themselves (via the same `com.drew.imaging.FileTypeDetector` magic-byte detection already used for file/URI-loaded images), so `getFormat()` correctly reports `"png"`, `"gif"`, `"webp"`, etc. for the actual decoded format instead of always falling back to `"jpg"`. This also makes format detection for `ImageRead()`/file-path loading robust against a source file whose extension doesn't match its real contents.
@@ -124,7 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.10.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.7.0...v1.8.0
