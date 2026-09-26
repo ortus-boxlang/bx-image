@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `ImageReadBase64()` and `BoxImage.fromBase64()` always reported the image's format as the hardcoded default (`"jpg"`) regardless of what was actually decoded, because format detection only ever inspected `sourcePath`'s file extension - and a base64-decoded image never has a source path. `figureOutFormat()` now also consults the real file type detected from the decoded bytes themselves (via the same `com.drew.imaging.FileTypeDetector` magic-byte detection already used for file/URI-loaded images), so `getFormat()` correctly reports `"png"`, `"gif"`, `"webp"`, etc. for the actual decoded format instead of always falling back to `"jpg"`. This also makes format detection for `ImageRead()`/file-path loading robust against a source file whose extension doesn't match its real contents.
+
 ## [1.10.0] - 2026-09-02
 
 ### Fixed

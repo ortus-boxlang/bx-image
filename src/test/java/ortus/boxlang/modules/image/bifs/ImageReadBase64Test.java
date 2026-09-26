@@ -5,11 +5,20 @@ import ortus.boxlang.modules.image.BaseIntegrationTest;
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import ortus.boxlang.runtime.scopes.Key;
+
 public class ImageReadBase64Test extends BaseIntegrationTest {
+
+	private static String readFixtureAsBase64( String path ) throws IOException {
+		return Base64.getEncoder().encodeToString( Files.readAllBytes( Path.of( path ) ) );
+	}
 
 	@DisplayName( "It should return an image from a raw base64 string" )
 	@Test
@@ -61,5 +70,106 @@ public class ImageReadBase64Test extends BaseIntegrationTest {
 		    context );
 
 		assertThat( variables.get( result ) ).isEqualTo( "ortus.boxlang.modules.image.BoxImage" );
+	}
+
+	@DisplayName( "It should report the real detected format for a base64-decoded PNG, not the hardcoded jpg default (regression)" )
+	@Test
+	public void testGetFormatRegressionPngNotDefaultJpg() throws IOException {
+		String base64Png = readFixtureAsBase64( "src/test/resources/logo.png" );
+
+		runtime.executeSource(
+		    String.format(
+		        """
+		        result = ImageReadBase64( "%s" );
+		        format = result.getFormat();
+		        """,
+		        base64Png ),
+		    context );
+
+		String format = ( String ) variables.get( Key.of( "format" ) );
+		assertThat( format ).isEqualTo( "png" );
+		assertThat( format ).isNotEqualTo( "jpg" );
+	}
+
+	@DisplayName( "It should detect the correct format for a raw (non-prefixed) base64 JPEG" )
+	@Test
+	public void testGetFormatForRawBase64Jpeg() throws IOException {
+		String base64Jpg = readFixtureAsBase64( "src/test/resources/test-images/exif-test.jpg" );
+
+		runtime.executeSource(
+		    String.format(
+		        """
+		        result = ImageReadBase64( "%s" );
+		        format = result.getFormat();
+		        """,
+		        base64Jpg ),
+		    context );
+
+		String format = ( String ) variables.get( Key.of( "format" ) );
+		assertThat( format ).isEqualTo( "jpg" );
+	}
+
+	@DisplayName( "It should detect the correct format for a data:image/png;base64 prefixed PNG" )
+	@Test
+	public void testGetFormatForBase64PngDataUri() throws IOException {
+		String base64Png = readFixtureAsBase64( "src/test/resources/logo.png" );
+
+		runtime.executeSource(
+		    String.format(
+		        """
+		        result = ImageReadBase64( "data:image/png;base64,%s" );
+		        format = result.getFormat();
+		        """,
+		        base64Png ),
+		    context );
+
+		String format = ( String ) variables.get( Key.of( "format" ) );
+		assertThat( format ).isEqualTo( "png" );
+	}
+
+	@DisplayName( "It should detect the correct format for a data:image/jpeg;base64 prefixed JPEG" )
+	@Test
+	public void testGetFormatForBase64JpegDataUri() throws IOException {
+		String base64Jpg = readFixtureAsBase64( "src/test/resources/test-images/exif-test.jpg" );
+
+		runtime.executeSource(
+		    String.format(
+		        """
+		        result = ImageReadBase64( "data:image/jpeg;base64,%s" );
+		        format = result.getFormat();
+		        """,
+		        base64Jpg ),
+		    context );
+
+		String format = ( String ) variables.get( Key.of( "format" ) );
+		assertThat( format ).isEqualTo( "jpg" );
+	}
+
+	@DisplayName( "It should detect gif as the format for a data:image/gif;base64 prefixed GIF" )
+	@Test
+	public void testGetFormatForBase64GifDataUri() {
+		runtime.executeSource(
+		    """
+		    result = ImageReadBase64( "data:image/gif;base64,R0lGODlhAQABAPAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" );
+		    format = result.getFormat();
+		    """,
+		    context );
+
+		String format = ( String ) variables.get( Key.of( "format" ) );
+		assertThat( format ).isEqualTo( "gif" );
+	}
+
+	@DisplayName( "It should not regress the file-path format detection for ImageRead()" )
+	@Test
+	public void testGetFormatNoRegressionForFilePathRead() {
+		runtime.executeSource(
+		    """
+		    result = ImageRead( "src/test/resources/logo.png" );
+		    format = result.getFormat();
+		    """,
+		    context );
+
+		String format = ( String ) variables.get( Key.of( "format" ) );
+		assertThat( format ).isEqualTo( "png" );
 	}
 }

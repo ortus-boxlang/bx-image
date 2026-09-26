@@ -245,7 +245,11 @@ public class BoxImage implements IBoxBinaryRepresentable {
 				base64String = base64String.substring( commaIndex + 1 );
 			}
 		}
-		return new BoxImage( ImageIO.read( new ByteArrayInputStream( Base64.getDecoder().decode( base64String ) ) ) );
+
+		byte[]		data			= Base64.getDecoder().decode( base64String );
+		FileType	detectedType	= FileTypeDetector.detectFileType( new ByteArrayInputStream( data ) );
+
+		return new BoxImage( ImageIO.read( new ByteArrayInputStream( data ) ), detectedType );
 	}
 
 	/**
@@ -329,6 +333,19 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 */
 	public BoxImage( BufferedImage imageData ) {
 		this.image = new Image( imageData );
+		this.cacheGraphics();
+	}
+
+	/**
+	 * Creates a BoxImage from an existing BufferedImage, along with the real file type
+	 * detected from the source bytes it was decoded from (e.g. via {@link #fromBase64(String)}).
+	 *
+	 * @param imageData The BufferedImage to wrap
+	 * @param fileType  The file type detected from the original encoded bytes, or {@link FileType#Unknown} if it could not be determined
+	 */
+	public BoxImage( BufferedImage imageData, FileType fileType ) {
+		this.image		= new Image( imageData );
+		this.fileType	= fileType;
 		this.cacheGraphics();
 	}
 
@@ -1931,12 +1948,21 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	}
 
 	/**
-	 * Determines the image format based on the source path's file extension.
-	 * If the source path is not set or does not have a valid extension, returns a default format.
+	 * Determines the image format, preferring the real format detected from the image's
+	 * own bytes (via {@link FileTypeDetector}) over the source path's file extension.
+	 * If no format could be detected and the source path is not set or does not have a
+	 * valid extension, returns a default format.
 	 *
 	 * @return The determined image format (e.g., "png", "jpg") or a default format if undetermined
 	 */
 	private String figureOutFormat() {
+		if ( this.fileType != null && this.fileType != FileType.Unknown ) {
+			String detectedFormat = this.fileType.getCommonExtension();
+			if ( detectedFormat != null && !detectedFormat.isEmpty() ) {
+				return detectedFormat.toLowerCase();
+			}
+		}
+
 		if ( this.sourcePath == null || this.sourcePath.isEmpty() ) {
 			return DEFAULT_FORMAT;
 		}
