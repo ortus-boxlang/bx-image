@@ -1,0 +1,15 @@
+[package]
+name = "bx-image-native"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+matchbox-plugin-sdk = { path = "../../matchbox-native-modules/crates/matchbox-plugin-sdk" }
+
+[profile.release]
+panic = "unwind"

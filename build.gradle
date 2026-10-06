@@ -215,6 +215,17 @@ task zipModuleStructure( type: Zip ) {
     from createModuleStructure.destinationDir
     archiveFileName = "${project.name}-${version}.zip"
     destinationDirectory = file( "$buildDir/distributions" )
+    // Optional author-side native prebuilds, in the same published bx-image ZIP.
+    // Consumers do not need Cargo. Example: -PmatchboxTargets=x86_64-unknown-linux-gnu
+    doFirst {
+        if ( project.hasProperty( 'matchboxTargets' ) ) {
+            project.property( 'matchboxTargets' ).toString().split( ',' ).each { target ->
+                providers.exec {
+                    commandLine 'python3', 'native/package.py', createModuleStructure.destinationDir.toString(), target.trim()
+                }.result.get().assertNormalExitValue()
+            }
+        }
+    }
     // Output that the module has been zippped
     doLast {
         println "+ Module has been zipped to the distribution folder"

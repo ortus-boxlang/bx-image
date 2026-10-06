@@ -1,0 +1,9 @@
+// Shared portable API contract. Run against the same bx-image package in either runtime.
+image = imageNew(source="", width=32, height=16, imageType="rgb", color="black");
+info = imageInfo(image);
+assert info.width == 32;
+assert info.height == 16;
+memberInfo = image.info();
+assert memberInfo.width == info.width;
+assert memberInfo.height == info.height;
+println("bx-image native contract: OK");
