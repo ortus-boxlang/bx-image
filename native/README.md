@@ -4,7 +4,16 @@ The published package remains **bx-image**. Its existing JVM JAR and ModuleConfi
 
 ## Author-side build
 
-The SDK path in Cargo.toml currently points at the adjacent `matchbox-native-modules` worktree; update it to the merged SDK location or published crate when integrating these branches. It does not depend on the VM or require a matching Rust compiler in the consumer runtime.
+`native/Cargo.toml` depends on `matchbox-plugin-sdk = "0.1"` from crates.io. This is an author-side Cargo dependency, not a ForgeBox runtime dependency. The SDK does not link the VM or require a matching Rust compiler on the consumer's machine.
+
+To test an unpublished SDK locally, use Cargo's standard override without changing this dependency:
+
+```bash
+cargo test --manifest-path native/Cargo.toml \
+  --config 'patch.crates-io.matchbox-plugin-sdk.path="/absolute/path/to/matchbox/crates/matchbox-plugin-sdk"'
+```
+
+For Gradle/package.py builds, the same `[patch.crates-io]` override can go in your local `.cargo/config.toml`; do not commit a machine-specific path.
 
 Generate the normal JVM package first, then add the native target:
 

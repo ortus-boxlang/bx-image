@@ -9,7 +9,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-matchbox-plugin-sdk = { path = "../../matchbox-native-modules/crates/matchbox-plugin-sdk" }
+matchbox-plugin-sdk = "0.1"
 
 [profile.release]
 panic = "unwind"
