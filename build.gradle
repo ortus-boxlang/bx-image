@@ -57,6 +57,11 @@ dependencies {
 	// WebP read support - pure Java, cross-platform (including macOS ARM64)
 	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.14.0'
 
+	// QR code encoding and decoding
+	implementation 'com.google.zxing:core:3.5.3'
+	// Only BufferedImageLuminanceSource is used, so skip javase's CLI and JAI ImageIO transitive deps
+	implementation( 'com.google.zxing:javase:3.5.3' ) { transitive = false }
+
     // Not used right now since javaxt.com has issues, doing manual jar
 	// implementation "javaxt:javaxt-core:2.1.11"
     implementation files( 'src/test/resources/javaxt/javaxt-core.jar' )

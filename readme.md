@@ -28,6 +28,7 @@ The BoxLang Image module provides comprehensive image manipulation functionality
 - 🎨 Draw shapes, text, lines, bezier curves, and points
 - 🎭 Apply filters: blur, sharpen, grayscale, negative
 - 🤖 Generate CAPTCHA images with configurable difficulty
+- 🔳 Generate and read QR codes, with custom colors and an optional logo
 - 📊 Extract EXIF and IPTC metadata
 - ⚡ Fluent API with method chaining
 - 🔧 50+ built-in functions and member methods
@@ -287,6 +288,56 @@ captcha = ImageGenerateCaptcha( 35, 400, "loner", "high", "serif,sansserif", 24 
 - `medium` — moderate rotation, noise dots, crossing lines
 - `high` — heavy rotation, dense noise, wavy lines, random character colors
 
+### QR Codes
+
+Generate a QR code from text. The result is a regular image, so `ImageWrite()`, `ImageResize()`, `ImageWriteBase64()` and the rest of the image functions all work on it.
+
+```javascript
+// Basic QR code, 125px PNG
+qr = ImageQRCodeGenerate( "https://example.com/verify" );
+ImageWrite( qr, "/path/to/qr.png" );
+
+// text, size, format, errorCorrection, quietZone
+qr = ImageQRCodeGenerate( "ME:12345678", 250, "gif", "H" );
+
+// Colors and a logo
+qr = ImageQRCodeGenerate(
+    text       = "https://example.com",
+    size       = 400,
+    foreground = "#1a237e",
+    background = "white",
+    logo       = "/path/to/logo.png"
+);
+
+// Member function on a string
+qr = "https://example.com".toQRCode( 250 );
+
+// Read a QR code back out of an image (empty string if none is found)
+text = ImageQRCodeRead( ImageRead( "/path/to/qr.png" ) );
+text = qr.readQRCode();
+
+// Via component
+<bx:image action="qrcode" text="https://example.com" size="250" name="qr" />
+<bx:image action="qrcode" text="https://example.com" destination="/path/to/qr.png" />
+<bx:image action="qrread" source="/path/to/qr.png" name="decoded" />
+```
+
+**Arguments of `ImageQRCodeGenerate()`:**
+
+| Argument | Default | Description |
+| --- | --- | --- |
+| `text` | required | The text to encode. |
+| `size` | `125` | Edge length in pixels, clamped to 16 to 4096. |
+| `format` | `png` | Any format returned by `GetWriteableImageFormats()`. |
+| `errorCorrection` | `M` | `L`, `M`, `Q` or `H`. Always `H` when a logo is used. |
+| `quietZone` | `4` | Light margin in modules, clamped to 0 to 32. |
+| `foreground` | `black` | Color of the dark modules. A color name or hex code. |
+| `background` | `white` | Color of the light modules. A color name or hex code. |
+| `logo` | none | An image, file path or URL drawn in the center. |
+| `logoScale` | `0.2` | Fraction of the code's edge the logo covers, up to 0.3. |
+
+A logo hides part of the code. If a logo would make the code unreadable, for example a large logo on a very short text, `ImageQRCodeGenerate()` throws instead of returning a code that will not scan. Lower `logoScale`, raise `size`, or encode more text.
+
 ### Member Functions vs BIFs
 
 Most functions work both ways:
@@ -340,6 +391,8 @@ This module contributes the following BIFs:
 - [ImageNew](https://cfdocs.org/ImageNew)
 - [ImageOverlay](https://cfdocs.org/ImageOverlay)
 - [ImagePaste](https://cfdocs.org/ImagePaste) - aliased as [`imagePaste()`](https://cfdocs.org/imagePaste)
+- `ImageQRCodeGenerate` - Generate a QR code image. Args: `text [, size [, format [, errorCorrection [, quietZone [, foreground [, background [, logo [, logoScale]]]]]]]]`. Also available as the string member function `toQRCode()`
+- `ImageQRCodeRead` - Read the text from a QR code in an image, or an empty string if there is none. Args: `name [, tryHarder]`. Also available as the member function `readQRCode()`
 - [ImageRead](https://cfdocs.org/ImageRead)
 - [ImageReadBase64](https://cfdocs.org/ImageReadBase64)
 - [ImageResize](https://cfdocs.org/ImageResize)
@@ -406,6 +459,8 @@ The `<bx:image>` component supports the following actions:
 - `info` - Get image metadata
 - `convert` - Convert image format
 - `captcha` - Generate a CAPTCHA image (v1.6.0+)
+- `qrcode` - Generate a QR code image
+- `qrread` - Read the text from a QR code into the variable named by `name`
 
 **Common Attributes:**
 

@@ -180,6 +180,8 @@ base.overlay(overlay, "normal", 0.8)
 | `ImageOverlay()` | `image.overlay()` | Filter | Overlays one image on another |
 | `ImagePaste()` / `ImageDrawImage()` | `image.paste()` | Drawing | Pastes/draws one image onto another |
 | `ImageRead()` | - | Creation | Reads image from file path or URL |
+| `ImageQRCodeGenerate()` | `"text".toQRCode()` | Creation | Generates a QR code image from text |
+| `ImageQRCodeRead()` | `image.readQRCode()` | Output | Reads the text from a QR code in an image |
 | `ImageReadBase64()` | - | Creation | Creates image from Base64 string |
 | `ImageResize()` | `image.resize()` | Transform | Resizes image to exact dimensions |
 | `ImageRotate()` | `image.rotate()` | Transform | Rotates image by specified angle |

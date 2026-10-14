@@ -68,6 +68,7 @@ import javaxt.io.Image;
 import ortus.boxlang.modules.image.util.EnumConverterUtil;
 import ortus.boxlang.modules.image.util.ImageMetadataUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
+import ortus.boxlang.modules.image.util.QRCodeUtil;
 import ortus.boxlang.modules.image.util.StrokeBuilder;
 import ortus.boxlang.runtime.dynamic.casters.ArrayCaster;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
@@ -217,6 +218,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 	/** Detected file type from metadata-extractor library */
 	private FileType	fileType;
+
+	/** Explicit output format for images generated in memory (e.g. QR codes), which have no source path to infer it from */
+	private String		formatOverride;
 
 	/**
 	 * Enumeration for specifying image dimensions in scaling operations.
@@ -432,6 +436,19 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 	public String getFormat() {
 		return figureOutFormat();
+	}
+
+	/**
+	 * Sets the output format used by {@link #getFormat()}, {@link #toByteArray()} and {@link #toBase64String()}
+	 * for an image that has no source path to infer it from.
+	 *
+	 * @param format The image format (e.g., "png", "jpg", "gif"), or null to go back to inferring it
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage setFormat( String format ) {
+		this.formatOverride = format == null || format.isBlank() ? null : format.trim().toLowerCase();
+		return this;
 	}
 
 	/**
@@ -1723,6 +1740,71 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	}
 
 	/**
+	 * Generates a QR code image.
+	 *
+	 * <p>
+	 * The module grid is scaled to the largest whole-pixel module size that fits {@code size}, then stretched to the exact
+	 * size with nearest-neighbour sampling so the code stays sharp and scannable.
+	 * </p>
+	 *
+	 * @param text            The text to encode. Must be non-empty.
+	 * @param size            Edge length in pixels. Clamped to 16 to 4096.
+	 * @param format          The output format, e.g. {@code png}. Must be a format {@code ImageIO} can write.
+	 * @param errorCorrection {@code L}, {@code M}, {@code Q} or {@code H}. Forced to {@code H} when a logo is supplied.
+	 * @param quietZone       Light margin around the code in modules. Clamped to 0 to 32. The QR specification calls for 4.
+	 * @param foreground      Color of the dark modules, a color name or hex code.
+	 * @param background      Color of the light modules, a color name or hex code.
+	 * @param logo            Optional image drawn in the center of the code. May be null.
+	 * @param logoScale       Fraction of the code's edge length the logo covers. Clamped to 0.3.
+	 *
+	 * @return A new {@link BoxImage} containing the QR code.
+	 */
+	public static BoxImage generateQRCode( String text, int size, String format, String errorCorrection, int quietZone, String foreground,
+	    String background, BoxImage logo, double logoScale ) {
+		String normalizedFormat = format == null || format.isBlank() ? "png" : format.trim().toLowerCase();
+		if ( !ImageIO.getImageWritersByFormatName( normalizedFormat ).hasNext() ) {
+			throw new BoxRuntimeException(
+			    "Unable to generate a QR code in format [" + format + "]. Use GetWriteableImageFormats() to see the supported formats." );
+		}
+
+		BufferedImage qr = QRCodeUtil.generate( text, size, errorCorrection, quietZone, foreground, background, logo, logoScale );
+
+		return new BoxImage( qr ).setFormat( normalizedFormat );
+	}
+
+	/**
+	 * Generates a QR code image with the default size, format, error correction, quiet zone and colors.
+	 *
+	 * @param text The text to encode. Must be non-empty.
+	 *
+	 * @return A new {@link BoxImage} containing the QR code.
+	 */
+	public static BoxImage generateQRCode( String text ) {
+		return generateQRCode( text, QRCodeUtil.DEFAULT_SIZE, "png", "M", QRCodeUtil.DEFAULT_QUIET_ZONE, "black", "white", null,
+		    QRCodeUtil.DEFAULT_LOGO_SCALE );
+	}
+
+	/**
+	 * Reads the QR code in this image.
+	 *
+	 * @return The decoded text, or an empty string if no QR code was found
+	 */
+	public String readQRCode() {
+		return readQRCode( true );
+	}
+
+	/**
+	 * Reads the QR code in this image.
+	 *
+	 * @param tryHarder When true, spends more effort finding the code and also tries light-on-dark codes
+	 *
+	 * @return The decoded text, or an empty string if no QR code was found
+	 */
+	public String readQRCode( boolean tryHarder ) {
+		return QRCodeUtil.decode( this.image.getBufferedImage(), tryHarder );
+	}
+
+	/**
 	 * Generates a CAPTCHA image with distorted text.
 	 *
 	 * <p>
@@ -1956,6 +2038,10 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return The determined image format (e.g., "png", "jpg") or a default format if undetermined
 	 */
 	private String figureOutFormat() {
+		if ( this.formatOverride != null ) {
+			return this.formatOverride;
+		}
+
 		if ( this.fileType != null && this.fileType != FileType.Unknown ) {
 			String detectedFormat = this.fileType.getCommonExtension();
 			if ( detectedFormat != null && !detectedFormat.isEmpty() ) {
