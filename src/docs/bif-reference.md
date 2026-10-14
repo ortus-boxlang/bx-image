@@ -39,6 +39,8 @@ Complete alphabetical reference for all image manipulation Built-In Functions (B
 | `ImageNew()` | Creation | N/A | Create new image |
 | `ImageOverlay()` | Compositing | `img.overlay()` | Blend two images |
 | `ImagePaste()` | Compositing | `img.paste()` | Paste image at position |
+| `ImageQRCodeGenerate()` | Creation | `"text".toQRCode()` | Generate a QR code image |
+| `ImageQRCodeRead()` | Output | `img.readQRCode()` | Read the text from a QR code |
 | `ImageRead()` | Creation | N/A | Read image from file |
 | `ImageReadBase64()` | Creation | N/A | Read image from Base64 |
 | `ImageResize()` | Transformations | `img.resize()` | Resize to dimensions |
@@ -284,6 +286,69 @@ html = "<img src='data:image/png;base64,#base64#' />";
 ```
 
 **See Also:** [ImageReadBase64()](#imagereadbase64), [Getting Started](getting-started.md#saving-as-base64)
+
+---
+
+### QR Codes
+
+#### ImageQRCodeGenerate()
+
+Generates a QR code image from text. The result is a regular image, so it works with `ImageWrite()`, `ImageResize()`, `ImageWriteBase64()` and the other image functions.
+
+```boxlang
+qr = ImageQRCodeGenerate( text, [size], [format], [errorCorrection], [quietZone], [foreground], [background], [logo], [logoScale] );
+qr = "text".toQRCode( [size], [format], [errorCorrection], [quietZone], [foreground], [background], [logo], [logoScale] );
+```
+
+| Argument | Type | Default | Description |
+| --- | --- | --- | --- |
+| `text` | string | required | The text to encode. |
+| `size` | numeric | `125` | Edge length in pixels, clamped to 16 to 4096. |
+| `format` | string | `png` | Output format. Any format returned by `GetWriteableImageFormats()`. |
+| `errorCorrection` | string | `M` | `L` (7%), `M` (15%), `Q` (25%) or `H` (30%). Always `H` when a logo is used. |
+| `quietZone` | numeric | `4` | Light margin in modules, clamped to 0 to 32. The QR specification calls for 4. |
+| `foreground` | string | `black` | Color of the dark modules. A color name or hex code (`#RGB`, `#RRGGBB` or `#AARRGGBB`). |
+| `background` | string | `white` | Color of the light modules. |
+| `logo` | any | none | An image, file path or URL drawn in the center. |
+| `logoScale` | numeric | `0.2` | Fraction of the code's edge the logo covers, up to 0.3. |
+
+**Returns:** the QR code as an image.
+
+The module grid is scaled to the largest whole-pixel size that fits `size`, then stretched to `size` with nearest-neighbour sampling so the code stays sharp. A logo that would make the code unreadable throws an error. Use a smaller `logoScale`, a larger `size`, or more text.
+
+```boxlang
+qr = ImageQRCodeGenerate( "https://example.com/verify", 250 );
+ImageWrite( qr, "/path/to/qr.png" );
+
+qr = ImageQRCodeGenerate( text="https://example.com", size=400, foreground="#1a237e", logo="/path/to/logo.png" );
+```
+
+**See Also:** [ImageQRCodeRead()](#imageqrcoderead), [ImageWrite()](#imagewrite)
+
+#### ImageQRCodeRead()
+
+Reads the QR code in an image and returns the text it encodes.
+
+```boxlang
+text = ImageQRCodeRead( name, [tryHarder] );
+text = img.readQRCode( [tryHarder] );
+```
+
+| Argument | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | any | required | The image, or the name of a variable holding one. |
+| `tryHarder` | boolean | `true` | Spend more effort finding the code and also read light-on-dark codes. |
+
+**Returns:** the decoded text, or an empty string when no QR code is found.
+
+```boxlang
+text = ImageQRCodeRead( ImageRead( "/path/to/qr.png" ) );
+if ( !len( text ) ) {
+    writeOutput( "No QR code found" );
+}
+```
+
+**See Also:** [ImageQRCodeGenerate()](#imageqrcodegenerate)
 
 ---
 
