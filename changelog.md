@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ImageQRCodeGenerate()` creates a QR code image from text. It takes `size`, `format`, `errorCorrection`, `quietZone`, `foreground`, `background`, `logo` and `logoScale`, returns a regular image so every other image function works on it, and is also available as the string member function `toQRCode()`. A logo forces error correction level `H`, and a logo that would make the code unreadable throws instead of returning a code that will not scan.
+- `ImageQRCodeRead()` returns the text of a QR code in an image, or an empty string when there is none. It is also available as the image member function `readQRCode()`.
+- `<bx:image action="qrcode">` and `<bx:image action="qrread">`, matching the existing `captcha` action for output and `name`, `destination` and `overwrite` handling.
+- `BoxImage.generateQRCode()`, `BoxImage.readQRCode()` and `BoxImage.setFormat()` on the Java API.
+- ZXing (`com.google.zxing:core` and `javase`) is now bundled for QR encoding and decoding.
+
 ## [1.11.0] - 2026-09-26
 
 ## [1.10.0] - 2026-09-02
