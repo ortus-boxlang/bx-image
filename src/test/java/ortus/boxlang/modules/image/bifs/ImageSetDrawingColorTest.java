@@ -77,7 +77,6 @@ public class ImageSetDrawingColorTest extends BaseIntegrationTest {
 		assertThat( variables.get( result ) ).isEqualTo( "green" );
 	}
 
-
 	private int pixelAfterFill( String color ) {
 		// @formatter:off
 		runtime.executeSource( """
@@ -165,8 +164,8 @@ public class ImageSetDrawingColorTest extends BaseIntegrationTest {
 	@Test
 	public void testImageNewInvalid() {
 		assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( """
-			ImageNew( "", 10, 10, "rgb", "##zzz" );
-		""", context ) );
+		                                                                      	ImageNew( "", 10, 10, "rgb", "##zzz" );
+		                                                                      """, context ) );
 	}
 
 }
