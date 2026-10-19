@@ -67,6 +67,7 @@ import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import javaxt.io.Image;
 import ortus.boxlang.modules.image.util.EnumConverterUtil;
 import ortus.boxlang.modules.image.util.ImageMetadataUtil;
+import ortus.boxlang.modules.image.util.ColorUtil;
 import ortus.boxlang.modules.image.util.FontUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.modules.image.util.QRCodeUtil;
@@ -1429,7 +1430,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		BufferedImage	bfImage	= next.getBufferedImage();
 		Graphics2D		g		= bfImage.createGraphics();
 
-		g.setColor( COLORS.get( color.toLowerCase() ) );
+		g.setColor( ColorUtil.parse( color ) );
 		g.fillRect( 0, 0, bfImage.getWidth(), bfImage.getHeight() );
 
 		g.drawImage( this.image.getBufferedImage(), thickness, thickness, null );
@@ -1572,16 +1573,14 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	/**
 	 * Sets the color for subsequent drawing operations.
 	 *
-	 * @param color The color to set (color name like "red", "blue", or hex code like "#FF0000")
+	 * @param color The color to set (color name like "red", "blue", or hex code like "#FF0000", "#F00" or "#FF000080"; an unparseable value throws)
 	 *
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage setDrawingColor( String color ) {
+		Color parsed = ColorUtil.parse( color );
 		this.drawingColor = color;
-
-		if ( COLORS.containsKey( color.toLowerCase() ) ) {
-			graphics.setColor( COLORS.get( color.toLowerCase() ) );
-		}
+		graphics.setColor( parsed );
 
 		return this;
 	}
@@ -1594,11 +1593,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage setBackgroundColor( String color ) {
+		Color parsed = ColorUtil.parse( color );
 		this.backgroundColor = color;
-
-		if ( COLORS.containsKey( color.toLowerCase() ) ) {
-			graphics.setBackground( COLORS.get( color.toLowerCase() ) );
-		}
+		graphics.setBackground( parsed );
 
 		return this;
 	}

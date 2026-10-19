@@ -321,7 +321,7 @@ The module grid is scaled to the largest whole-pixel size that fits `size`, then
 qr = ImageQRCodeGenerate( "https://example.com/verify", 250 );
 ImageWrite( qr, "/path/to/qr.png" );
 
-qr = ImageQRCodeGenerate( text="https://example.com", size=400, foreground="#1a237e", logo="/path/to/logo.png" );
+qr = ImageQRCodeGenerate( text="https://example.com", size=400, foreground="##1a237e", logo="/path/to/logo.png" );
 ```
 
 **See Also:** [ImageQRCodeRead()](#imageqrcoderead), [ImageWrite()](#imagewrite)

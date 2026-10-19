@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `drawText()` accepts a `file` key in its font attribute struct pointing at a `.ttf` or `.otf` font file, used instead of `font`. `ImageRegisterFont( path )` loads and registers a font file and returns its family name so it can be used as `font`. A missing, empty or invalid font file throws a clear error. Font resolution is a single code path shared with drawing, so any measurement built on it uses the same font.
 
+### Fixed
+
+- Hex color strings were silently ignored: `setDrawingColor( "#FF00FF" )` kept the previous color (black on a fresh image) and `imageNew( "", 10, 10, "rgb", "#0b161b" )` gave a white background. Colors now accept `#RGB`, `#RRGGBB` and `#RRGGBBAA` (alpha last, `#` optional) in `setDrawingColor`, `setBackgroundColor`, `ImageNew`, `ImageAddBorder` and `<bx:image action="border">`. An unparseable color now throws instead of being ignored, and leaves the current color unchanged. Remember that a literal `#` must be written `##` in a BoxLang string.
+
 ## [1.12.0] - 2026-10-14
 
 ### Added
