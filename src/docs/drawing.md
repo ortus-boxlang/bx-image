@@ -36,6 +36,27 @@ img.setBackgroundColor("white");
 img.setBackgroundColor("#F0F0F0");
 ```
 
+### Gradients
+
+Paint with a linear gradient instead of a solid color. It applies to fills, strokes (rings), lines and text until you call `setDrawingColor`.
+
+```js
+img = ImageNew("", 400, 200, "rgb", "black");
+
+// start x/y, end x/y, colors, optional fractions (0 to 1)
+img.setDrawingGradient(0, 0, 400, 0, ["red", "blue"]);
+img.drawRect(0, 0, 400, 40, true);
+
+img.setDrawingGradient(0, 0, 0, 200, ["white", "gray", "black"], [0, 0.3, 1]);
+img.setDrawingStroke({ width: 6 });
+img.drawOval(150, 50, 100, 100, false);
+
+// Back to a solid color
+img.setDrawingColor("white");
+```
+
+Fewer than two colors, an invalid color, identical start and end points, or bad fractions throw an error.
+
 ### Configure Stroke (Line Style)
 
 ```js

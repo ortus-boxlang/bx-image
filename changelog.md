@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ImageSetDrawingGradient( name, x1, y1, x2, y2, colors [, fractions] )` and the member function `setDrawingGradient()` set a linear gradient as the paint for subsequent fills, strokes, lines and text. `setDrawingColor()` returns to a solid color. Invalid input (fewer than two colors, bad color, identical points, bad fractions) throws.
+
 ## [1.12.0] - 2026-10-14
 
 ### Added
