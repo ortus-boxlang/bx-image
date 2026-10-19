@@ -23,9 +23,14 @@ Before drawing, configure colors, strokes, and rendering options:
 img = ImageNew(400, 300, "rgb", "white");
 img.setDrawingColor("red");
 
-// Hex color
-img.setDrawingColor("#FF0000");
+// Hex colors: #RGB, #RRGGBB or #RRGGBBAA (alpha last), with or without the leading #
+img.setDrawingColor("##FF0000");
+img.setDrawingColor("##f00");
+img.setDrawingColor("##FF000080");  // 50% transparent red
+img.setDrawingColor("0b161b");
 ```
+
+> In a BoxLang string literal a `#` starts an interpolation, so write `##FF0000` (or omit the `#`). A value that is neither a known name nor a valid hex code throws an error instead of drawing black. The same formats are accepted by `setBackgroundColor`, the `color` argument of `ImageNew` and `ImageAddBorder`, and the `color` attribute of `<bx:image action="border">`.
 
 **Supported Colors:** `black`, `blue`, `cyan`, `darkgray`, `gray`, `green`, `lightgray`, `magenta`, `orange`, `pink`, `red`, `white`, `yellow`
 
@@ -33,7 +38,7 @@ img.setDrawingColor("#FF0000");
 
 ```js
 img.setBackgroundColor("white");
-img.setBackgroundColor("#F0F0F0");
+img.setBackgroundColor("##F0F0F0");
 ```
 
 ### Configure Stroke (Line Style)
@@ -427,7 +432,7 @@ img = ImageNew(200, 60, "rgb", "white");
 img.setAntiAliasing("on");
 
 // Gradient effect (simplified)
-img.setDrawingColor("#4CAF50");
+img.setDrawingColor("##4CAF50");
 img.drawRoundRect(0, 0, 200, 60, 10, 10, true);
 
 // Highlight
