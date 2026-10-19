@@ -119,6 +119,17 @@ public class ImageSetDrawingGradientTest extends BaseIntegrationTest {
 		assertThat( red( p[ 1 ] ) ).isGreaterThan( 230 );
 	}
 
+	@DisplayName( "Gradient colors accept hex including #RRGGBBAA" )
+	@Test
+	public void testHexColors() {
+		int[] p = pixels( """
+		                  img = ImageNew( "", 100, 10, "argb", "black" );
+		                  img.setDrawingGradient( 0, 0, 100, 0, [ "##ff0000ff", "##00f" ] );
+		                  """, "img.drawRect( 0, 0, 100, 10, true );", new int[][] { { 2, 5 }, { 97, 5 } } );
+		assertThat( red( p[ 0 ] ) ).isGreaterThan( 230 );
+		assertThat( blue( p[ 1 ] ) ).isGreaterThan( 230 );
+	}
+
 	@DisplayName( "setDrawingColor goes back to a solid color" )
 	@Test
 	public void testReset() {
