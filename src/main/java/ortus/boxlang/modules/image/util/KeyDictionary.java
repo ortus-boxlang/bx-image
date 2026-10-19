@@ -48,6 +48,7 @@ public class KeyDictionary {
 	public static final Key	dx					= Key.of( "dx" );
 	public static final Key	dy					= Key.of( "dy" );
 	public static final Key	endCaps				= Key.of( "endCaps" );
+	public static final Key	file				= Key.of( "file" );
 	public static final Key	filled				= Key.of( "filled" );
 	public static final Key	font				= Key.of( "font" );
 	public static final Key	fonts				= Key.of( "fonts" );

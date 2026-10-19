@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `drawText()` accepts a `file` key in its font attribute struct pointing at a `.ttf` or `.otf` font file, used instead of `font`. `ImageRegisterFont( path )` loads and registers a font file and returns its family name so it can be used as `font`. A missing, empty or invalid font file throws a clear error. Font resolution is a single code path shared with drawing, so any measurement built on it uses the same font.
+
 ## [1.12.0] - 2026-10-14
 
 ### Added

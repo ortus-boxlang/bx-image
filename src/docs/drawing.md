@@ -237,11 +237,27 @@ img.drawText("Styled Text", 50, 150, {
 
 **Font Configuration:**
 
+- **file** - Path to a `.ttf` or `.otf` file, used instead of `font` (see [Custom Fonts](#custom-fonts))
 - **font** - Font family name (e.g., "Arial", "Times New Roman")
 - **size** - Font size in points
 - **style** - "plain", "bold", "italic", "bolditalic"
 - **underline** - true/false
 - **strikeThrough** - true/false
+
+### Custom Fonts
+
+Use a bundled font file directly with the `file` key, or register it once and use the family name it returns.
+
+```js
+// One-off
+img.drawText("Brand", 50, 100, { file: "/app/fonts/Brand-Bold.ttf", size: 48 });
+
+// Register once, reuse the family name
+family = ImageRegisterFont("/app/fonts/Brand-Bold.ttf");
+img.drawText("Brand", 50, 100, { font: family, size: 48 });
+```
+
+A missing file, a directory or a file that is not a valid TrueType/OpenType font throws an error. See [ImageRegisterFont](reference/built-in-functions/imageregisterfont.md).
 
 ### Text Examples
 

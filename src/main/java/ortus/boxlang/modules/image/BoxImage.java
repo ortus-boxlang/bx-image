@@ -67,6 +67,7 @@ import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import javaxt.io.Image;
 import ortus.boxlang.modules.image.util.EnumConverterUtil;
 import ortus.boxlang.modules.image.util.ImageMetadataUtil;
+import ortus.boxlang.modules.image.util.FontUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.modules.image.util.QRCodeUtil;
 import ortus.boxlang.modules.image.util.StrokeBuilder;
@@ -1091,6 +1092,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @param y          The y-coordinate of the baseline of the text
 	 * @param fontConfig A struct containing font properties:
 	 *                   - font: The font family name (string)
+	 *                   - file: Path to a .ttf or .otf font file (string). Used instead of font when present.
 	 *                   - style: The font style ("plain", "bold", "italic", "bolditalic")
 	 *                   - size: The font size in points (integer)
 	 *                   - strikeThrough: Whether to apply strikethrough (boolean)
@@ -1099,6 +1101,25 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage drawText( String str, int x, int y, IStruct fontConfig ) {
+		this.graphics.setFont( this.buildFont( fontConfig ) );
+
+		this.drawText( str, x, y );
+
+		this.graphics.setFont( null );
+
+		return this;
+	}
+
+	/**
+	 * Resolves a font attribute struct into a {@link Font}. Shared by drawing and measuring text so both always agree.
+	 *
+	 * @param fontConfig A struct with the keys font, style, size, strikeThrough and underline (see {@link #drawText(String, int, int, IStruct)})
+	 *
+	 * @return The resolved font
+	 *
+	 * @throws BoxRuntimeException If the style is not one of plain, bold, italic or bolditalic
+	 */
+	private Font buildFont( IStruct fontConfig ) {
 		Map<TextAttribute, Object> attr = new HashMap<TextAttribute, Object>();
 
 		attr.put( TextAttribute.FONT, DEFAULT_FONT_FAMILY );
@@ -1140,15 +1161,19 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			attr.put( TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON );
 		}
 
-		Font currentFont = new Font( attr );
+		String file = fontConfig.getAsString( KeyDictionary.file );
+		if ( file != null ) {
+			if ( file.isBlank() ) {
+				throw new BoxRuntimeException( "The font file path is empty." );
+			}
+			// A font file is used as is; deriving from it avoids depending on a family name lookup
+			attr.remove( TextAttribute.FAMILY );
+			attr.remove( TextAttribute.FONT );
+			attr.putIfAbsent( TextAttribute.SIZE, 12f );
+			return FontUtil.load( Path.of( file ) ).deriveFont( attr );
+		}
 
-		this.graphics.setFont( currentFont );
-
-		this.drawText( str, x, y );
-
-		this.graphics.setFont( null );
-
-		return this;
+		return new Font( attr );
 	}
 
 	/**
