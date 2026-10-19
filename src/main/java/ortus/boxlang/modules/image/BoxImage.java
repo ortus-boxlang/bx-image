@@ -23,6 +23,8 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.LinearGradientPaint;
+import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
@@ -30,6 +32,7 @@ import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -67,6 +70,8 @@ import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import javaxt.io.Image;
 import ortus.boxlang.modules.image.util.EnumConverterUtil;
 import ortus.boxlang.modules.image.util.ImageMetadataUtil;
+import ortus.boxlang.modules.image.util.ColorUtil;
+import ortus.boxlang.modules.image.util.FontUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.modules.image.util.QRCodeUtil;
 import ortus.boxlang.modules.image.util.StrokeBuilder;
@@ -206,6 +211,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 	/** Current drawing color (default: white) */
 	private String		drawingColor	= "white";
+
+	/** Active gradient paint, or null when drawing with the solid drawing color */
+	private Paint		gradient;
 
 	/** Current background color (default: white) */
 	private String		backgroundColor	= "white";
@@ -381,8 +389,13 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 		this.graphics = bufferedImage.createGraphics();
 
+		Paint activeGradient = this.gradient;
 		this.setDrawingColor( this.drawingColor );
 		this.setBackgroundColor( this.backgroundColor );
+		if ( activeGradient != null ) {
+			this.gradient = activeGradient;
+			this.graphics.setPaint( activeGradient );
+		}
 	}
 
 	/**
@@ -1091,6 +1104,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @param y          The y-coordinate of the baseline of the text
 	 * @param fontConfig A struct containing font properties:
 	 *                   - font: The font family name (string)
+	 *                   - file: Path to a .ttf or .otf font file (string). Used instead of font when present.
 	 *                   - style: The font style ("plain", "bold", "italic", "bolditalic")
 	 *                   - size: The font size in points (integer)
 	 *                   - strikeThrough: Whether to apply strikethrough (boolean)
@@ -1099,6 +1113,25 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage drawText( String str, int x, int y, IStruct fontConfig ) {
+		this.graphics.setFont( this.buildFont( fontConfig ) );
+
+		this.drawText( str, x, y );
+
+		this.graphics.setFont( null );
+
+		return this;
+	}
+
+	/**
+	 * Resolves a font attribute struct into a {@link Font}. Shared by drawing and measuring text so both always agree.
+	 *
+	 * @param fontConfig A struct with the keys font, style, size, strikeThrough and underline (see {@link #drawText(String, int, int, IStruct)})
+	 *
+	 * @return The resolved font
+	 *
+	 * @throws BoxRuntimeException If the style is not one of plain, bold, italic or bolditalic
+	 */
+	private Font buildFont( IStruct fontConfig ) {
 		Map<TextAttribute, Object> attr = new HashMap<TextAttribute, Object>();
 
 		attr.put( TextAttribute.FONT, DEFAULT_FONT_FAMILY );
@@ -1140,15 +1173,42 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			attr.put( TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON );
 		}
 
-		Font currentFont = new Font( attr );
+		String file = fontConfig.getAsString( KeyDictionary.file );
+		if ( file != null ) {
+			if ( file.isBlank() ) {
+				throw new BoxRuntimeException( "The font file path is empty." );
+			}
+			// A font file is used as is; deriving from it avoids depending on a family name lookup
+			attr.remove( TextAttribute.FAMILY );
+			attr.remove( TextAttribute.FONT );
+			attr.putIfAbsent( TextAttribute.SIZE, 12f );
+			return FontUtil.load( Path.of( file ) ).deriveFont( attr );
+		}
 
-		this.graphics.setFont( currentFont );
+		return new Font( attr );
+	}
 
-		this.drawText( str, x, y );
+	/**
+	 * Measures a single line of text as {@link #drawText(String, int, int, IStruct)} would render it.
+	 *
+	 * @param str        The text to measure
+	 * @param fontConfig Optional font attribute struct (font, style, size, strikeThrough, underline). Null uses the defaults.
+	 *
+	 * @return A struct with width (advance in pixels), height (ascent + descent), ascent, descent and leading
+	 */
+	public IStruct measureText( String str, IStruct fontConfig ) {
+		Font	font	= fontConfig == null ? this.graphics.getFont() : this.buildFont( fontConfig );
+		var		frc		= this.graphics.getFontRenderContext();
+		var		metrics	= font.getLineMetrics( str, frc );
+		double	width	= str.isEmpty() ? 0 : font.getStringBounds( str, frc ).getWidth();
 
-		this.graphics.setFont( null );
-
-		return this;
+		IStruct	result	= new Struct();
+		result.put( KeyDictionary.width, width );
+		result.put( KeyDictionary.height, ( double ) ( metrics.getAscent() + metrics.getDescent() ) );
+		result.put( KeyDictionary.ascent, ( double ) metrics.getAscent() );
+		result.put( KeyDictionary.descent, ( double ) metrics.getDescent() );
+		result.put( KeyDictionary.leading, ( double ) metrics.getLeading() );
+		return result;
 	}
 
 	/**
@@ -1404,7 +1464,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		BufferedImage	bfImage	= next.getBufferedImage();
 		Graphics2D		g		= bfImage.createGraphics();
 
-		g.setColor( COLORS.get( color.toLowerCase() ) );
+		g.setColor( ColorUtil.parse( color ) );
 		g.fillRect( 0, 0, bfImage.getWidth(), bfImage.getHeight() );
 
 		g.drawImage( this.image.getBufferedImage(), thickness, thickness, null );
@@ -1547,16 +1607,72 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	/**
 	 * Sets the color for subsequent drawing operations.
 	 *
-	 * @param color The color to set (color name like "red", "blue", or hex code like "#FF0000")
+	 * @param color The color to set (color name like "red", "blue", or hex code like "#FF0000", "#F00" or "#FF000080"; an unparseable value throws)
 	 *
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage setDrawingColor( String color ) {
+		Color parsed = ColorUtil.parse( color );
 		this.drawingColor = color;
 
-		if ( COLORS.containsKey( color.toLowerCase() ) ) {
-			graphics.setColor( COLORS.get( color.toLowerCase() ) );
+		// Leaving gradient mode: fall back to the last solid color before applying the new one
+		if ( this.gradient != null ) {
+			this.gradient = null;
+			graphics.setPaint( graphics.getColor() );
 		}
+
+		graphics.setColor( parsed );
+
+		return this;
+	}
+
+	/**
+	 * Sets a linear gradient as the paint for subsequent fill, stroke and text operations
+	 * until {@link #setDrawingColor(String)} is called.
+	 *
+	 * @param x1        The x-coordinate of the gradient start point
+	 * @param y1        The y-coordinate of the gradient start point
+	 * @param x2        The x-coordinate of the gradient end point
+	 * @param y2        The y-coordinate of the gradient end point
+	 * @param colors    Two or more color names or hex codes
+	 * @param fractions Optional positions (0 to 1, strictly increasing, one per color). Null spreads the colors evenly.
+	 *
+	 * @return This BoxImage instance for method chaining
+	 *
+	 * @throws BoxRuntimeException If the points coincide, fewer than two colors are given, a color is invalid or the fractions are invalid
+	 */
+	public BoxImage setDrawingGradient( float x1, float y1, float x2, float y2, Array colors, Array fractions ) {
+		if ( colors == null || colors.size() < 2 ) {
+			throw new BoxRuntimeException( "A gradient needs at least two colors." );
+		}
+		if ( x1 == x2 && y1 == y2 ) {
+			throw new BoxRuntimeException( "The gradient start and end points must be different." );
+		}
+
+		Color[] parsed = new Color[ colors.size() ];
+		for ( int i = 0; i < parsed.length; i++ ) {
+			parsed[ i ] = ColorUtil.parse( StringCaster.cast( colors.get( i ) ) );
+		}
+
+		float[] stops = new float[ parsed.length ];
+		if ( fractions == null || fractions.isEmpty() ) {
+			for ( int i = 0; i < stops.length; i++ ) {
+				stops[ i ] = ( float ) i / ( stops.length - 1 );
+			}
+		} else {
+			if ( fractions.size() != parsed.length ) {
+				throw new BoxRuntimeException( "fractions must have one entry per color (" + parsed.length + ") but had " + fractions.size() + "." );
+			}
+			for ( int i = 0; i < stops.length; i++ ) {
+				stops[ i ] = FloatCaster.cast( fractions.get( i ) );
+				if ( stops[ i ] < 0f || stops[ i ] > 1f || ( i > 0 && stops[ i ] <= stops[ i - 1 ] ) ) {
+					throw new BoxRuntimeException( "fractions must be between 0 and 1 and strictly increasing." );
+				}
+			}
+		}
+
+		this.gradient = new LinearGradientPaint( new Point2D.Float( x1, y1 ), new Point2D.Float( x2, y2 ), stops, parsed );
+		this.graphics.setPaint( this.gradient );
 
 		return this;
 	}
@@ -1569,11 +1685,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage setBackgroundColor( String color ) {
+		Color parsed = ColorUtil.parse( color );
 		this.backgroundColor = color;
-
-		if ( COLORS.containsKey( color.toLowerCase() ) ) {
-			graphics.setBackground( COLORS.get( color.toLowerCase() ) );
-		}
+		graphics.setBackground( parsed );
 
 		return this;
 	}

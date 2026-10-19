@@ -18,7 +18,7 @@
 
 ## Introduction
 
-The BoxLang Image module provides comprehensive image manipulation functionality with a fluent, chainable API. Read, create, transform, filter, and save images with ease. This module brings CFML-compatible image functions to BoxLang while adding modern enhancements and conveniences.
+The **BoxLang** Image module provides comprehensive image manipulation functionality with a fluent, chainable API. Read, create, transform, filter, and save images with ease. This module brings CFML-compatible image functions to BoxLang while adding modern enhancements and conveniences.
 
 **Key Features:**
 

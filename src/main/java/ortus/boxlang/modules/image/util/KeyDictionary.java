@@ -23,6 +23,9 @@ public class KeyDictionary {
 
 	public static final Key	action				= Key.of( "action" );
 	public static final Key	amount				= Key.of( "amount" );
+	public static final Key	ascent				= Key.of( "ascent" );
+	public static final Key	descent				= Key.of( "descent" );
+	public static final Key	leading				= Key.of( "leading" );
 	public static final Key	angle				= Key.of( "angle" );
 	public static final Key	antialias			= Key.of( "antialias" );
 	public static final Key	archAngle			= Key.of( "archAngle" );
@@ -34,6 +37,8 @@ public class KeyDictionary {
 	public static final Key	borderType			= Key.of( "borderType" );
 	public static final Key	bximage				= Key.of( "bximage" );
 	public static final Key	color				= Key.of( "color" );
+	public static final Key	colors				= Key.of( "colors" );
+	public static final Key	fractions			= Key.of( "fractions" );
 	public static final Key	background			= Key.of( "background" );
 	public static final Key	ctrlx1				= Key.of( "ctrlx1" );
 	public static final Key	ctrlx2				= Key.of( "ctrlx2" );
@@ -48,6 +53,7 @@ public class KeyDictionary {
 	public static final Key	dx					= Key.of( "dx" );
 	public static final Key	dy					= Key.of( "dy" );
 	public static final Key	endCaps				= Key.of( "endCaps" );
+	public static final Key	file				= Key.of( "file" );
 	public static final Key	filled				= Key.of( "filled" );
 	public static final Key	font				= Key.of( "font" );
 	public static final Key	fonts				= Key.of( "fonts" );

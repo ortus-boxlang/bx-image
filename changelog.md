@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `drawText()` accepts a `file` key in its font attribute struct pointing at a `.ttf` or `.otf` font file, used instead of `font`. `ImageRegisterFont( path )` loads and registers a font file and returns its family name so it can be used as `font`. A missing, empty or invalid font file throws a clear error. Font resolution is a single code path shared with drawing, so any measurement built on it uses the same font.
+- `ImageMeasureText( name, str [, attributeCollection] )` and the member function `measureText()` return the rendered `width`, `height`, `ascent`, `descent` and `leading` of a line of text, using the same font attribute struct and font resolution as `drawText()`. Use it to word wrap or shrink text to fit. A `wrapText` helper is intentionally not included; see the docs for a short wrapping recipe built on `measureText()`.
+- `ImageSetDrawingGradient( name, x1, y1, x2, y2, colors [, fractions] )` and the member function `setDrawingGradient()` set a linear gradient as the paint for subsequent fills, strokes, lines and text. `setDrawingColor()` returns to a solid color. Invalid input (fewer than two colors, bad color, identical points, bad fractions) throws.
+
+### Fixed
+
+- Hex color strings were silently ignored: `setDrawingColor( "#FF00FF" )` kept the previous color (black on a fresh image) and `imageNew( "", 10, 10, "rgb", "#0b161b" )` gave a white background. Colors now accept `#RGB`, `#RRGGBB` and `#RRGGBBAA` (alpha last, `#` optional) in `setDrawingColor`, `setBackgroundColor`, `ImageNew`, `ImageAddBorder` and `<bx:image action="border">`. An unparseable color now throws instead of being ignored, and leaves the current color unchanged. Remember that a literal `#` must be written `##` in a BoxLang string.
+
+## [1.12.0] - 2026-10-14
+
+### Added
+
 - `ImageQRCodeGenerate()` creates a QR code image from text. It takes `size`, `format`, `errorCorrection`, `quietZone`, `foreground`, `background`, `logo` and `logoScale`, returns a regular image so every other image function works on it, and is also available as the string member function `toQRCode()`. A logo forces error correction level `H`, and a logo that would make the code unreadable throws instead of returning a code that will not scan.
 - `ImageQRCodeRead()` returns the text of a QR code in an image, or an empty string when there is none. It is also available as the image member function `readQRCode()`.
 - `<bx:image action="qrcode">` and `<bx:image action="qrread">`, matching the existing `captcha` action for output and `name`, `destination` and `overwrite` handling.

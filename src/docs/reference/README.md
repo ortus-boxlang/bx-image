@@ -35,6 +35,7 @@ Complete alphabetical reference for all image manipulation Built-In Functions (B
 | `ImageGetWidth()` | Properties | `img.getWidth()` | Get image width |
 | `ImageGrayScale()` | Filters | `img.grayScale()` | Convert to grayscale |
 | `ImageInfo()` | Properties | `img.info()` | Get comprehensive image info |
+| `ImageMeasureText()` | Drawing | `img.measureText()` | Measure rendered text size |
 | `ImageNegative()` | Filters | `img.negative()` | Invert colors |
 | `ImageNew()` | Creation | N/A | Create new image |
 | `ImageOverlay()` | Compositing | `img.overlay()` | Blend two images |
@@ -43,6 +44,7 @@ Complete alphabetical reference for all image manipulation Built-In Functions (B
 | `ImageQRCodeRead()` | Output | `img.readQRCode()` | Read the text from a QR code |
 | `ImageRead()` | Creation | N/A | Read image from file |
 | `ImageReadBase64()` | Creation | N/A | Read image from Base64 |
+| `ImageRegisterFont()` | Configuration | N/A | Register a TTF/OTF font file, returns the family |
 | `ImageResize()` | Transformations | `img.resize()` | Resize to dimensions |
 | `ImageRotate()` | Transformations | `img.rotate()` | Rotate by angle |
 | `ImageRotateDrawingAxis()` | Drawing | `img.rotateDrawingAxis()` | Rotate coordinate system |
@@ -50,6 +52,7 @@ Complete alphabetical reference for all image manipulation Built-In Functions (B
 | `ImageSetAntiAliasing()` | Configuration | `img.setAntialiasing()` | Enable/disable antialiasing |
 | `ImageSetBackgroundColor()` | Configuration | `img.setBackgroundColor()` | Set background color |
 | `ImageSetDrawingColor()` | Configuration | `img.setDrawingColor()` | Set drawing color |
+| `ImageSetDrawingGradient()` | Configuration | `img.setDrawingGradient()` | Linear gradient paint |
 | `ImageSetDrawingStroke()` | Configuration | `img.setDrawingStroke()` | Set stroke properties |
 | `ImageSetDrawingTransparency()` | Configuration | `img.setDrawingTransparency()` | Set transparency level |
 | `ImageSharpen()` | Filters | `img.sharpen()` | Sharpen image |
@@ -320,7 +323,7 @@ The module grid is scaled to the largest whole-pixel size that fits `size`, then
 qr = ImageQRCodeGenerate( "https://example.com/verify", 250 );
 ImageWrite( qr, "/path/to/qr.png" );
 
-qr = ImageQRCodeGenerate( text="https://example.com", size=400, foreground="#1a237e", logo="/path/to/logo.png" );
+qr = ImageQRCodeGenerate( text="https://example.com", size=400, foreground="##1a237e", logo="/path/to/logo.png" );
 ```
 
 **See Also:** [ImageQRCodeRead()](#imageqrcoderead), [ImageWrite()](#imagewrite)
