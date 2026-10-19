@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Hex color strings were silently ignored: `setDrawingColor( "#FF00FF" )` kept the previous color (black on a fresh image) and `imageNew( "", 10, 10, "rgb", "#0b161b" )` gave a white background. Colors now accept `#RGB`, `#RRGGBB` and `#RRGGBBAA` (alpha last, `#` optional) in `setDrawingColor`, `setBackgroundColor`, `ImageNew`, `ImageAddBorder` and `<bx:image action="border">`. An unparseable color now throws instead of being ignored, and leaves the current color unchanged. Remember that a literal `#` must be written `##` in a BoxLang string.
+
 ## [1.12.0] - 2026-10-14
 
 ### Added
