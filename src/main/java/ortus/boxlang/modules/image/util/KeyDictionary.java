@@ -23,6 +23,9 @@ public class KeyDictionary {
 
 	public static final Key	action				= Key.of( "action" );
 	public static final Key	amount				= Key.of( "amount" );
+	public static final Key	ascent				= Key.of( "ascent" );
+	public static final Key	descent				= Key.of( "descent" );
+	public static final Key	leading				= Key.of( "leading" );
 	public static final Key	angle				= Key.of( "angle" );
 	public static final Key	antialias			= Key.of( "antialias" );
 	public static final Key	archAngle			= Key.of( "archAngle" );

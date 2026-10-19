@@ -269,6 +269,21 @@ img.drawText("Styled Text", 50, 150, {
 - **underline** - true/false
 - **strikeThrough** - true/false
 
+### Measuring Text
+
+`measureText` returns the rendered size for the same font struct `drawText` takes, so you can center, word wrap or shrink text to fit.
+
+```js
+attrs = { font: "Arial", size: 48, style: "bold" };
+m = img.measureText("Hello World", attrs);
+// m.width, m.height (ascent + descent), m.ascent, m.descent, m.leading
+
+// Center on a 400px wide image; y is the baseline
+img.drawText("Hello World", (400 - m.width) / 2, 100, attrs);
+```
+
+Word wrapping is left to your code; see [ImageMeasureText](reference/built-in-functions/imagemeasuretext.md) for a short wrap-and-shrink recipe.
+
 ### Text Examples
 
 ```js

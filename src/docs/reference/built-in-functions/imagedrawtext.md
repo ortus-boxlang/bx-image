@@ -57,6 +57,7 @@ img.setDrawingColor("blue")
 
 ## See Also
 
+* ImageMeasureText (measure the rendered size before drawing)
 * ImageDrawRect
 * ImageDrawPoint
 
