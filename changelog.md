@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ImageMeasureText( name, str [, attributeCollection] )` and the member function `measureText()` return the rendered `width`, `height`, `ascent`, `descent` and `leading` of a line of text, using the same font attribute struct and font resolution as `drawText()`. Use it to word wrap or shrink text to fit. A `wrapText` helper is intentionally not included; see the docs for a short wrapping recipe built on `measureText()`.
+
 ## [1.12.0] - 2026-10-14
 
 ### Added

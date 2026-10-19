@@ -1099,6 +1099,25 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage drawText( String str, int x, int y, IStruct fontConfig ) {
+		this.graphics.setFont( this.buildFont( fontConfig ) );
+
+		this.drawText( str, x, y );
+
+		this.graphics.setFont( null );
+
+		return this;
+	}
+
+	/**
+	 * Resolves a font attribute struct into a {@link Font}. Shared by drawing and measuring text so both always agree.
+	 *
+	 * @param fontConfig A struct with the keys font, style, size, strikeThrough and underline (see {@link #drawText(String, int, int, IStruct)})
+	 *
+	 * @return The resolved font
+	 *
+	 * @throws BoxRuntimeException If the style is not one of plain, bold, italic or bolditalic
+	 */
+	private Font buildFont( IStruct fontConfig ) {
 		Map<TextAttribute, Object> attr = new HashMap<TextAttribute, Object>();
 
 		attr.put( TextAttribute.FONT, DEFAULT_FONT_FAMILY );
@@ -1140,15 +1159,30 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			attr.put( TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON );
 		}
 
-		Font currentFont = new Font( attr );
+		return new Font( attr );
+	}
 
-		this.graphics.setFont( currentFont );
+	/**
+	 * Measures a single line of text as {@link #drawText(String, int, int, IStruct)} would render it.
+	 *
+	 * @param str        The text to measure
+	 * @param fontConfig Optional font attribute struct (font, style, size, strikeThrough, underline). Null uses the defaults.
+	 *
+	 * @return A struct with width (advance in pixels), height (ascent + descent), ascent, descent and leading
+	 */
+	public IStruct measureText( String str, IStruct fontConfig ) {
+		Font		font	= fontConfig == null ? this.graphics.getFont() : this.buildFont( fontConfig );
+		var			frc		= this.graphics.getFontRenderContext();
+		var			metrics	= font.getLineMetrics( str, frc );
+		double		width	= str.isEmpty() ? 0 : font.getStringBounds( str, frc ).getWidth();
 
-		this.drawText( str, x, y );
-
-		this.graphics.setFont( null );
-
-		return this;
+		IStruct		result	= new Struct();
+		result.put( KeyDictionary.width, width );
+		result.put( KeyDictionary.height, ( double ) ( metrics.getAscent() + metrics.getDescent() ) );
+		result.put( KeyDictionary.ascent, ( double ) metrics.getAscent() );
+		result.put( KeyDictionary.descent, ( double ) metrics.getDescent() );
+		result.put( KeyDictionary.leading, ( double ) metrics.getLeading() );
+		return result;
 	}
 
 	/**
