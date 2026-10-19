@@ -110,4 +110,29 @@ public class ImageCustomFontTest extends BaseIntegrationTest {
 		assertThrows( BoxRuntimeException.class, () -> ink( "{ file: 'src/test/resources/fonts' }" ) );
 		assertThrows( Exception.class, () -> runtime.executeSource( "ImageRegisterFont( '' );", context ) );
 	}
+
+	@DisplayName( "measureText uses the same font file resolution as drawText" )
+	@Test
+	public void testMeasureWithFile() {
+		runtime.executeSource( """
+		                       img = ImageNew( "", 600, 120, "rgb", "white" );
+		                       attrs = { file: "%s", size: 48 };
+		                       img.setDrawingColor( "black" );
+		                       img.drawText( "MMMM", 20, 80, attrs );
+		                       bi = img.getBufferedImage();
+		                       maxX = -1;
+		                       for ( x = 0; x < 600; x++ ) {
+		                           for ( y = 0; y < 120; y++ ) { if ( bi.getRGB( x, y ) != -1 ) maxX = max( maxX, x ); }
+		                       }
+		                       result = [ maxX, img.measureText( "MMMM", attrs ).width, img.measureText( "MMMM", { font: "sansserif", size: 48 } ).width ];
+		                       """.formatted( FONT ), context );
+		Array values = ( Array ) variables.get( result );
+		double	maxX	= ( ( Number ) values.get( 0 ) ).doubleValue();
+		double	custom	= ( ( Number ) values.get( 1 ) ).doubleValue();
+		double	sans	= ( ( Number ) values.get( 2 ) ).doubleValue();
+		assertThat( maxX ).isAtMost( 20 + custom + 1 );
+		assertThat( maxX ).isAtLeast( 20 + custom * 0.8 );
+		assertThat( custom ).isNotEqualTo( sans );
+		assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( "ImageNew('',10,10,'rgb','white').measureText('x',{file:'nope.ttf'});", context ) );
+	}
 }

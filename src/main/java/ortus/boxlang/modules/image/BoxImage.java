@@ -1189,6 +1189,29 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	}
 
 	/**
+	 * Measures a single line of text as {@link #drawText(String, int, int, IStruct)} would render it.
+	 *
+	 * @param str        The text to measure
+	 * @param fontConfig Optional font attribute struct (font, style, size, strikeThrough, underline). Null uses the defaults.
+	 *
+	 * @return A struct with width (advance in pixels), height (ascent + descent), ascent, descent and leading
+	 */
+	public IStruct measureText( String str, IStruct fontConfig ) {
+		Font		font	= fontConfig == null ? this.graphics.getFont() : this.buildFont( fontConfig );
+		var			frc		= this.graphics.getFontRenderContext();
+		var			metrics	= font.getLineMetrics( str, frc );
+		double		width	= str.isEmpty() ? 0 : font.getStringBounds( str, frc ).getWidth();
+
+		IStruct		result	= new Struct();
+		result.put( KeyDictionary.width, width );
+		result.put( KeyDictionary.height, ( double ) ( metrics.getAscent() + metrics.getDescent() ) );
+		result.put( KeyDictionary.ascent, ( double ) metrics.getAscent() );
+		result.put( KeyDictionary.descent, ( double ) metrics.getDescent() );
+		result.put( KeyDictionary.leading, ( double ) metrics.getLeading() );
+		return result;
+	}
+
+	/**
 	 * Resizes the image to the specified dimensions.
 	 *
 	 * @param width          The target width in pixels

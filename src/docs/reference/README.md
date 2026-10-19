@@ -35,6 +35,7 @@ Complete alphabetical reference for all image manipulation Built-In Functions (B
 | `ImageGetWidth()` | Properties | `img.getWidth()` | Get image width |
 | `ImageGrayScale()` | Filters | `img.grayScale()` | Convert to grayscale |
 | `ImageInfo()` | Properties | `img.info()` | Get comprehensive image info |
+| `ImageMeasureText()` | Drawing | `img.measureText()` | Measure rendered text size |
 | `ImageNegative()` | Filters | `img.negative()` | Invert colors |
 | `ImageNew()` | Creation | N/A | Create new image |
 | `ImageOverlay()` | Compositing | `img.overlay()` | Blend two images |

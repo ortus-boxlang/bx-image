@@ -59,6 +59,7 @@ img.setDrawingColor("blue")
 ## See Also
 
 * ImageRegisterFont (use a font file)
+* ImageMeasureText (measure the rendered size before drawing)
 * ImageDrawRect
 * ImageDrawPoint
 
