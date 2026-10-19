@@ -71,6 +71,7 @@ import javaxt.io.Image;
 import ortus.boxlang.modules.image.util.EnumConverterUtil;
 import ortus.boxlang.modules.image.util.ImageMetadataUtil;
 import ortus.boxlang.modules.image.util.ColorUtil;
+import ortus.boxlang.modules.image.util.FontUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.modules.image.util.QRCodeUtil;
 import ortus.boxlang.modules.image.util.StrokeBuilder;
@@ -1103,6 +1104,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @param y          The y-coordinate of the baseline of the text
 	 * @param fontConfig A struct containing font properties:
 	 *                   - font: The font family name (string)
+	 *                   - file: Path to a .ttf or .otf font file (string). Used instead of font when present.
 	 *                   - style: The font style ("plain", "bold", "italic", "bolditalic")
 	 *                   - size: The font size in points (integer)
 	 *                   - strikeThrough: Whether to apply strikethrough (boolean)
@@ -1169,6 +1171,18 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		CastAttempt<Boolean> underline = BooleanCaster.attempt( fontConfig.get( KeyDictionary.underline ) );
 		if ( underline.wasSuccessful() && underline.get() ) {
 			attr.put( TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON );
+		}
+
+		String file = fontConfig.getAsString( KeyDictionary.file );
+		if ( file != null ) {
+			if ( file.isBlank() ) {
+				throw new BoxRuntimeException( "The font file path is empty." );
+			}
+			// A font file is used as is; deriving from it avoids depending on a family name lookup
+			attr.remove( TextAttribute.FAMILY );
+			attr.remove( TextAttribute.FONT );
+			attr.putIfAbsent( TextAttribute.SIZE, 12f );
+			return FontUtil.load( Path.of( file ) ).deriveFont( attr );
 		}
 
 		return new Font( attr );

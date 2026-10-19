@@ -44,6 +44,7 @@ Complete alphabetical reference for all image manipulation Built-In Functions (B
 | `ImageQRCodeRead()` | Output | `img.readQRCode()` | Read the text from a QR code |
 | `ImageRead()` | Creation | N/A | Read image from file |
 | `ImageReadBase64()` | Creation | N/A | Read image from Base64 |
+| `ImageRegisterFont()` | Configuration | N/A | Register a TTF/OTF font file, returns the family |
 | `ImageResize()` | Transformations | `img.resize()` | Resize to dimensions |
 | `ImageRotate()` | Transformations | `img.rotate()` | Rotate by angle |
 | `ImageRotateDrawingAxis()` | Drawing | `img.rotateDrawingAxis()` | Rotate coordinate system |
