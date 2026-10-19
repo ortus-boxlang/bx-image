@@ -37,6 +37,8 @@ public class KeyDictionary {
 	public static final Key	borderType			= Key.of( "borderType" );
 	public static final Key	bximage				= Key.of( "bximage" );
 	public static final Key	color				= Key.of( "color" );
+	public static final Key	colors				= Key.of( "colors" );
+	public static final Key	fractions			= Key.of( "fractions" );
 	public static final Key	background			= Key.of( "background" );
 	public static final Key	ctrlx1				= Key.of( "ctrlx1" );
 	public static final Key	ctrlx2				= Key.of( "ctrlx2" );

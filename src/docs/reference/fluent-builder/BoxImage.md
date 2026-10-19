@@ -199,6 +199,9 @@ Before drawing, configure colors, stroke, and transparency:
 img.setDrawingColor("red");
 img.setDrawingColor("#0000FF");
 
+// Linear gradient for fills, strokes and text (setDrawingColor returns to solid)
+img.setDrawingGradient(0, 0, 400, 0, ["red", "blue"]);
+
 // Set background color
 img.setBackgroundColor("white");
 
