@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-10-19
+
+## [1.12.0] - 2026-10-14
+
 ### Added
 
 - `drawText()` accepts a `file` key in its font attribute struct pointing at a `.ttf` or `.otf` font file, used instead of `font`. `ImageRegisterFont( path )` loads and registers a font file and returns its family name so it can be used as `font`. A missing, empty or invalid font file throws a clear error. Font resolution is a single code path shared with drawing, so any measurement built on it uses the same font.
@@ -148,7 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.12.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.9.0...v1.10.0
