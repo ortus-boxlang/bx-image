@@ -50,6 +50,7 @@ Complete alphabetical reference for all image manipulation Built-In Functions (B
 | `ImageSetAntiAliasing()` | Configuration | `img.setAntialiasing()` | Enable/disable antialiasing |
 | `ImageSetBackgroundColor()` | Configuration | `img.setBackgroundColor()` | Set background color |
 | `ImageSetDrawingColor()` | Configuration | `img.setDrawingColor()` | Set drawing color |
+| `ImageSetDrawingGradient()` | Configuration | `img.setDrawingGradient()` | Linear gradient paint |
 | `ImageSetDrawingStroke()` | Configuration | `img.setDrawingStroke()` | Set stroke properties |
 | `ImageSetDrawingTransparency()` | Configuration | `img.setDrawingTransparency()` | Set transparency level |
 | `ImageSharpen()` | Filters | `img.sharpen()` | Sharpen image |
