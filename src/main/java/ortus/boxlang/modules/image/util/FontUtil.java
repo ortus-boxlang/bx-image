@@ -38,8 +38,8 @@ public class FontUtil {
 		}
 
 		try {
-			String key = absolute + "|" + Files.size( absolute ) + "|" + Files.getLastModifiedTime( absolute ).toMillis();
-			Font cached = CACHE.get( key );
+			String	key		= absolute + "|" + Files.size( absolute ) + "|" + Files.getLastModifiedTime( absolute ).toMillis();
+			Font	cached	= CACHE.get( key );
 			if ( cached != null ) {
 				return cached;
 			}
