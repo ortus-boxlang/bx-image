@@ -77,21 +77,21 @@ public class ImageSetDrawingGradientTest extends BaseIntegrationTest {
 	@Test
 	public void testText() {
 		runtime.executeSource( SETUP + """
-		                       img.drawText( "MMMMMMMM", 0, 80, { size: 60, style: "bold" } );
-		                       bi = img.getBufferedImage();
-		                       leftRed = 0; rightBlue = 0;
-		                       for ( x = 0; x < 100; x++ ) {
-		                           for ( y = 0; y < 100; y++ ) {
-		                               px = bi.getRGB( x, y );
-		                               if ( px != -16777216 ) {
-		                                   r = bitAnd( bitSHRN( px, 16 ), 255 ); b = bitAnd( px, 255 );
-		                                   if ( x < 30 && r > b ) leftRed++;
-		                                   if ( x > 70 && b > r ) rightBlue++;
+		                               img.drawText( "MMMMMMMM", 0, 80, { size: 60, style: "bold" } );
+		                               bi = img.getBufferedImage();
+		                               leftRed = 0; rightBlue = 0;
+		                               for ( x = 0; x < 100; x++ ) {
+		                                   for ( y = 0; y < 100; y++ ) {
+		                                       px = bi.getRGB( x, y );
+		                                       if ( px != -16777216 ) {
+		                                           r = bitAnd( bitSHRN( px, 16 ), 255 ); b = bitAnd( px, 255 );
+		                                           if ( x < 30 && r > b ) leftRed++;
+		                                           if ( x > 70 && b > r ) rightBlue++;
+		                                       }
+		                                   }
 		                               }
-		                           }
-		                       }
-		                       result = [ leftRed, rightBlue ];
-		                       """, context );
+		                               result = [ leftRed, rightBlue ];
+		                               """, context );
 		Array values = ( Array ) variables.get( result );
 		assertThat( ( ( Number ) values.get( 0 ) ).intValue() ).isGreaterThan( 0 );
 		assertThat( ( ( Number ) values.get( 1 ) ).intValue() ).isGreaterThan( 0 );
@@ -173,7 +173,8 @@ public class ImageSetDrawingGradientTest extends BaseIntegrationTest {
 		    "img.setDrawingGradient( 0, 0, 10, 0, [ \"red\", \"blue\" ], [ 0, 2 ] )"
 		};
 		for ( String code : bad ) {
-			assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( "img = ImageNew( \"\", 10, 10, \"rgb\", \"black\" ); " + code + ";", context ), code );
+			assertThrows( BoxRuntimeException.class,
+			    () -> runtime.executeSource( "img = ImageNew( \"\", 10, 10, \"rgb\", \"black\" ); " + code + ";", context ), code );
 		}
 	}
 }

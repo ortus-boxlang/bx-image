@@ -1183,12 +1183,12 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return A struct with width (advance in pixels), height (ascent + descent), ascent, descent and leading
 	 */
 	public IStruct measureText( String str, IStruct fontConfig ) {
-		Font		font	= fontConfig == null ? this.graphics.getFont() : this.buildFont( fontConfig );
-		var			frc		= this.graphics.getFontRenderContext();
-		var			metrics	= font.getLineMetrics( str, frc );
-		double		width	= str.isEmpty() ? 0 : font.getStringBounds( str, frc ).getWidth();
+		Font	font	= fontConfig == null ? this.graphics.getFont() : this.buildFont( fontConfig );
+		var		frc		= this.graphics.getFontRenderContext();
+		var		metrics	= font.getLineMetrics( str, frc );
+		double	width	= str.isEmpty() ? 0 : font.getStringBounds( str, frc ).getWidth();
 
-		IStruct		result	= new Struct();
+		IStruct	result	= new Struct();
 		result.put( KeyDictionary.width, width );
 		result.put( KeyDictionary.height, ( double ) ( metrics.getAscent() + metrics.getDescent() ) );
 		result.put( KeyDictionary.ascent, ( double ) metrics.getAscent() );

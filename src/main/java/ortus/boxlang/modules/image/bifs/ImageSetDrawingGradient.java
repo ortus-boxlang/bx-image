@@ -44,13 +44,13 @@ public class ImageSetDrawingGradient extends BIF {
 	 *
 	 * @argument.name The image or name of variable that references an image to operate on.
 	 *
-	 * @argument.x1 The x coordinate of the gradient start point.
+	 *                @argument.x1 The x coordinate of the gradient start point.
 	 *
-	 * @argument.y1 The y coordinate of the gradient start point.
+	 *                @argument.y1 The y coordinate of the gradient start point.
 	 *
-	 * @argument.x2 The x coordinate of the gradient end point.
+	 *                @argument.x2 The x coordinate of the gradient end point.
 	 *
-	 * @argument.y2 The y coordinate of the gradient end point.
+	 *                @argument.y2 The y coordinate of the gradient end point.
 	 *
 	 * @argument.colors An array of two or more color names or hex codes.
 	 *
