@@ -476,6 +476,15 @@ The `<bx:image>` component supports the following actions:
 
 💡 **Tip:** For complex image manipulation workflows, consider using the fluent API instead of components for better readability and maintainability.
 
+## Settings
+
+Set these under the `bx-image` module settings in `boxlang.json`.
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `maxPixels` | `50000000` | Maximum width x height an image may declare. Checked from the header before decoding. `0` disables. |
+| `maxBytes` | `52428800` | Maximum source size in bytes for files, URLs and Base64 data. `0` disables. |
+
 ## Important Notes
 
 ### File Handling

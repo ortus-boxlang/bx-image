@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- BL-2767: Images are no longer decoded blindly. `imageNew()`, `imageReadBase64()`, the `image` component and the image cache check the declared width x height from the image header before allocating any pixels, and reject images over the new `maxPixels` module setting (default 50,000,000). The source size is also capped by the new `maxBytes` setting (default 50 MB) for files, URLs and Base64 data. `isImageFile()` now answers from the header alone, so it is much faster and returns `false` for images over the limits instead of decoding them. An `OutOfMemoryError` during decoding is rethrown as a `BoxRuntimeException`. Set either setting to `0` to disable that limit.
+
 ## [1.13.0] - 2026-10-19
 
 ## [1.12.0] - 2026-10-14
