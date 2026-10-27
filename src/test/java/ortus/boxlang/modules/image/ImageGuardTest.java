@@ -49,7 +49,9 @@ public class ImageGuardTest extends BaseIntegrationTest {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write( new BufferedImage( BOMB_SIDE, BOMB_SIDE, BufferedImage.TYPE_BYTE_BINARY ), "png", out );
 		bombBytes	= out.toByteArray();
-		bomb		= Files.createTempFile( "bx-image-bomb", ".png" );
+		// Repo-relative with forward slashes, like the other tests: ImageNew uses URI.create, which rejects Windows absolute paths
+		bomb		= Path.of( "build", "bx-image-bomb.png" );
+		Files.createDirectories( bomb.getParent() );
 		Files.write( bomb, bombBytes );
 	}
 
@@ -70,7 +72,7 @@ public class ImageGuardTest extends BaseIntegrationTest {
 	@DisplayName( "isImageFile answers false for an image over the pixel limit" )
 	@Test
 	public void testIsImageFileRejectsBomb() {
-		variables.put( "path", bomb.toString() );
+		variables.put( "path", bomb.toString().replace( '\\', '/' ) );
 		runtime.executeSource( "result = isImageFile( path );", context );
 		assertThat( variables.get( result ) ).isEqualTo( false );
 	}
@@ -85,7 +87,7 @@ public class ImageGuardTest extends BaseIntegrationTest {
 	@DisplayName( "imageNew rejects an image over the pixel limit before decoding" )
 	@Test
 	public void testImageNewRejectsBomb() {
-		variables.put( "path", bomb.toString() );
+		variables.put( "path", bomb.toString().replace( '\\', '/' ) );
 		Throwable t = assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( "result = imageNew( path );", context ) );
 		assertThat( rootMessage( t ) ).contains( "maxPixels" );
 	}
