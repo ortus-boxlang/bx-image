@@ -69,6 +69,7 @@ import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 
 import javaxt.io.Image;
 import ortus.boxlang.modules.image.util.EnumConverterUtil;
+import ortus.boxlang.modules.image.util.ImageGuard;
 import ortus.boxlang.modules.image.util.ImageMetadataUtil;
 import ortus.boxlang.modules.image.util.ColorUtil;
 import ortus.boxlang.modules.image.util.FontUtil;
@@ -258,10 +259,16 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			}
 		}
 
-		byte[]		data			= Base64.getDecoder().decode( base64String );
-		FileType	detectedType	= FileTypeDetector.detectFileType( new ByteArrayInputStream( data ) );
+		ImageGuard.assertBase64Size( base64String, ImageGuard.getMaxBytes() );
+		byte[] data = Base64.getDecoder().decode( base64String );
+		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
+		FileType detectedType = FileTypeDetector.detectFileType( new ByteArrayInputStream( data ) );
 
-		return new BoxImage( ImageIO.read( new ByteArrayInputStream( data ) ), detectedType );
+		try {
+			return new BoxImage( ImageIO.read( new ByteArrayInputStream( data ) ), detectedType );
+		} catch ( OutOfMemoryError e ) {
+			throw new BoxRuntimeException( "Not enough memory to decode the image.", e );
+		}
 	}
 
 	/**
@@ -321,8 +328,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		// Use try-with-resources to ensure the InputStream is properly closed
 		// This prevents file locking issues on Windows when attempting to delete the file
 		try ( InputStream dataStream = getInputStream( imageURI ) ) {
-			data = dataStream.readAllBytes();
+			data = ImageGuard.readBounded( dataStream, ImageGuard.getMaxBytes(), this.sourcePath );
 		}
+		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
 
 		ByteArrayInputStream bas = new ByteArrayInputStream( data );
 		this.fileType = FileTypeDetector.detectFileType( bas );
@@ -331,9 +339,13 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		bas.reset();
 		iptcData = ImageMetadataUtil.readIPTCMetaData( bas );
 		bas.reset();
-		this.image = this.fileType == FileType.WebP
-		    ? new Image( readWebP( data ) )
-		    : new Image( bas );
+		try {
+			this.image = this.fileType == FileType.WebP
+			    ? new Image( readWebP( data ) )
+			    : new Image( bas );
+		} catch ( OutOfMemoryError e ) {
+			throw new BoxRuntimeException( "Not enough memory to decode the image [" + this.sourcePath + "].", e );
+		}
 
 		this.cacheGraphics();
 	}
