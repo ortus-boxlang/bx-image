@@ -148,6 +148,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	/** Map of named colors to java.awt.Color instances */
 	public static final Map<String, Color>	COLORS;
 
+	private static final java.util.regex.Pattern	WINDOWS_DRIVE_PATH	= java.util.regex.Pattern.compile( "^[A-Za-z]:[\\\\/]" );
+	private static final java.util.regex.Pattern	URI_SOURCE			= java.util.regex.Pattern.compile( "^(https?|file):", java.util.regex.Pattern.CASE_INSENSITIVE );
+
 	/** Default font family for text drawing operations */
 	public static final String				DEFAULT_FONT_FAMILY		= Font.SANS_SERIF;
 
@@ -1825,6 +1828,10 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return The corresponding URI
 	 */
 	public static URI stringToURI( String input ) {
+		// Windows drive paths ("C:\x", "C:/x") must never be parsed as a URI: "C" would be taken as the scheme
+		if ( isWindowsDrivePath( input ) ) {
+			return windowsPathToURI( input );
+		}
 		try {
 			// Try to parse as a URL (e.g., http://, file://, etc.)
 			URI uri = URI.create( input );
@@ -1833,6 +1840,47 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			// Not a valid URL? Treat as a local file path
 			Path path = Paths.get( input );
 			return path.toUri();  // Converts to file:// URI
+		}
+	}
+
+	/**
+	 * Is the string a Windows drive path such as <code>C:\x</code> or <code>C:/x</code>?
+	 *
+	 * @param input The input string
+	 *
+	 * @return true if it starts with a drive letter, a colon and a slash or backslash
+	 */
+	public static boolean isWindowsDrivePath( String input ) {
+		return input != null && WINDOWS_DRIVE_PATH.matcher( input ).find();
+	}
+
+	/**
+	 * Is the string an http, https or file URI, as opposed to a local path?
+	 *
+	 * @param input The input string
+	 *
+	 * @return true if it starts with <code>http:</code>, <code>https:</code> or <code>file:</code>, ignoring case
+	 */
+	public static boolean isURISource( String input ) {
+		return input != null && URI_SOURCE.matcher( input ).find();
+	}
+
+	/**
+	 * Converts a Windows drive path to a file URI. Uses <code>Paths.get()</code> on Windows and an
+	 * equivalent conversion elsewhere, so the result is the same on every platform.
+	 *
+	 * @param input A path such as <code>D:\a\x\card.png</code> or <code>C:/x/card.png</code>
+	 *
+	 * @return The file URI, such as <code>file:///D:/a/x/card.png</code>
+	 */
+	public static URI windowsPathToURI( String input ) {
+		if ( File.separatorChar == '\\' ) {
+			return Paths.get( input ).toUri();
+		}
+		try {
+			return new URI( "file", "", "/" + input.replace( '\\', '/' ), null );
+		} catch ( URISyntaxException e ) {
+			throw new BoxRuntimeException( "Unable to convert path to a URI: " + input, e );
 		}
 	}
 
