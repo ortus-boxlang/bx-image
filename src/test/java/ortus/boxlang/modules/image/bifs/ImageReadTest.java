@@ -2,6 +2,13 @@ package ortus.boxlang.modules.image.bifs;
 
 import ortus.boxlang.modules.image.BaseIntegrationTest;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.io.File;
+
+import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +56,30 @@ public class ImageReadTest extends BaseIntegrationTest {
 		    context );
 
 		// assertInstanceOf( ortus.boxlang.modules.image.BoxImage.class, variables.get( result ) );
+	}
+
+	@DisplayName( "It throws a clear error for a path shorter than 4 characters" )
+	@Test
+	public void testShortPath() {
+		BoxRuntimeException e = assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( "ImageRead( 'a' )", context ) );
+		assertThat( e.getMessage() ).contains( "Unable to load image: a" );
+	}
+
+	@DisplayName( "It throws a clear error for a missing file" )
+	@Test
+	public void testMissingFile() {
+		assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( "ImageRead( 'src/test/resources/nope.png' )", context ) );
+	}
+
+	@DisplayName( "It can read an absolute path with forward slashes on Windows" )
+	@Test
+	public void testForwardSlashAbsolutePathOnWindows() {
+		assumeTrue( File.separatorChar == '\\' );
+		runtime.executeSource( """
+		    result = ImageRead( replace( expandPath( "src/test/resources/logo.png" ), "\\", "/", "all" ) );
+		    width = result.getWidth();
+		    """, context );
+		assertThat( ( (Number) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
 	}
 
 }

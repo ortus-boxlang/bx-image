@@ -18,7 +18,6 @@
 package ortus.boxlang.modules.image.bifs;
 
 import java.awt.image.BufferedImage;
-import java.net.URI;
 import java.util.Set;
 
 import ortus.boxlang.modules.image.BoxImage;
@@ -34,6 +33,7 @@ import ortus.boxlang.runtime.scopes.ArgumentsScope;
 import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
@@ -94,9 +94,11 @@ public class ImageNew extends BIF {
 
 		if ( !sourceString.isEmpty() ) {
 			try {
-				return new BoxImage( URI.create( sourceString ) );
+				String imagePath = BoxImage.isURISource( sourceString ) ? sourceString
+				    : FileSystemUtil.expandPath( context, sourceString ).absolutePath().toString();
+				return new BoxImage( imagePath );
 			} catch ( Exception e ) {
-				throw new BoxRuntimeException( "Unable to load image: " + arguments.getAsString( Key.path ), e );
+				throw new BoxRuntimeException( "Unable to load image: " + sourceString, e );
 			}
 		}
 
