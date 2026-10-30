@@ -1,12 +1,7 @@
 name: Pull Requests
 
+# Only pull_request triggers CI. A push trigger on every branch ran the same checks twice for any branch with an open PR.
 on:
-  push:
-    branches-ignore:
-      - "main"
-      - "master"
-      - "development"
-      - "releases/v*"
   pull_request:
     branches:
       - "releases/v*"

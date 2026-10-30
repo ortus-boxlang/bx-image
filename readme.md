@@ -476,6 +476,28 @@ The `<bx:image>` component supports the following actions:
 
 💡 **Tip:** For complex image manipulation workflows, consider using the fluent API instead of components for better readability and maintainability.
 
+## Settings
+
+Set these under the `bx-image` module settings in `boxlang.json`.
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `maxPixels` | `50000000` | Maximum width x height an image may declare. Checked from the header before decoding. `0` disables. |
+| `maxBytes` | `52428800` | Maximum source size in bytes for files, URLs and Base64 data. `0` disables. |
+
+## Image Sources
+
+`imageNew()` and `imageRead()` accept the same sources:
+
+| Source | Example |
+| ------ | ------- |
+| `http:` or `https:` URL | `imageRead( "https://example.com/logo.png" )` |
+| `file:` URI | `imageRead( "file:///tmp/logo.png" )` |
+| Relative path, resolved from the current template and mappings | `imageRead( "images/logo.png" )` |
+| Absolute path, including Windows drive paths with `\` or `/` | `imageRead( "D:\\a\\x\\card.png" )`, `imageRead( "C:/x/card.png" )` |
+
+Anything that is not an `http:`, `https:` or `file:` URI is treated as a local path and resolved with `expandPath()`. A source that cannot be loaded throws `Unable to load image: <source>`.
+
 ## Important Notes
 
 ### File Handling

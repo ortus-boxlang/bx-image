@@ -38,7 +38,7 @@ public class ImageRead extends BIF {
 	 */
 	public BoxImage _invoke( IBoxContext context, ArgumentsScope arguments ) {
 		String	providedPath	= arguments.getAsString( Key.path );
-		String	imagePath		= providedPath.substring( 0, 4 ).equalsIgnoreCase( "http" ) ? providedPath
+		String	imagePath		= BoxImage.isURISource( providedPath ) ? providedPath
 		    : FileSystemUtil.expandPath( context, providedPath ).absolutePath().toString();
 		try {
 			return new BoxImage( imagePath );

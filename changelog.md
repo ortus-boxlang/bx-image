@@ -9,9 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.13.0] - 2026-10-19
+### Fixed
 
-## [1.12.0] - 2026-10-14
+- `imageNew()` with a Windows absolute path such as `D:\a\x\card.png` failed with `Unable to load image: null`, because every non-empty source was parsed as a URI. Only `http:`, `https:` and `file:` sources are treated as URIs now. Any other string is a local path resolved with `expandPath()`, the same as `imageRead()`, so relative paths and mappings keep working.
+- `imageRead()` threw a `StringIndexOutOfBoundsException` for paths shorter than 4 characters. It now reports `Unable to load image: <path>`.
+- Windows drive paths with forward slashes such as `C:/x/card.png` were parsed as a URI with scheme `C`. `BoxImage.stringToURI()` now converts any drive path to a `file:` URI, and `BoxImage.isWindowsDrivePath()` and `BoxImage.isURISource()` are available on the Java API.
+- The `imageNew()` load error message printed `null` instead of the source that failed.
+
+### Security
+
+- BL-2767: Images are no longer decoded blindly. `imageNew()`, `imageReadBase64()`, the `image` component and the image cache check the declared width x height from the image header before allocating any pixels, and reject images over the new `maxPixels` module setting (default 50,000,000). The source size is also capped by the new `maxBytes` setting (default 50 MB) for files, URLs and Base64 data. `isImageFile()` now answers from the header alone, so it is much faster and returns `false` for images over the limits instead of decoding them. An `OutOfMemoryError` during decoding is rethrown as a `BoxRuntimeException`. Set either setting to `0` to disable that limit.
+
+## [1.13.0] - 2026-10-19
 
 ### Added
 
@@ -35,8 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.11.0] - 2026-09-26
 
-## [1.10.0] - 2026-09-02
-
 ### Fixed
 
 - `ImageReadBase64()` and `BoxImage.fromBase64()` always reported the image's format as the hardcoded default (`"jpg"`) regardless of what was actually decoded, because format detection only ever inspected `sourcePath`'s file extension - and a base64-decoded image never has a source path. `figureOutFormat()` now also consults the real file type detected from the decoded bytes themselves (via the same `com.drew.imaging.FileTypeDetector` magic-byte detection already used for file/URI-loaded images), so `getFormat()` correctly reports `"png"`, `"gif"`, `"webp"`, etc. for the actual decoded format instead of always falling back to `"jpg"`. This also makes format detection for `ImageRead()`/file-path loading robust against a source file whose extension doesn't match its real contents.
@@ -48,8 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ImageRead()` now uses the bundled pure-Java WebP reader, and the native WebP writer now includes an Apple Silicon binary. WebP reading and writing are both supported on Apple Silicon.
 
 ## [1.9.0] - 2026-08-22
-
-## [1.8.0] - 2026-07-25
 
 ### Fixed
 
