@@ -76,10 +76,10 @@ public class ImageReadTest extends BaseIntegrationTest {
 	public void testForwardSlashAbsolutePathOnWindows() {
 		assumeTrue( File.separatorChar == '\\' );
 		runtime.executeSource( """
-		    result = ImageRead( replace( expandPath( "src/test/resources/logo.png" ), "\\", "/", "all" ) );
-		    width = result.getWidth();
-		    """, context );
-		assertThat( ( (Number) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
+		                       result = ImageRead( replace( expandPath( "src/test/resources/logo.png" ), "\\", "/", "all" ) );
+		                       width = result.getWidth();
+		                       """, context );
+		assertThat( ( ( Number ) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
 	}
 
 }

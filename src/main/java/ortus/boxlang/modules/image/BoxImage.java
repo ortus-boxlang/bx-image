@@ -146,24 +146,25 @@ import ortus.boxlang.runtime.util.IBoxBinaryRepresentable;
 public class BoxImage implements IBoxBinaryRepresentable {
 
 	/** Map of named colors to java.awt.Color instances */
-	public static final Map<String, Color>	COLORS;
+	public static final Map<String, Color>			COLORS;
 
-	private static final java.util.regex.Pattern	WINDOWS_DRIVE_PATH	= java.util.regex.Pattern.compile( "^[A-Za-z]:[\\\\/]" );
-	private static final java.util.regex.Pattern	URI_SOURCE			= java.util.regex.Pattern.compile( "^(https?|file):", java.util.regex.Pattern.CASE_INSENSITIVE );
+	private static final java.util.regex.Pattern	WINDOWS_DRIVE_PATH		= java.util.regex.Pattern.compile( "^[A-Za-z]:[\\\\/]" );
+	private static final java.util.regex.Pattern	URI_SOURCE				= java.util.regex.Pattern.compile( "^(https?|file):",
+	    java.util.regex.Pattern.CASE_INSENSITIVE );
 
 	/** Default font family for text drawing operations */
-	public static final String				DEFAULT_FONT_FAMILY		= Font.SANS_SERIF;
+	public static final String						DEFAULT_FONT_FAMILY		= Font.SANS_SERIF;
 
 	/** Default font style (plain, not bold or italic) */
-	public static final int					DEFAULT_FONT_STYLE		= Font.PLAIN;
+	public static final int							DEFAULT_FONT_STYLE		= Font.PLAIN;
 
 	/** Default font size in points */
-	public static final int					DEFAULT_FONT_SIZE		= 10;
+	public static final int							DEFAULT_FONT_SIZE		= 10;
 
 	/** Default interpolation method for image scaling operations */
-	public static final String				DEFAULT_INTERPOLATION	= "bilinear";
+	public static final String						DEFAULT_INTERPOLATION	= "bilinear";
 
-	private static final String				DEFAULT_FORMAT			= "jpg";
+	private static final String						DEFAULT_FORMAT			= "jpg";
 
 	static {
 		COLORS = new HashMap<String, Color>();

@@ -84,20 +84,20 @@ public class ImageNewTest extends BaseIntegrationTest {
 	@Test
 	public void testRelativePath() {
 		runtime.executeSource( """
-		    result = ImageNew( "src/test/resources/logo.png" );
-		    width = result.getWidth();
-		    """, context );
-		assertThat( ( (Number) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
+		                       result = ImageNew( "src/test/resources/logo.png" );
+		                       width = result.getWidth();
+		                       """, context );
+		assertThat( ( ( Number ) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
 	}
 
 	@DisplayName( "It can create a new image from an absolute path" )
 	@Test
 	public void testAbsolutePath() {
 		runtime.executeSource( """
-		    result = ImageNew( expandPath( "src/test/resources/logo.png" ) );
-		    width = result.getWidth();
-		    """, context );
-		assertThat( ( (Number) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
+		                       result = ImageNew( expandPath( "src/test/resources/logo.png" ) );
+		                       width = result.getWidth();
+		                       """, context );
+		assertThat( ( ( Number ) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
 	}
 
 	@DisplayName( "It can create a new image from an absolute path with forward slashes on Windows" )
@@ -105,10 +105,10 @@ public class ImageNewTest extends BaseIntegrationTest {
 	public void testForwardSlashAbsolutePathOnWindows() {
 		assumeTrue( File.separatorChar == '\\' );
 		runtime.executeSource( """
-		    result = ImageNew( replace( expandPath( "src/test/resources/logo.png" ), "\\", "/", "all" ) );
-		    width = result.getWidth();
-		    """, context );
-		assertThat( ( (Number) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
+		                       result = ImageNew( replace( expandPath( "src/test/resources/logo.png" ), "\\", "/", "all" ) );
+		                       width = result.getWidth();
+		                       """, context );
+		assertThat( ( ( Number ) variables.get( Key.of( "width" ) ) ).intValue() ).isGreaterThan( 0 );
 	}
 
 	@DisplayName( "It throws a clear error for a short path" )
