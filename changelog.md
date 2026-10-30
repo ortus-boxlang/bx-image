@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-10-30
+
 ### Fixed
 
 - `imageNew()` with a Windows absolute path such as `D:\a\x\card.png` failed with `Unable to load image: null`, because every non-empty source was parsed as a URI. Only `http:`, `https:` and `file:` sources are treated as URIs now. Any other string is a local path resolved with `expandPath()`, the same as `imageRead()`, so relative paths and mappings keep working.
@@ -157,7 +159,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.13.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.10.0...v1.11.0
