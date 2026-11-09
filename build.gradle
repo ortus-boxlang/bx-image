@@ -52,6 +52,11 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-imaging
 	implementation 'org.apache.commons:commons-imaging:1.0.0-alpha6'
 	implementation "com.drewnoakes:metadata-extractor:2.21.0"
+	// Metadata writing (EXIF, IPTC, XMP, ICC) without re-encoding the image. EPL-1.0, see licenses/
+	implementation( 'com.akitogo:pixymeta:1.4.0' ) {
+		// BoxLang ships the SLF4J API
+		exclude group: 'org.slf4j'
+	}
 	// WebP write support via native library (Windows, Linux, Intel macOS, and Apple Silicon)
 	implementation 'io.github.darkxanter:webp-imageio:0.3.3'
 	// WebP read support - pure Java, cross-platform (including macOS ARM64)
@@ -199,6 +204,9 @@ task createModuleStructure(type: Copy) {
 		} else {
 			filter{ line -> line.replaceAll( '@build.number@', project.buildID ) }
 		}
+    }
+    from( 'licenses' ) {
+        into 'licenses'
     }
     from( '.' ) {
         include 'box.json'

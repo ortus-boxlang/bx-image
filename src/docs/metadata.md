@@ -1,6 +1,6 @@
 # Image Metadata
 
-Learn how to read and extract EXIF and IPTC metadata from images.
+Learn how to read, write and strip EXIF, IPTC and XMP metadata.
 
 ## Table of Contents
 
@@ -9,6 +9,8 @@ Learn how to read and extract EXIF and IPTC metadata from images.
 - [Reading IPTC Metadata](#reading-iptc-metadata)
 - [Common EXIF Tags](#common-exif-tags)
 - [Common IPTC Tags](#common-iptc-tags)
+- [Writing Metadata](#writing-metadata)
+- [Stripping Metadata](#stripping-metadata)
 - [Practical Examples](#practical-examples)
 
 ## What is Metadata?
@@ -247,6 +249,96 @@ instructions = img.getIPTCTag("Special Instructions");
 | `Source` | Image source | "Photography Studio" |
 | `City` | City of origin | "New York" |
 | `Country/Primary Location Name` | Country | "United States" |
+
+## Writing Metadata
+
+Metadata can be written in two ways: directly into an existing file, without decoding or re-encoding the image, or onto an image object that is being edited anyway.
+
+### Edit a File Without Decoding It
+
+`ImageReadMetadata()` returns a metadata handle. Setters change a working copy, `write()` rewrites the file. The pixels are copied byte for byte, so this is lossless and fast even for large photos.
+
+```js
+meta = ImageReadMetadata( "photo.jpg" );
+
+// Read
+writeDump( meta.getExif() );            // same struct as ImageGetExifMetaData()
+writeDump( meta.getIPTC() );
+xmp = meta.getXMP();                     // XMP packet as string, "" if none
+types = meta.getTypes();                 // e.g. [ "exif", "iptc", "xmp" ]
+
+// Write
+meta.setExifTag( "Copyright", "(c) 2026 akitogo" )
+    .setExifTag( "Date/Time Original", now() )
+    .setExifTag( "GPSLatitude", 52.503472 )        // decimal degrees, sets GPS Latitude Ref too
+    .setExifTag( "GPSLongitude", 13.41 )
+    .setIPTCTag( "Keywords", [ "garden", "spring" ] )
+    .setIPTCTag( "Copyright Notice", "(c) 2026 akitogo" )
+    .setXMP( xmpString )
+    .write();                                      // in place, atomic
+
+// Or write a copy and leave the original alone
+meta.write( "photo-tagged.jpg" );
+
+// Or get the bytes
+bytes = meta.toBinary();
+```
+
+Tag names accept the display names the getters return (`Date/Time Original`, `Copyright Notice`, `By-line`), the specification names (`DateTimeOriginal`, `CopyrightNotice`) and common aliases (`ISO`, `Copyright`, `Caption`, `Creator`). Values may be strings, numbers, dates or arrays (for repeatable IPTC tags such as `Keywords`). Setting a tag to `null` removes it; `removeExifTag()` and `removeIPTCTag()` do the same by name.
+
+Several tags at once:
+
+```js
+meta.setExifMetaData( { "Artist": "Jane Doe", "Copyright": "(c) 2026" } )
+    .setIPTCMetaData( { "By-line": "Jane Doe", "Keywords": [ "a", "b" ] } )
+    .write();
+```
+
+The same functions work on a file path directly and rewrite the file in place:
+
+```js
+ImageSetExifTag( "photo.jpg", "Copyright", "(c) 2026 akitogo" );
+ImageSetIPTCTag( "photo.jpg", "Keywords", [ "garden", "spring" ] );
+ImageSetXMP( "photo.jpg", xmpString );
+```
+
+### Set Metadata on an Image You Are Editing
+
+The setters are also member functions of an image. The metadata is applied to the encoded bytes when the image is written, in `write()`, `ImageWriteBase64()` and `toByteArray()`.
+
+```js
+imageRead( "photo.jpg" )
+    .resize( 800, 600 )
+    .setExifTag( "Artist", "Jane Doe" )
+    .setIPTCTag( "Copyright Notice", "(c) 2026" )
+    .write( "thumb.jpg" );
+```
+
+A plain `write()` without setters produces the same file as before. Source metadata is **not** carried through pixel edits: `imageRead( "photo.jpg" ).resize( 800, 600 ).write( "thumb.jpg" )` still drops the camera's EXIF, as it always did. Set the tags you want to keep explicitly, or edit the metadata of the finished file with `ImageReadMetadata()`.
+
+### What Each Format Can Hold
+
+| Format | EXIF | IPTC | XMP | ICC profile |
+|--------|------|------|-----|-------------|
+| JPEG   | yes  | yes  | yes | yes |
+| TIFF   | yes  | yes  | yes | yes |
+| WebP   | yes  | no   | yes | yes |
+| PNG    | no   | no   | yes | yes |
+| GIF    | no   | no   | yes | no  |
+
+An unsupported combination, such as EXIF in a PNG, throws a clear error instead of silently writing nothing. `meta.canWrite( "exif" )` tells you in advance.
+
+## Stripping Metadata
+
+`ImageStripMetadata()` removes metadata from a file without re-encoding it. The one-liner for uploads:
+
+```js
+ImageStripMetadata( "upload.jpg" );                         // everything, in place
+ImageStripMetadata( "upload.jpg", "public/upload.jpg" );    // everything, into a copy
+ImageStripMetadata( "upload.jpg", "", "exif,photoshop" );   // only some types, in place
+```
+
+Types are `exif`, `iptc`, `xmp`, `icc`, `comment` and `photoshop` (the Photoshop resource block). On a metadata handle the same is `meta.remove( "exif" )` or `meta.removeAll()` followed by `write()`; `ImageRemoveMetadata( "photo.jpg", "xmp" )` does it in one call.
 
 ## Practical Examples
 

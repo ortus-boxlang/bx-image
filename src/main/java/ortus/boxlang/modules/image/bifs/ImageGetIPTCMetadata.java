@@ -23,6 +23,7 @@ import java.util.Set;
 import com.drew.imaging.ImageProcessingException;
 
 import ortus.boxlang.modules.image.BoxImage;
+import ortus.boxlang.modules.image.BoxImageMetadata;
 import ortus.boxlang.modules.image.util.ImageMetadataUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.runtime.bifs.BIF;
@@ -38,6 +39,7 @@ import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
 @BoxMember( type = BoxLangType.CUSTOM, customType = BoxImage.class, name = "getIPTCMetadata" )
+@BoxMember( type = BoxLangType.CUSTOM2, customType = BoxImageMetadata.class, name = "getIPTCMetadata" )
 public class ImageGetIPTCMetadata extends BIF {
 
 	/**
@@ -52,12 +54,12 @@ public class ImageGetIPTCMetadata extends BIF {
 
 	/**
 	 * Returns all IPTC metadata from an image as a structured key-value map.
-	 * Accepts either a BoxImage instance or a file path string.
+	 * Accepts a BoxImage instance, a metadata handle from ImageReadMetadata() or a file path string.
 	 *
 	 * @param context   The context in which the BIF is being invoked.
 	 * @param arguments Argument scope for the BIF.
 	 *
-	 * @argument.name A BoxImage instance or a file path string to read IPTC metadata from.
+	 * @argument.name A BoxImage instance, a metadata handle or a file path string to read IPTC metadata from.
 	 *
 	 * @return A struct containing all IPTC metadata key-value pairs.
 	 */
@@ -67,6 +69,8 @@ public class ImageGetIPTCMetadata extends BIF {
 
 			if ( arg instanceof BoxImage image ) {
 				return image.getIPTCMetaData();
+			} else if ( arg instanceof BoxImageMetadata handle ) {
+				return handle.getIPTC();
 			} else if ( arg instanceof String imageString ) {
 				return ImageMetadataUtil.readIPTCMetaData( imageString );
 			}

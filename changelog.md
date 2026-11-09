@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Metadata writing.** EXIF, IPTC and XMP can now be written, backed by the [pixymeta](https://github.com/akitogo/pixymeta) library (EPL-1.0, see `licenses/`). Two entry points:
+  - `ImageReadMetadata( source )` returns a metadata handle for a file or URL without decoding the image. It has getters (`getExif()`, `getIPTC()`, `getXMP()`, `getExifTag()`, `getIPTCTag()`, `getTypes()`, `getFormat()`), chainable setters (`setExifTag()`, `setExifMetaData()`, `setIPTCTag()`, `setIPTCMetaData()`, `setXMP()`, `setICCProfile()`, `removeExifTag()`, `removeIPTCTag()`, `remove()`, `removeAll()`) and writers (`write()` in place via a temporary file, `write( destination )`, `toBinary()`, `toBase64()`). The image data is copied byte for byte, so editing metadata is lossless and fast, and metadata the handle was not told about stays.
+  - `ImageStripMetadata( source [, destination [, types ]] )` removes all or some metadata from a file without re-encoding it.
+  - The same setters on images: `ImageSetExifTag()`, `ImageSetExifMetaData()`, `ImageSetIPTCTag()`, `ImageSetIPTCMetaData()`, `ImageSetXMP()`, `ImageGetXMP()` and `ImageRemoveMetadata()`, each also as a member function. On an image object the metadata is stamped onto the encoded bytes in `write()`, `toByteArray()` and `toBase64String()`; on a file path the file is rewritten in place. A plain `write()` without setters produces the same file as before, and source metadata is still not carried through pixel edits.
+  - Tag names accept the display names the getters return (`Date/Time Original`, `Copyright Notice`, `By-line`), the specification names (`DateTimeOriginal`, `CopyrightNotice`) and common aliases (`ISO`, `Copyright`, `Caption`, `Creator`). Values may be strings, numbers, dates or arrays (for repeatable IPTC tags such as `Keywords`); a decimal `GPSLatitude` / `GPSLongitude` also sets the N/S or E/W reference. Setting a tag to null removes it.
+  - JPEG and TIFF take EXIF, IPTC, XMP and ICC; WebP takes EXIF, XMP and ICC; PNG takes XMP and ICC; GIF takes XMP. An unsupported combination such as EXIF in a PNG throws a clear error instead of silently writing nothing.
+  - `ImageGetExifTag()`, `ImageGetExifMetaData()`, `ImageGetIPTCTag()` and `ImageGetIPTCMetadata()` also accept a metadata handle.
+- `ImageReadBase64()` now exposes the EXIF and IPTC metadata embedded in the Base64 data, like images read from a file.
+
 ## [1.14.0] - 2026-10-30
 
 ### Fixed
