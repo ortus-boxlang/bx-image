@@ -90,6 +90,10 @@ public class KeyDictionary {
 	public static final Key	structName			= Key.of( "structName" );
 	public static final Key	style				= Key.of( "style" );
 	public static final Key	tagName				= Key.of( "tagName" );
+	public static final Key	tags				= Key.of( "tags" );
+	public static final Key	types				= Key.of( "types" );
+	public static final Key	value				= Key.of( "value" );
+	public static final Key	xmp					= Key.of( "xmp" );
 	public static final Key	text				= Key.of( "text" );
 	public static final Key	thickness			= Key.of( "thickness" );
 	public static final Key	transparency		= Key.of( "transparency" );

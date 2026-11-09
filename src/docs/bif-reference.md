@@ -32,6 +32,15 @@ Complete alphabetical reference for all image manipulation Built-In Functions (B
 | `ImageGetHeight()` | Properties | `img.getHeight()` | Get image height |
 | `ImageGetIPTCMetadata()` | Metadata | `img.getIPTCMetadata()` | Get all IPTC metadata |
 | `ImageGetIPTCTag()` | Metadata | `img.getIPTCTag()` | Get specific IPTC tag |
+| `ImageGetXMP()` | Metadata | `img.getXMP()` | Get the XMP packet |
+| `ImageReadMetadata()` | Metadata | N/A | Metadata handle for a file, no decoding |
+| `ImageRemoveMetadata()` | Metadata | `img.removeMetadata()` | Remove metadata types |
+| `ImageSetExifMetaData()` | Metadata | `img.setExifMetaData()` | Set several EXIF tags |
+| `ImageSetExifTag()` | Metadata | `img.setExifTag()` | Set an EXIF tag |
+| `ImageSetIPTCMetaData()` | Metadata | `img.setIPTCMetaData()` | Set several IPTC tags |
+| `ImageSetIPTCTag()` | Metadata | `img.setIPTCTag()` | Set an IPTC tag |
+| `ImageSetXMP()` | Metadata | `img.setXMP()` | Set the XMP packet |
+| `ImageStripMetadata()` | Metadata | N/A | Remove metadata from a file, no decoding |
 | `ImageGetWidth()` | Properties | `img.getWidth()` | Get image width |
 | `ImageGrayScale()` | Filters | `img.grayScale()` | Convert to grayscale |
 | `ImageInfo()` | Properties | `img.info()` | Get comprehensive image info |
@@ -1525,6 +1534,178 @@ writeln("Keywords: #keywords#");
 **See Also:** [ImageGetIPTCMetadata()](#imagegetiptcmetadata), [Metadata](metadata.md#iptc-tags)
 
 ---
+
+#### ImageReadMetadata()
+
+Read the metadata of a file or URL without decoding the image and return a metadata handle.
+
+**Syntax:**
+```js
+meta = ImageReadMetadata(source);
+```
+
+**Parameters:**
+- `source` - File path or URL, or an image read from a file
+
+**Returns:** Metadata handle with `getExif()`, `getIPTC()`, `getXMP()`, `getExifTag()`, `getIPTCTag()`, `getTypes()`, `getFormat()`, `setExifTag()`, `setExifMetaData()`, `setIPTCTag()`, `setIPTCMetaData()`, `setXMP()`, `setICCProfile()`, `removeExifTag()`, `removeIPTCTag()`, `remove()`, `removeAll()`, `write()`, `write(destination)`, `toBinary()`, `toBase64()`
+
+**Example:**
+```js
+ImageReadMetadata("photo.jpg")
+    .setExifTag("Copyright", "(c) 2026")
+    .setIPTCTag("Keywords", ["garden", "spring"])
+    .write();
+```
+
+**See Also:** [ImageStripMetadata()](#imagestripmetadata), [Metadata](metadata.md#writing-metadata)
+
+#### ImageStripMetadata()
+
+Remove metadata from a file without re-encoding it.
+
+**Syntax:**
+```js
+ImageStripMetadata(source [, destination [, types]]);
+```
+
+**Parameters:**
+- `source` - File path
+- `destination` - Where to write the stripped copy; omit or empty to rewrite in place
+- `types` - List or array of types to remove: exif, iptc, xmp, icc, comment, photoshop. Omit for all
+
+**Returns:** Metadata handle of the written file
+
+**Example:**
+```js
+ImageStripMetadata("upload.jpg");
+ImageStripMetadata("upload.jpg", "public/upload.jpg", "exif,photoshop");
+```
+
+#### ImageSetExifTag()
+
+Set an EXIF tag on an image, a metadata handle or a file.
+
+**Syntax:**
+```js
+ImageSetExifTag(image, tagName, value);
+// Member function
+image.setExifTag(tagName, value);
+```
+
+**Parameters:**
+- `image` - Image, metadata handle or file path (rewritten in place)
+- `tagName` - EXIF tag in any common spelling (`Date/Time Original`, `DateTimeOriginal`)
+- `value` - String, number, date or array; null removes the tag
+
+**Returns:** The image or handle, for chaining
+
+**Example:**
+```js
+imageRead("photo.jpg").resize(800, 600).setExifTag("Artist", "Jane").write("thumb.jpg");
+ImageSetExifTag("photo.jpg", "GPSLatitude", 52.503472);
+```
+
+#### ImageSetExifMetaData()
+
+Set several EXIF tags from a struct.
+
+**Syntax:**
+```js
+ImageSetExifMetaData(image, tags);
+// Member function
+image.setExifMetaData(tags);
+```
+
+**Parameters:**
+- `image` - Image, metadata handle or file path
+- `tags` - Struct of tag name to value
+
+**Returns:** The image or handle, for chaining
+
+#### ImageSetIPTCTag()
+
+Set an IPTC tag on an image, a metadata handle or a file. Repeatable tags such as `Keywords` take an array.
+
+**Syntax:**
+```js
+ImageSetIPTCTag(image, tagName, value);
+// Member function
+image.setIPTCTag(tagName, value);
+```
+
+**Parameters:**
+- `image` - Image, metadata handle or file path (rewritten in place)
+- `tagName` - IPTC tag in any common spelling (`Copyright Notice`, `CopyrightNotice`, `Copyright`)
+- `value` - String, number, date or array; null removes the tag
+
+**Returns:** The image or handle, for chaining
+
+#### ImageSetIPTCMetaData()
+
+Set several IPTC tags from a struct.
+
+**Syntax:**
+```js
+ImageSetIPTCMetaData(image, tags);
+// Member function
+image.setIPTCMetaData(tags);
+```
+
+**Parameters:**
+- `image` - Image, metadata handle or file path
+- `tags` - Struct of tag name to value
+
+**Returns:** The image or handle, for chaining
+
+#### ImageSetXMP()
+
+Set the XMP packet, replacing an existing one.
+
+**Syntax:**
+```js
+ImageSetXMP(image, xmp);
+// Member function
+image.setXMP(xmp);
+```
+
+**Parameters:**
+- `image` - Image, metadata handle or file path
+- `xmp` - XMP as XML, with or without the xpacket wrapper; empty removes it
+
+**Returns:** The image or handle, for chaining
+
+#### ImageGetXMP()
+
+Get the XMP packet as a string.
+
+**Syntax:**
+```js
+xmp = ImageGetXMP(image);
+// Member function
+xmp = image.getXMP();
+```
+
+**Parameters:**
+- `image` - Image (the packet set with `setXMP()`), metadata handle or file path
+
+**Returns:** The XMP packet, or an empty string
+
+#### ImageRemoveMetadata()
+
+Remove metadata types.
+
+**Syntax:**
+```js
+ImageRemoveMetadata(image [, types]);
+// Member function
+image.removeMetadata(types);
+```
+
+**Parameters:**
+- `image` - Image (undoes earlier setters), metadata handle or file path (rewritten in place)
+- `types` - List or array: exif, iptc, xmp, icc, comment, photoshop, or all (default)
+
+**Returns:** The image or handle, for chaining
 
 ### Properties
 

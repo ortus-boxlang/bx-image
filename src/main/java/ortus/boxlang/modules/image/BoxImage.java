@@ -206,34 +206,41 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	}
 
 	/** Path or URL from which the image was loaded, if applicable */
-	private String		sourcePath;
+	private String				sourcePath;
 
 	/** Graphics2D context for drawing operations on the image */
-	private Graphics2D	graphics;
+	private Graphics2D			graphics;
 
 	/** The underlying javaxt.io.Image wrapped by this BoxImage */
-	private Image		image;
+	private Image				image;
 
 	/** Current drawing color (default: white) */
-	private String		drawingColor	= "white";
+	private String				drawingColor	= "white";
 
 	/** Active gradient paint, or null when drawing with the solid drawing color */
-	private Paint		gradient;
+	private Paint				gradient;
 
 	/** Current background color (default: white) */
-	private String		backgroundColor	= "white";
+	private String				backgroundColor	= "white";
 
 	/** EXIF metadata extracted from the image file */
-	private IStruct		exifData		= new Struct();
+	private IStruct				exifData		= new Struct();
 
 	/** IPTC metadata extracted from the image file */
-	private IStruct		iptcData		= new Struct();
+	private IStruct				iptcData		= new Struct();
 
 	/** Detected file type from metadata-extractor library */
-	private FileType	fileType;
+	private FileType			fileType;
 
 	/** Explicit output format for images generated in memory (e.g. QR codes), which have no source path to infer it from */
-	private String		formatOverride;
+	private String				formatOverride;
+
+	/**
+	 * Metadata set on this image with the setExifTag() family, applied to the encoded bytes when the
+	 * image is written. Null until the first setter is called. Source metadata is not carried over:
+	 * a plain write() produces the same file as before.
+	 */
+	private BoxImageMetadata	metadata;
 
 	/**
 	 * Enumeration for specifying image dimensions in scaling operations.
@@ -266,13 +273,22 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		ImageGuard.assertBase64Size( base64String, ImageGuard.getMaxBytes() );
 		byte[] data = Base64.getDecoder().decode( base64String );
 		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
-		FileType detectedType = FileTypeDetector.detectFileType( new ByteArrayInputStream( data ) );
+		FileType	detectedType	= FileTypeDetector.detectFileType( new ByteArrayInputStream( data ) );
 
+		BoxImage	image;
 		try {
-			return new BoxImage( ImageIO.read( new ByteArrayInputStream( data ) ), detectedType );
+			image = new BoxImage( ImageIO.read( new ByteArrayInputStream( data ) ), detectedType );
 		} catch ( OutOfMemoryError e ) {
 			throw new BoxRuntimeException( "Not enough memory to decode the image.", e );
 		}
+		// Expose the embedded metadata like images read from a file do
+		try {
+			image.exifData	= ImageMetadataUtil.readExifMetaData( new ByteArrayInputStream( data ) );
+			image.iptcData	= ImageMetadataUtil.readIPTCMetaData( new ByteArrayInputStream( data ) );
+		} catch ( Exception e ) {
+			// Formats metadata-extractor does not know carry no metadata for us
+		}
+		return image;
 	}
 
 	/**
@@ -511,7 +527,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			throw new BoxRuntimeException( "Native library required to encode format [" + format + "] is not available on this platform", e );
 		}
 
-		return output.toByteArray();
+		return applyMetadata( output.toByteArray() );
 	}
 
 	/**
@@ -543,7 +559,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			throw new BoxRuntimeException( "Native library required to encode format [" + format + "] is not available on this platform", e );
 		}
 
-		return Base64.getEncoder().encodeToString( output.toByteArray() );
+		return Base64.getEncoder().encodeToString( applyMetadata( output.toByteArray() ) );
 	}
 
 	/**
@@ -804,7 +820,134 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return A struct containing EXIF metadata tags and values, or an empty struct if no EXIF data exists
 	 */
 	public IStruct getExifMetaData() {
-		return exifData;
+		if ( metadata == null || !metadata.hasChanges() ) {
+			return exifData;
+		}
+		// Overlay the tags set on this image on top of what the source file had
+		IStruct merged = new Struct( Struct.TYPES.LINKED );
+		merged.putAll( exifData );
+		merged.putAll( metadata.getExif() );
+		return merged;
+	}
+
+	/**
+	 * Sets an EXIF tag to be written with the image. The tag is applied to the encoded bytes in
+	 * {@link #write()}, {@link #toByteArray()} and {@link #toBase64String()}; the pixels are not
+	 * touched. Tag names accept the display names the getters return ({@code Date/Time Original})
+	 * and the specification names ({@code DateTimeOriginal}). A null value removes a tag set earlier.
+	 *
+	 * @param tagName The EXIF tag
+	 * @param value   String, number, date or array
+	 *
+	 * @return This BoxImage instance for method chaining
+	 *
+	 * @throws BoxRuntimeException For an unknown tag or a value that cannot be converted
+	 */
+	public BoxImage setExifTag( String tagName, Object value ) {
+		metadata().setExifTag( tagName, value );
+		return this;
+	}
+
+	/**
+	 * Sets several EXIF tags from a struct of tag name to value; see {@link #setExifTag}.
+	 *
+	 * @param tags The tags
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage setExifMetaData( IStruct tags ) {
+		metadata().setExifMetaData( tags );
+		return this;
+	}
+
+	/**
+	 * Sets an IPTC tag to be written with the image; see {@link #setExifTag} for when it is applied.
+	 * Repeatable tags such as Keywords take an array.
+	 *
+	 * @param tagName The IPTC tag
+	 * @param value   String, number, date or array
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage setIPTCTag( String tagName, Object value ) {
+		metadata().setIPTCTag( tagName, value );
+		return this;
+	}
+
+	/**
+	 * Sets several IPTC tags from a struct of tag name to value; see {@link #setIPTCTag}.
+	 *
+	 * @param tags The tags
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage setIPTCMetaData( IStruct tags ) {
+		metadata().setIPTCMetaData( tags );
+		return this;
+	}
+
+	/**
+	 * Sets the XMP packet to be written with the image; see {@link #setExifTag} for when it is applied.
+	 *
+	 * @param xmp The XMP as XML, or null to remove a packet set earlier
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage setXMP( String xmp ) {
+		metadata().setXMP( xmp );
+		return this;
+	}
+
+	/**
+	 * @return The XMP packet set on this image, or an empty string
+	 */
+	public String getXMP() {
+		return metadata == null ? "" : metadata.getXMP();
+	}
+
+	/**
+	 * Removes metadata set on this image with the setter methods. Source metadata is not written
+	 * by {@link #write()} in the first place, so this only undoes earlier setters.
+	 *
+	 * @param types Any of exif, iptc, xmp, icc or all
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage removeMetadata( String... types ) {
+		if ( metadata != null ) {
+			metadata.remove( types );
+		}
+		return this;
+	}
+
+	/**
+	 * The metadata set on this image so far, or null if no setter has been called.
+	 *
+	 * @return The pending metadata
+	 */
+	public BoxImageMetadata getPendingMetadata() {
+		return metadata;
+	}
+
+	private BoxImageMetadata metadata() {
+		if ( metadata == null ) {
+			metadata = BoxImageMetadata.empty();
+		}
+		return metadata;
+	}
+
+	/**
+	 * Applies the metadata set on this image to encoded image bytes, if any was set.
+	 *
+	 * @param encoded The encoded image
+	 *
+	 * @return The bytes to write
+	 */
+	private byte[] applyMetadata( byte[] encoded ) {
+		if ( metadata == null || !metadata.hasChanges() ) {
+			return encoded;
+		}
+		return metadata.applyTo( encoded );
 	}
 
 	/**
@@ -817,7 +960,13 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws IOException              If an I/O error occurs reading metadata
 	 */
 	public IStruct getIPTCMetaData() throws ImageProcessingException, FileNotFoundException, IOException {
-		return iptcData;
+		if ( metadata == null || !metadata.hasChanges() ) {
+			return iptcData;
+		}
+		IStruct merged = new Struct( Struct.TYPES.LINKED );
+		merged.putAll( iptcData );
+		merged.putAll( metadata.getIPTC() );
+		return merged;
 	}
 
 	/**
@@ -832,7 +981,13 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws IOException              If an I/O error occurs reading metadata
 	 */
 	public Object getExifMetaDataTag( String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return getExifMetaData().get( tagName );
+		if ( metadata != null && metadata.hasChanges() ) {
+			Object pending = metadata.getExifTag( tagName );
+			if ( pending != null ) {
+				return pending;
+			}
+		}
+		return exifData.get( tagName );
 	}
 
 	/**
@@ -847,7 +1002,13 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws IOException              If an I/O error occurs reading metadata
 	 */
 	public Object getIPTCMetaDataTag( String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return getIPTCMetaData().get( tagName );
+		if ( metadata != null && metadata.hasChanges() ) {
+			Object pending = metadata.getIPTCTag( tagName );
+			if ( pending != null ) {
+				return pending;
+			}
+		}
+		return iptcData.get( tagName );
 	}
 
 	/**
@@ -1405,7 +1566,14 @@ public class BoxImage implements IBoxBinaryRepresentable {
 				FileSystemUtil.createDirectory( parentDir.getAbsolutePath() );
 			}
 			String format = getFormatFromPath( path );
-			if ( !ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, targetFile ) ) {
+			if ( metadata != null && metadata.hasChanges() ) {
+				// Encode in memory, stamp the metadata onto the encoded bytes, then write the file
+				ByteArrayOutputStream encoded = new ByteArrayOutputStream();
+				if ( !ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, encoded ) ) {
+					throw new BoxRuntimeException( "No suitable ImageIO writer found for format: " + format );
+				}
+				java.nio.file.Files.write( targetFile.toPath(), applyMetadata( encoded.toByteArray() ) );
+			} else if ( !ImageIO.write( prepareForFormat( this.image.getBufferedImage(), format ), format, targetFile ) ) {
 				throw new BoxRuntimeException( "No suitable ImageIO writer found for format: " + format );
 			}
 		} catch ( BoxRuntimeException e ) {
@@ -1774,7 +1942,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws IOException           If an I/O error occurs
 	 * @throws URISyntaxException    If the URI syntax is incorrect
 	 */
-	private static InputStream getInputStream( URI imageInput ) throws MalformedURLException, IOException, URISyntaxException {
+	public static InputStream getInputStream( URI imageInput ) throws MalformedURLException, IOException, URISyntaxException {
 		if ( imageInput.toString().toLowerCase().startsWith( "http" ) ) {
 			return resolveURLToInputStream( imageInput );
 		}
