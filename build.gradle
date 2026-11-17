@@ -60,7 +60,7 @@ dependencies {
 	implementation 'com.github.weisj:jsvg:2.2.0'
 
 	// QR code encoding and decoding
-	implementation 'com.google.zxing:core:3.5.3'
+	implementation 'com.google.zxing:core:3.5.4'
 	// Only BufferedImageLuminanceSource is used, so skip javase's CLI and JAI ImageIO transitive deps
 	implementation( 'com.google.zxing:javase:3.5.3' ) { transitive = false }
 
