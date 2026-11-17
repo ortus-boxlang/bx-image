@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-11-17
+
 ### Added
 
 - MatchBox native backend: the bx-image package now also runs on MatchBox without a JVM. It reads PNG, JPEG, GIF, WebP and SVG (`imageRead` with its optional `width` and `height`, `imageNew`), and supports `imageResize`, `imageGrayScale`, `imageInfo`, `imageGetPixels` and `getReadableImageFormats`, with the `resize()`, `grayScale()`, `info()` and `getPixels()` member functions. SVG images are redrawn when resized. The release zip carries the native plugin for `x86_64-unknown-linux-gnu` alongside the JVM jar.
@@ -174,7 +176,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.14.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.15.0...HEAD
+[1.15.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.11.0...v1.12.0
