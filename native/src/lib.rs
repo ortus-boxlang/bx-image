@@ -1,6 +1,9 @@
 //! MatchBox backend for bx-image: reads PNG, JPEG, GIF, WebP and SVG into RGBA pixels and
 //! implements the portable subset of the bx-image API. The JVM implementation ships in the
 //! same bx-image package; this plugin is selected only when the module runs on MatchBox.
+//!
+//! Every function, public or private, carries a doc comment; `cargo clippy` checks it.
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
 use matchbox_plugin_sdk::*;
 use resvg::{tiny_skia, usvg};
 use std::{
@@ -9,7 +12,9 @@ use std::{
     sync::{Arc, OnceLock},
 };
 
+/// Type identifier of the native image object, checked by the host on every `object_data` call.
 const IMAGE: &str = "bx-image.image.v1";
+/// Member functions of the image object, mapped to the BoxLang functions that implement them.
 const METHODS: &str = r#"{"info":"imageInfo","resize":"imageResize","grayScale":"imageGrayScale","greyScale":"imageGrayScale","getPixels":"imageGetPixels"}"#;
 /// Largest side accepted for blank images and SVG rendering.
 const MAX_SIDE: u32 = 16384;
@@ -23,16 +28,21 @@ const READABLE_FORMATS: &[&str] = &["PNG", "JPEG", "JPG", "GIF", "WEBP", "SVG"];
 /// An image held by the VM. Pixels are straight (not premultiplied) RGBA, row-major.
 #[derive(Clone)]
 struct Image {
+    /// Width in pixels.
     width: u32,
+    /// Height in pixels.
     height: u32,
+    /// `width * height * 4` bytes: red, green, blue, alpha for each pixel, rows top to bottom.
     pixels: Vec<u8>,
     /// Set when the image was read from SVG, so a resize redraws it sharply.
     svg: Option<Arc<usvg::Tree>>,
     /// Grayscale is reapplied after an SVG redraw.
     gray: bool,
+    /// The path the image was read from, reported by `imageInfo().source`; `None` for blank images.
     source: Option<String>,
 }
 impl std::fmt::Debug for Image {
+    /// Summarises the image without dumping its pixels, for test failure messages.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -49,6 +59,10 @@ impl std::fmt::Debug for Image {
 // Pure image operations (unit-tested without a host)
 // ---------------------------------------------------------------------------------------------
 
+/// Checks that `width` x `height` is a usable image size.
+///
+/// # Errors
+/// When a side is 0 or over [`MAX_SIDE`], or the pixel count is over [`MAX_PIXELS`].
 fn check_size(width: u32, height: u32) -> Result<(), String> {
     if width == 0 || height == 0 || width > MAX_SIDE || height > MAX_SIDE {
         return Err(format!(
@@ -61,6 +75,10 @@ fn check_size(width: u32, height: u32) -> Result<(), String> {
     Ok(())
 }
 
+/// Allocates a `width` x `height` image filled with one RGBA color.
+///
+/// # Errors
+/// When the size fails [`check_size`] or the memory cannot be reserved.
 fn alloc_pixels(width: u32, height: u32, rgba: [u8; 4]) -> Result<Vec<u8>, String> {
     check_size(width, height)?;
     let len = width as usize * height as usize * 4;
@@ -74,11 +92,15 @@ fn alloc_pixels(width: u32, height: u32, rgba: [u8; 4]) -> Result<Vec<u8>, Strin
     Ok(pixels)
 }
 
+/// Brightness of a pixel from 0 to 255, ignoring alpha: `(77r + 150g + 29b + 128) >> 8`.
+///
 /// Same integer weights as Java2D's RGB to `TYPE_BYTE_GRAY` conversion, so both backends agree.
 fn luma(r: u8, g: u8, b: u8) -> u8 {
     ((77 * r as u32 + 150 * g as u32 + 29 * b as u32 + 128) >> 8) as u8
 }
 
+/// Converts RGBA pixels to gray in place, using [`luma`].
+///
 /// Like the JVM's `TYPE_BYTE_GRAY` result: composited onto black and fully opaque.
 fn gray_in_place(pixels: &mut [u8]) {
     for px in pixels.chunks_exact_mut(4) {
@@ -89,6 +111,10 @@ fn gray_in_place(pixels: &mut [u8]) {
     }
 }
 
+/// Parses a color for a blank image: `#RRGGBB` (the `#` is optional) or a basic color name.
+///
+/// # Errors
+/// When the color is neither a 6-digit hex value nor a supported name.
 fn parse_color(color: &str) -> Result<[u8; 4], String> {
     let c = color.trim().to_ascii_lowercase();
     let named = match c.as_str() {
@@ -116,6 +142,12 @@ fn parse_color(color: &str) -> Result<[u8; 4], String> {
     ))
 }
 
+/// Creates a blank image for `imageNew( "", width, height, imageType, color )`.
+///
+/// `image_type` is `rgb`, `argb` or `grayscale`; a grayscale image is filled with the gray of `color`.
+///
+/// # Errors
+/// When the type or color is not supported, or the size fails [`check_size`].
 fn blank(width: u32, height: u32, image_type: &str, color: &str) -> Result<Image, String> {
     let rgba = parse_color(color)?;
     let image_type = image_type.to_ascii_lowercase();
@@ -139,6 +171,8 @@ fn blank(width: u32, height: u32, image_type: &str, color: &str) -> Result<Image
     })
 }
 
+/// Whether `data` should be read as SVG: by the `.svg` or `.svgz` extension of `path`, or by an
+/// `<svg` element in the first 1024 bytes.
 fn looks_like_svg(path: &str, data: &[u8]) -> bool {
     let ext = Path::new(path)
         .extension()
@@ -156,6 +190,7 @@ fn looks_like_svg(path: &str, data: &[u8]) -> bool {
     text.starts_with("<svg") || (text.starts_with('<') && text.contains("<svg"))
 }
 
+/// System fonts for SVG text, loaded once on first use and shared by every SVG read afterwards.
 fn font_database() -> Arc<usvg::fontdb::Database> {
     static FONTS: OnceLock<Arc<usvg::fontdb::Database>> = OnceLock::new();
     FONTS
@@ -193,8 +228,11 @@ fn svg_intrinsic_size(data: &[u8], tree: &usvg::Tree) -> (u32, u32) {
     )
 }
 
-/// Draws the SVG at `width` x `height`. `fit` keeps its aspect ratio, centred in the box;
+/// Draws the SVG at `width` x `height` and returns straight RGBA pixels. `fit` keeps its aspect ratio, centred in the box;
 /// otherwise it is stretched to fill it.
+///
+/// # Errors
+/// When the size fails [`check_size`] or the pixels cannot be allocated.
 fn render_svg(tree: &usvg::Tree, width: u32, height: u32, fit: bool) -> Result<Vec<u8>, String> {
     check_size(width, height)?;
     let mut pixmap =
@@ -222,6 +260,12 @@ fn render_svg(tree: &usvg::Tree, width: u32, height: u32, fit: bool) -> Result<V
     Ok(pixels)
 }
 
+/// Decodes image bytes. SVG (see [`looks_like_svg`]) is parsed with usvg and drawn at its intrinsic
+/// size, keeping the tree for later redraws; anything else goes to the `image` crate's PNG, JPEG,
+/// GIF and WebP decoders. `path` is only used for format detection and as the image's source.
+///
+/// # Errors
+/// When the SVG is malformed, the format is not recognised, decoding fails, or the size is too large.
 fn decode(path: &str, data: &[u8]) -> Result<Image, String> {
     if looks_like_svg(path, data) {
         let options = usvg::Options {
@@ -261,6 +305,12 @@ fn decode(path: &str, data: &[u8]) -> Result<Image, String> {
     })
 }
 
+/// Reads and decodes a local image file for `imageRead( path )` and `imageNew( path )`.
+/// A `file://` prefix is accepted.
+///
+/// # Errors
+/// Every error starts with `Unable to load image: <path>`: an empty path, a URL, a file that cannot
+/// be read, or anything [`decode`] rejects.
 fn read(path: &str) -> Result<Image, String> {
     let fail = |reason: String| format!("Unable to load image: {path}: {reason}");
     if path.trim().is_empty() {
@@ -279,6 +329,9 @@ fn read(path: &str) -> Result<Image, String> {
 
 /// `imageRead( path, [width], [height] )`: an SVG is drawn straight at the asked size (fitted and
 /// centred when both are given), other formats are decoded and then resized.
+///
+/// # Errors
+/// What [`read`] returns, or a resize error, prefixed with `Unable to load image: <path>`.
 fn read_sized(path: &str, width: Option<u32>, height: Option<u32>) -> Result<Image, String> {
     let mut image = read(path)?;
     if width.is_none() && height.is_none() {
@@ -298,6 +351,9 @@ fn read_sized(path: &str, width: Option<u32>, height: Option<u32>) -> Result<Ima
 }
 
 /// Resolves the target size; `None` keeps the aspect ratio from the other side.
+///
+/// # Errors
+/// When both sides are `None`.
 fn target_size(
     image: &Image,
     width: Option<u32>,
@@ -314,6 +370,13 @@ fn target_size(
     }
 }
 
+/// Resizes the image in place for `imageResize()` and `.resize()`.
+///
+/// An image read from SVG is redrawn at the new size, then grayscale is reapplied if it was set.
+/// Other images are resampled: `bilinear` (default), `bicubic`, `nearest` or `lanczos`.
+///
+/// # Errors
+/// When neither side is given, the size fails [`check_size`], or the interpolation is unknown.
 fn resize(
     image: &mut Image,
     width: Option<u32>,
@@ -355,16 +418,25 @@ fn resize(
     Ok(())
 }
 
+/// Converts the image to gray in place for `imageGrayScale()` and `.grayScale()`, and remembers it
+/// so an SVG redraw stays gray.
 fn grayscale(image: &mut Image) {
     gray_in_place(&mut image.pixels);
     image.gray = true;
 }
 
+/// What `imageGetPixels()` returns for each pixel.
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum PixelMode {
+    /// A number from 0 to 255, from [`luma`].
     Luma,
+    /// An array `[r, g, b, a]` of numbers from 0 to 255.
     Rgba,
 }
+/// Parses the `mode` argument of `imageGetPixels()`; blank means `luma`. Case does not matter.
+///
+/// # Errors
+/// When the mode is neither `luma` nor `rgba`.
 fn pixel_mode(mode: &str) -> Result<PixelMode, String> {
     match mode.to_ascii_lowercase().as_str() {
         "" | "luma" => Ok(PixelMode::Luma),
@@ -379,18 +451,36 @@ fn pixel_mode(mode: &str) -> Result<PixelMode, String> {
 // Host bindings
 // ---------------------------------------------------------------------------------------------
 
+/// The host's `matchbox.types.v1` table, stored by [`matchbox_plugin_init_v1`].
 static TYPES: OnceLock<&'static TypesV1> = OnceLock::new();
+/// The host's `matchbox.collections.v1` table, stored by [`matchbox_plugin_init_v1`].
 static COLLECTIONS: OnceLock<&'static CollectionsV1> = OnceLock::new();
+/// The types capability, for reading a value's kind.
+///
+/// # Panics
+/// If called before [`matchbox_plugin_init_v1`], which the host never does.
 fn types() -> &'static TypesV1 {
     TYPES.get().expect("types capability initialised")
 }
+/// The collections capability, for building arrays.
+///
+/// # Panics
+/// If called before [`matchbox_plugin_init_v1`], which the host never does.
 fn collections() -> &'static CollectionsV1 {
     COLLECTIONS
         .get()
         .expect("collections capability initialised")
 }
 
-/// The image passed as `name`. The JVM also accepts a variable name; MatchBox needs the image.
+/// The image passed as argument `index`, borrowed mutably for this call.
+/// The JVM also accepts a variable name; MatchBox needs the image.
+///
+/// # Errors
+/// When the argument is missing, a string, or any value other than a bx-image image.
+///
+/// # Safety
+/// `call` must be the live host invocation, and the returned borrow must not outlive it or overlap
+/// another borrow of the same image.
 unsafe fn image_arg<'a>(call: &Call<'_>, index: usize) -> Result<&'a mut Image, String> {
     let value = call.argument(index)?;
     // Check the kind first: object_data on a non-object raises a host error.
@@ -407,7 +497,11 @@ unsafe fn image_arg<'a>(call: &Call<'_>, index: usize) -> Result<&'a mut Image, 
     }
 }
 
-/// A dimension that may be blank or 0, meaning "keep the aspect ratio".
+/// Reads a width or height argument. Null, blank or 0 returns `None`, meaning "keep the aspect
+/// ratio"; numbers and numeric strings are rounded.
+///
+/// # Errors
+/// When the value is not a number or numeric string, or is negative, infinite or over [`MAX_SIDE`].
 fn optional_dimension(call: &Call<'_>, value: Value) -> Result<Option<u32>, String> {
     let number = match call.kind(types(), value)? {
         Kind::Null => return Ok(None),
@@ -430,6 +524,10 @@ fn optional_dimension(call: &Call<'_>, value: Value) -> Result<Option<u32>, Stri
     Ok((rounded > 0).then_some(rounded))
 }
 
+/// Reads a string argument, or `default` when it is null.
+///
+/// # Errors
+/// When the value is neither null nor a string.
 fn string_or_default(call: &Call<'_>, value: Value, default: &str) -> Result<String, String> {
     match call.kind(types(), value)? {
         Kind::Null => Ok(default.into()),
@@ -437,6 +535,14 @@ fn string_or_default(call: &Call<'_>, value: Value, default: &str) -> Result<Str
     }
 }
 
+/// Hands `image` to the host as a new bx-image object with the [`METHODS`] member functions.
+/// If the host refuses it, the image is freed here.
+///
+/// # Errors
+/// When the host cannot create the object.
+///
+/// # Safety
+/// `call` must be the live host invocation.
 unsafe fn new_object(call: &Call<'_>, image: Image) -> Result<Value, String> {
     let data = Box::into_raw(Box::new(image)).cast();
     match unsafe { call.object_new(IMAGE, data, drop_image, METHODS) } {
@@ -448,13 +554,19 @@ unsafe fn new_object(call: &Call<'_>, image: Image) -> Result<Value, String> {
     }
 }
 
+/// Frees an image when the host collects its object.
+///
+/// # Safety
+/// `data` must be a pointer from [`new_object`], freed exactly once.
 unsafe extern "C" fn drop_image(data: *mut c_void) {
     drop(unsafe { Box::from_raw(data.cast::<Image>()) });
 }
 
-/// Declares a host callback whose body returns `Result<Value, String>`.
+/// Declares a host callback whose body returns `Result<Value, String>`. Doc comments written before
+/// the name are kept on the generated function. Panics and errors become a BoxLang exception.
 macro_rules! bif {
-    ($name:ident, |$call:ident| $body:block) => {
+    ($(#[$meta:meta])* $name:ident, |$call:ident| $body:block) => {
+        $(#[$meta])*
         unsafe extern "C" fn $name(
             ctx: Context,
             api: *const ValuesV1,
@@ -473,14 +585,20 @@ macro_rules! bif {
     };
 }
 
-bif!(image_read, |call| {
+bif!(
+    /// `imageRead( path, [width], [height] )`: reads a local PNG, JPEG, GIF, WebP or SVG file,
+    /// optionally at a size (see [`read_sized`]).
+    image_read, |call| {
     let path = call.string(call.argument(0)?)?;
     let width = optional_dimension(&call, call.argument(1)?)?;
     let height = optional_dimension(&call, call.argument(2)?)?;
     new_object(&call, read_sized(&path, width, height)?)
 });
 
-bif!(image_new, |call| {
+bif!(
+    /// `imageNew( [source], [width], [height], [imageType], [color] )`: copies an image, reads a
+    /// path, or with an empty `source` creates a blank image (see [`blank`]).
+    image_new, |call| {
     let source = call.argument(0)?;
     if call.kind(types(), source)? == Kind::Other {
         let copy = image_arg(&call, 0)?.clone();
@@ -500,7 +618,10 @@ bif!(image_new, |call| {
     new_object(&call, blank(width, height, &image_type, &color)?)
 });
 
-bif!(image_resize, |call| {
+bif!(
+    /// `imageResize( name, width, height, [interpolation], [blurFactor] )` and `.resize()`: resizes the
+    /// image in place and returns it. `blurFactor` is accepted and ignored, as on the JVM.
+    image_resize, |call| {
     let image = image_arg(&call, 0)?;
     let width = optional_dimension(&call, call.argument(1)?)?;
     let height = optional_dimension(&call, call.argument(2)?)?;
@@ -509,12 +630,18 @@ bif!(image_resize, |call| {
     call.argument(0)
 });
 
-bif!(image_gray_scale, |call| {
+bif!(
+    /// `imageGrayScale( name )`, `imageGreyScale( name )`, `.grayScale()` and `.greyScale()`:
+    /// converts the image to gray in place and returns it.
+    image_gray_scale, |call| {
     grayscale(image_arg(&call, 0)?);
     call.argument(0)
 });
 
-bif!(image_info, |call| {
+bif!(
+    /// `imageInfo( name )` and `.info()`: a struct with `width`, `height` and `source` (null for
+    /// blank images).
+    image_info, |call| {
     let image = image_arg(&call, 0)?;
     let info = call.struct_new()?;
     call.struct_set(info, "width", call.number_new(image.width as f64)?)?;
@@ -527,7 +654,10 @@ bif!(image_info, |call| {
     Ok(info)
 });
 
-bif!(image_get_pixels, |call| {
+bif!(
+    /// `imageGetPixels( name, [mode] )` and `.getPixels()`: an array of rows, top to bottom, of
+    /// luma numbers or `[r, g, b, a]` arrays (see [`PixelMode`]).
+    image_get_pixels, |call| {
     let image = image_arg(&call, 0)?;
     let mode = pixel_mode(&string_or_default(&call, call.argument(1)?, "luma")?)?;
     let api = collections();
@@ -552,7 +682,9 @@ bif!(image_get_pixels, |call| {
     Ok(rows)
 });
 
-bif!(get_readable_image_formats, |call| {
+bif!(
+    /// `getReadableImageFormats()`: the formats in [`READABLE_FORMATS`].
+    get_readable_image_formats, |call| {
     let api = collections();
     let formats = call.array_new(api)?;
     for format in READABLE_FORMATS {
@@ -619,24 +751,29 @@ pub unsafe extern "C" fn matchbox_plugin_init_v1(host: *const HostV1, ctx: Conte
     0
 }
 
+/// Unit tests for the pure image operations; they need no MatchBox host.
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    /// A 4 x 2 SVG: the left half red, the right half blue.
     const SVG: &[u8] = br##"<svg xmlns="http://www.w3.org/2000/svg" width="4" height="2" viewBox="0 0 4 2"><rect width="2" height="2" fill="#ff0000"/><rect x="2" width="2" height="2" fill="#0000ff"/></svg>"##;
 
+    /// Encodes a `width` x `height` PNG whose pixel at (x, y) is `f(x, y)`.
     fn png(width: u32, height: u32, f: impl Fn(u32, u32) -> [u8; 4]) -> Vec<u8> {
         let img = image::RgbaImage::from_fn(width, height, |x, y| image::Rgba(f(x, y)));
         let mut out = std::io::Cursor::new(Vec::new());
         img.write_to(&mut out, image::ImageFormat::Png).unwrap();
         out.into_inner()
     }
+    /// The RGBA pixel of `image` at (x, y).
     fn px(image: &Image, x: u32, y: u32) -> [u8; 4] {
         let i = ((y * image.width + x) * 4) as usize;
         image.pixels[i..i + 4].try_into().unwrap()
     }
 
     #[test]
+    /// Sizes from 1 to the limits are accepted; 0 and oversized sides are not.
     fn validates_sizes() {
         assert!(check_size(32, 16).is_ok());
         assert!(check_size(MAX_SIDE, MAX_SIDE).is_ok());
@@ -646,6 +783,7 @@ mod tests {
     }
 
     #[test]
+    /// Black, white and the primaries give the Java2D gray levels.
     fn luma_matches_java2d_weights() {
         assert_eq!(luma(0, 0, 0), 0);
         assert_eq!(luma(255, 255, 255), 255);
@@ -655,6 +793,7 @@ mod tests {
     }
 
     #[test]
+    /// Blank images take the color and type, and reject unknown ones.
     fn blank_images_fill_and_validate() {
         let img = blank(3, 2, "rgb", "#102030").unwrap();
         assert_eq!(px(&img, 2, 1), [0x10, 0x20, 0x30, 255]);
@@ -667,6 +806,7 @@ mod tests {
     }
 
     #[test]
+    /// PNG keeps alpha, and SVG is recognised by content without an extension.
     fn decodes_png_and_detects_svg_by_content() {
         let img = decode(
             "a.png",
@@ -689,6 +829,7 @@ mod tests {
     }
 
     #[test]
+    /// Missing files, malformed SVG, unknown formats and URLs fail with clear messages.
     fn errors_are_clear() {
         let missing = read("/definitely/missing.png").unwrap_err();
         assert!(
@@ -706,6 +847,7 @@ mod tests {
     }
 
     #[test]
+    /// A missing side keeps the aspect ratio, bad input fails, and SVG is redrawn sharply, staying gray.
     fn resize_keeps_aspect_ratio_and_redraws_svg() {
         let mut img = decode(
             "a.png",
@@ -737,6 +879,7 @@ mod tests {
     }
 
     #[test]
+    /// SVG without a declared size reads as 512 x 512; viewBox and fractional sizes are honoured.
     fn svg_sizes_follow_the_jvm_rules() {
         let no_size = decode(
             "n.svg",
@@ -765,6 +908,7 @@ mod tests {
     }
 
     #[test]
+    /// Reading an SVG at a size draws it there: stretched to one side, or fitted and centred in both.
     fn read_sized_draws_svg_at_the_asked_size() {
         let dir = std::env::temp_dir().join(format!("bx-image-native-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
@@ -785,6 +929,7 @@ mod tests {
     }
 
     #[test]
+    /// Grayscale puts transparent pixels on black and makes them opaque, like the JVM.
     fn grayscale_composites_on_black() {
         let mut img = decode(
             "a.png",
@@ -803,6 +948,7 @@ mod tests {
     }
 
     #[test]
+    /// Pixel modes are case-insensitive, and unknown ones fail.
     fn pixel_modes() {
         assert_eq!(pixel_mode("LUMA").unwrap(), PixelMode::Luma);
         assert_eq!(pixel_mode("rgba").unwrap(), PixelMode::Rgba);
