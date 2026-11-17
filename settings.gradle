@@ -1,2 +1,11 @@
+// Resolve build plugins from the Plugin Portal and, for their dependencies, straight from Maven Central.
+// The portal forwards dependency lookups to Maven Central, and when that hop fails CI cannot find them.
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+		mavenCentral()
+	}
+}
+
 // The name of the module
 rootProject.name = 'bx-image'
