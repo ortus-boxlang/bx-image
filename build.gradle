@@ -222,6 +222,33 @@ task zipModuleStructure( type: Zip ) {
     from createModuleStructure.destinationDir
     archiveFileName = "${project.name}-${version}.zip"
     destinationDirectory = file( "$buildDir/distributions" )
+    // Optional author-side native prebuilds, in the same published bx-image ZIP.
+    // Consumers do not need Cargo. Example: -PmatchboxTargets=x86_64-unknown-linux-gnu
+    // native/package.bxs runs on the full BoxLang runtime jar from `./gradlew downloadBoxLang`.
+    // The artifacts are added in doFirst, after Gradle's up-to-date check, so never skip the task when
+    // targets are given: otherwise a zip without them can be reused. Cargo's own build stays incremental.
+    inputs.property( 'matchboxTargets', project.findProperty( 'matchboxTargets' )?.toString() ?: '' )
+    outputs.upToDateWhen { !project.hasProperty( 'matchboxTargets' ) }
+    doFirst {
+        if ( project.hasProperty( 'matchboxTargets' ) ) {
+            def boxlangJar = file( 'src/test/resources/libs/boxlang-' + boxlangVersion + '.jar' )
+            if ( !boxlangJar.exists() ) {
+                throw new GradleException( "Packaging MatchBox targets needs ${boxlangJar}: run ./gradlew downloadBoxLang first" )
+            }
+            project.property( 'matchboxTargets' ).toString().split( ',' ).each { target ->
+                def packaging = providers.javaexec {
+                    classpath = files( boxlangJar )
+                    mainClass = 'ortus.boxlang.runtime.BoxRunner'
+                    args 'native/package.bxs', createModuleStructure.destinationDir.toString(), target.trim()
+                    ignoreExitValue = true
+                }
+                println packaging.standardOutput.asText.get().trim()
+                if ( packaging.result.get().exitValue != 0 ) {
+                    throw new GradleException( "Packaging the ${target.trim()} MatchBox artifact failed:\n" + packaging.standardError.asText.get() )
+                }
+            }
+        }
+    }
     // Output that the module has been zippped
     doLast {
         println "+ Module has been zipped to the distribution folder"
