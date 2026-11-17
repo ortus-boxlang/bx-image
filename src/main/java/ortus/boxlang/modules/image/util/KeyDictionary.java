@@ -23,6 +23,9 @@ public class KeyDictionary {
 
 	public static final Key	action				= Key.of( "action" );
 	public static final Key	amount				= Key.of( "amount" );
+	public static final Key	ascent				= Key.of( "ascent" );
+	public static final Key	descent				= Key.of( "descent" );
+	public static final Key	leading				= Key.of( "leading" );
 	public static final Key	angle				= Key.of( "angle" );
 	public static final Key	antialias			= Key.of( "antialias" );
 	public static final Key	archAngle			= Key.of( "archAngle" );
@@ -34,6 +37,9 @@ public class KeyDictionary {
 	public static final Key	borderType			= Key.of( "borderType" );
 	public static final Key	bximage				= Key.of( "bximage" );
 	public static final Key	color				= Key.of( "color" );
+	public static final Key	colors				= Key.of( "colors" );
+	public static final Key	fractions			= Key.of( "fractions" );
+	public static final Key	background			= Key.of( "background" );
 	public static final Key	ctrlx1				= Key.of( "ctrlx1" );
 	public static final Key	ctrlx2				= Key.of( "ctrlx2" );
 	public static final Key	ctrly1				= Key.of( "ctrly1" );
@@ -42,14 +48,17 @@ public class KeyDictionary {
 	public static final Key	dashPhase			= Key.of( "dashPhase" );
 	public static final Key	destination			= Key.of( "destination" );
 	public static final Key	difficulty			= Key.of( "difficulty" );
+	public static final Key	errorCorrection		= Key.of( "errorCorrection" );
 	public static final Key	direction			= Key.of( "direction" );
 	public static final Key	dx					= Key.of( "dx" );
 	public static final Key	dy					= Key.of( "dy" );
 	public static final Key	endCaps				= Key.of( "endCaps" );
+	public static final Key	file				= Key.of( "file" );
 	public static final Key	filled				= Key.of( "filled" );
 	public static final Key	font				= Key.of( "font" );
 	public static final Key	fonts				= Key.of( "fonts" );
 	public static final Key	fontSize			= Key.of( "fontSize" );
+	public static final Key	foreground			= Key.of( "foreground" );
 	public static final Key	format				= Key.of( "format" );
 	public static final Key	gain				= Key.of( "gain" );
 	public static final Key	height				= Key.of( "height" );
@@ -61,6 +70,8 @@ public class KeyDictionary {
 	public static final Key	interpolation		= Key.of( "interpolation" );
 	public static final Key	isBase64			= Key.of( "isBase64" );
 	public static final Key	isPolygon			= Key.of( "isPolygon" );
+	public static final Key	logo				= Key.of( "logo" );
+	public static final Key	logoScale			= Key.of( "logoScale" );
 	public static final Key	lineJoins			= Key.of( "lineJoins" );
 	public static final Key	miterLimit			= Key.of( "miterLimit" );
 	public static final Key	mode				= Key.of( "mode" );
@@ -68,9 +79,11 @@ public class KeyDictionary {
 	public static final Key	overwrite			= Key.of( "overwrite" );
 	public static final Key	percent				= Key.of( "percent" );
 	public static final Key	quality				= Key.of( "quality" );
+	public static final Key	quietZone			= Key.of( "quietZone" );
 	public static final Key	raised				= Key.of( "raised" );
 	public static final Key	rule				= Key.of( "rule" );
 	public static final Key	size				= Key.of( "size" );
+	public static final Key	tryHarder			= Key.of( "tryHarder" );
 	public static final Key	source				= Key.of( "source" );
 	public static final Key	startAngle			= Key.of( "startAngle" );
 	public static final Key	str					= Key.of( "str" );

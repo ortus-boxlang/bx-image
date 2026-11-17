@@ -1,12 +1,16 @@
 package ortus.boxlang.modules.image.bifs;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 
+import ortus.boxlang.modules.image.util.ImageGuard;
 import ortus.boxlang.runtime.bifs.BIF;
 import ortus.boxlang.runtime.bifs.BoxBIF;
 import ortus.boxlang.runtime.context.IBoxContext;
@@ -16,7 +20,6 @@ import ortus.boxlang.runtime.scopes.Key;
 import ortus.boxlang.runtime.types.Argument;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 import ortus.boxlang.runtime.util.FileSystemUtil;
-import ortus.boxlang.runtime.util.ResolvedFilePath;
 import ortus.boxlang.runtime.validation.Validator;
 
 @BoxBIF
@@ -55,21 +58,39 @@ public class IsImageFile extends BIF {
 			    && scheme != null
 			    && ( scheme.equals( "http" )
 			        || scheme.equals( "https" ) ) ) {
-				return ImageIO.read( path.toURL() ) != null;
+				try ( InputStream in = path.toURL().openStream() ) {
+					return isReadable( ImageGuard.readBounded( in, ImageGuard.getMaxBytes(), passedInPath ) );
+				}
 			}
 		} catch ( URISyntaxException e ) {
 			// pass
+		} catch ( BoxRuntimeException e ) {
+			// Over the size limit: not an acceptable image
+			return false;
 		} catch ( IOException e ) {
 			throw new BoxRuntimeException( "Unable to read image from " + passedInPath, e );
 		}
 
 		try {
-			ResolvedFilePath resolved = FileSystemUtil.expandPath( context, passedInPath );
-
-			return ImageIO.read( resolved.absolutePath().toFile() ) != null;
+			File file = FileSystemUtil.expandPath( context, passedInPath ).absolutePath().toFile();
+			if ( !file.isFile() ) {
+				return false;
+			}
+			// Answers from the header only, so nothing is decoded
+			try ( ImageInputStream input = ImageIO.createImageInputStream( file ) ) {
+				return input != null && isWithinLimits( ImageGuard.probeDimensions( input ) );
+			}
 		} catch ( IOException e ) {
 			return false;
 		}
+	}
+
+	private static boolean isReadable( byte[] data ) throws IOException {
+		return isWithinLimits( ImageGuard.probeDimensions( data ) );
+	}
+
+	private static boolean isWithinLimits( long[] dimensions ) {
+		return dimensions != null && ImageGuard.isWithinLimit( dimensions, ImageGuard.getMaxPixels() );
 	}
 
 }

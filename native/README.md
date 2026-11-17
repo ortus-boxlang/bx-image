@@ -8,7 +8,7 @@ Same names and arguments as the JVM backend:
 
 | Function | Member | Notes |
 | --- | --- | --- |
-| `imageRead( path )` | | PNG, JPEG, GIF, WebP and SVG, detected by extension or by content. Local files only. |
+| `imageRead( path, [width], [height] )` | | PNG, JPEG, GIF, WebP and SVG, detected by extension or by content. Local files only. With a size, an SVG is drawn straight at it (fitted and centred when both are given) and other formats are resized after decoding. An SVG with neither a viewBox nor an absolute width and height reads as 512 x 512, as on the JVM. |
 | `imageNew( source, [width], [height], [imageType], [color] )` | | A path reads the file. `""` makes a blank image: `imageType` is `rgb`, `argb` or `grayscale`; `color` is `#RRGGBB` or black, white, red, green, blue, gray, yellow, cyan, magenta. An image source is copied. |
 | `imageResize( name, width, height, [interpolation] )` | `resize()` | A blank or `0` width or height keeps the aspect ratio. `interpolation` is `bilinear` (default), `bicubic`, `nearest` or `lanczos`. An image read from SVG is redrawn at the new size, so it stays sharp. `blurFactor` is accepted and ignored, as on the JVM. |
 | `imageGrayScale( name )`, `imageGreyScale( name )` | `grayScale()`, `greyScale()` | Like the JVM's `TYPE_BYTE_GRAY` image: composited onto black and opaque. |
@@ -18,6 +18,7 @@ Same names and arguments as the JVM backend:
 
 Differences from the JVM:
 
+- `resize()` on an image read from SVG redraws it on MatchBox; the JVM scales the raster. Read at the size you want (`imageRead( path, width )`) for the same sharp result on both.
 - `name` must be the image itself; looking an image up by variable name is JVM-only.
 - URLs, writing, drawing, metadata and the other bx-image functions are not implemented, and fail with a clear error.
 - SVG text uses the system fonts found when the first SVG is read.

@@ -153,6 +153,19 @@ img.addBorder(3, "navy");
 
 **Colors:** Accepts color names ("red", "blue", "black") or hex codes ("#FF0000")
 
+## QR Codes
+
+### readQRCode([tryHarder])
+
+Read the QR code in this image. Returns the decoded text, or an empty string if there is none.
+
+```boxlang
+text = img.readQRCode();
+text = img.readQRCode( false );  // fastest scan
+```
+
+Generate one with `ImageQRCodeGenerate()` or `"text".toQRCode()`. See the [BIF reference](../README.md#qr-codes).
+
 ## Compositing
 
 ### overlay(imageToOverlay, overlayRule, transparency)
@@ -185,6 +198,9 @@ Before drawing, configure colors, stroke, and transparency:
 // Set drawing color for shapes and lines
 img.setDrawingColor("red");
 img.setDrawingColor("#0000FF");
+
+// Linear gradient for fills, strokes and text (setDrawingColor returns to solid)
+img.setDrawingGradient(0, 0, 400, 0, ["red", "blue"]);
 
 // Set background color
 img.setBackgroundColor("white");

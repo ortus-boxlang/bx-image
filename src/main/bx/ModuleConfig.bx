@@ -78,7 +78,12 @@ class {
 		/**
 		 * Every module has a settings configuration object
 		 */
-		settings = {};
+		settings = {
+			// Max pixels (width x height) an image may declare, read from the header before decoding. 0 or less disables.
+			maxPixels : 50000000,
+			// Max bytes of source data (file, url or base64) that will be buffered. 0 or less disables.
+			maxBytes  : 52428800
+		};
 
 		/**
 		 * The module interceptors to register into the runtime

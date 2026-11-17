@@ -11,16 +11,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- MatchBox native backend: the bx-image package now also runs on MatchBox without a JVM. It reads PNG, JPEG, GIF, WebP and SVG (`imageRead`, `imageNew`), and supports `imageResize`, `imageGrayScale`, `imageInfo`, `imageGetPixels` and `getReadableImageFormats`, with the `resize()`, `grayScale()`, `info()` and `getPixels()` member functions. SVG images are redrawn when resized. The release zip carries the native plugin for `x86_64-unknown-linux-gnu` alongside the JVM jar.
+- MatchBox native backend: the bx-image package now also runs on MatchBox without a JVM. It reads PNG, JPEG, GIF, WebP and SVG (`imageRead` with its optional `width` and `height`, `imageNew`), and supports `imageResize`, `imageGrayScale`, `imageInfo`, `imageGetPixels` and `getReadableImageFormats`, with the `resize()`, `grayScale()`, `info()` and `getPixels()` member functions. SVG images are redrawn when resized. The release zip carries the native plugin for `x86_64-unknown-linux-gnu` alongside the JVM jar.
 - `ImageGetPixels( name, [mode] )` and `img.getPixels( [mode] )` on both backends: the pixels as an array of rows, as luma values (`luma`, the default) or `[r, g, b, a]` arrays (`rgba`).
+- SVG read support. `imageRead()`, `imageNew()`, `imageReadBase64()` and the `image` component render SVG files to an ARGB raster image, so every other image function (`resize`, `grayScale`, `write`, ...) works on them. SVG is detected by the `.svg` extension or by content (an `<svg` root after an optional XML prolog). The image uses the SVG's intrinsic size from its width and height or viewBox, or 512 x 512 when it declares neither, and encodes as PNG by default.
+- `imageRead()` takes optional `width` and `height` arguments. An SVG is rendered straight at that size so it stays sharp; other formats are decoded and then resized. With one side given, the other keeps the aspect ratio.
+- `GetReadableImageFormats()` includes `svg`.
+- `BoxImage( String, Integer, Integer )`, `BoxImage( URI, Integer, Integer )` and `BoxImage.fromSvg()` on the Java API.
+- [JSVG](https://github.com/weisJ/jsvg) (`com.github.weisj:jsvg`, MIT, no dependencies) is now bundled for SVG rendering. External resources are never loaded and the rendered size is checked against `maxPixels`.
 
 ### Changed
 
 - `ImageResize()` and `img.resize()` accept a blank or `0` width or height and keep the aspect ratio from the other dimension.
 
+## [1.14.0] - 2026-10-30
+
 ### Fixed
 
-- `ImageNew( path )` reported `Unable to load image: null` when the file could not be read; the message now names the path.
+- `imageNew()` with a Windows absolute path such as `D:\a\x\card.png` failed with `Unable to load image: null`, because every non-empty source was parsed as a URI. Only `http:`, `https:` and `file:` sources are treated as URIs now. Any other string is a local path resolved with `expandPath()`, the same as `imageRead()`, so relative paths and mappings keep working.
+- `imageRead()` threw a `StringIndexOutOfBoundsException` for paths shorter than 4 characters. It now reports `Unable to load image: <path>`.
+- Windows drive paths with forward slashes such as `C:/x/card.png` were parsed as a URI with scheme `C`. `BoxImage.stringToURI()` now converts any drive path to a `file:` URI, and `BoxImage.isWindowsDrivePath()` and `BoxImage.isURISource()` are available on the Java API.
+- The `imageNew()` load error message printed `null` instead of the source that failed.
+
+### Security
+
+- BL-2767: Images are no longer decoded blindly. `imageNew()`, `imageReadBase64()`, the `image` component and the image cache check the declared width x height from the image header before allocating any pixels, and reject images over the new `maxPixels` module setting (default 50,000,000). The source size is also capped by the new `maxBytes` setting (default 50 MB) for files, URLs and Base64 data. `isImageFile()` now answers from the header alone, so it is much faster and returns `false` for images over the limits instead of decoding them. An `OutOfMemoryError` during decoding is rethrown as a `BoxRuntimeException`. Set either setting to `0` to disable that limit.
+
+## [1.13.0] - 2026-10-19
+
+### Added
+
+- `drawText()` accepts a `file` key in its font attribute struct pointing at a `.ttf` or `.otf` font file, used instead of `font`. `ImageRegisterFont( path )` loads and registers a font file and returns its family name so it can be used as `font`. A missing, empty or invalid font file throws a clear error. Font resolution is a single code path shared with drawing, so any measurement built on it uses the same font.
+- `ImageMeasureText( name, str [, attributeCollection] )` and the member function `measureText()` return the rendered `width`, `height`, `ascent`, `descent` and `leading` of a line of text, using the same font attribute struct and font resolution as `drawText()`. Use it to word wrap or shrink text to fit. A `wrapText` helper is intentionally not included; see the docs for a short wrapping recipe built on `measureText()`.
+- `ImageSetDrawingGradient( name, x1, y1, x2, y2, colors [, fractions] )` and the member function `setDrawingGradient()` set a linear gradient as the paint for subsequent fills, strokes, lines and text. `setDrawingColor()` returns to a solid color. Invalid input (fewer than two colors, bad color, identical points, bad fractions) throws.
+
+### Fixed
+
+- Hex color strings were silently ignored: `setDrawingColor( "#FF00FF" )` kept the previous color (black on a fresh image) and `imageNew( "", 10, 10, "rgb", "#0b161b" )` gave a white background. Colors now accept `#RGB`, `#RRGGBB` and `#RRGGBBAA` (alpha last, `#` optional) in `setDrawingColor`, `setBackgroundColor`, `ImageNew`, `ImageAddBorder` and `<bx:image action="border">`. An unparseable color now throws instead of being ignored, and leaves the current color unchanged. Remember that a literal `#` must be written `##` in a BoxLang string.
+
+## [1.12.0] - 2026-10-14
+
+### Added
+
+- `ImageQRCodeGenerate()` creates a QR code image from text. It takes `size`, `format`, `errorCorrection`, `quietZone`, `foreground`, `background`, `logo` and `logoScale`, returns a regular image so every other image function works on it, and is also available as the string member function `toQRCode()`. A logo forces error correction level `H`, and a logo that would make the code unreadable throws instead of returning a code that will not scan.
+- `ImageQRCodeRead()` returns the text of a QR code in an image, or an empty string when there is none. It is also available as the image member function `readQRCode()`.
+- `<bx:image action="qrcode">` and `<bx:image action="qrread">`, matching the existing `captcha` action for output and `name`, `destination` and `overwrite` handling.
+- `BoxImage.generateQRCode()`, `BoxImage.readQRCode()` and `BoxImage.setFormat()` on the Java API.
+- ZXing (`com.google.zxing:core` and `javase`) is now bundled for QR encoding and decoding.
+
+## [1.11.0] - 2026-09-26
+
+### Fixed
+
+- `ImageReadBase64()` and `BoxImage.fromBase64()` always reported the image's format as the hardcoded default (`"jpg"`) regardless of what was actually decoded, because format detection only ever inspected `sourcePath`'s file extension - and a base64-decoded image never has a source path. `figureOutFormat()` now also consults the real file type detected from the decoded bytes themselves (via the same `com.drew.imaging.FileTypeDetector` magic-byte detection already used for file/URI-loaded images), so `getFormat()` correctly reports `"png"`, `"gif"`, `"webp"`, etc. for the actual decoded format instead of always falling back to `"jpg"`. This also makes format detection for `ImageRead()`/file-path loading robust against a source file whose extension doesn't match its real contents.
+
+## [1.10.0] - 2026-09-02
+
+### Fixed
+
+- `ImageRead()` now uses the bundled pure-Java WebP reader, and the native WebP writer now includes an Apple Silicon binary. WebP reading and writing are both supported on Apple Silicon.
+
+## [1.9.0] - 2026-08-22
+
+### Fixed
+
+- `ImageIO`'s WebP writer/reader (`webp-imageio`, `imageio-webp`, bundled in this module's own `libs/`) was never discovered when this module ran inside a host that gives it its own isolated `ClassLoader` (e.g. BoxLang's own per-module `ClassLoader` - see `ModuleConfig.bx`'s own docblock). `javax.imageio.ImageIO`'s static plugin registry is built once, lazily, using whichever thread's context classloader is active the very first time _anything_ in the whole JVM process touches `ImageIO` - which may not be this module's own classloader at all, and is never rescanned automatically afterward. `BoxImage`'s own static initializer now explicitly forces a rescan (`ImageIO.scanForPlugins()`) using its own classloader, so the bundled WebP plugins are always found regardless of load order or which classloader first touched `ImageIO`. Previously, `.write("*.webp")` could fail with `"No suitable ImageIO writer found for format: webp"` even though the writer was right there on this module's own classpath.
+
+## [1.8.0] - 2026-07-25
+
+### Fixed
 
 - `ImageReadBase64()` and `BoxImage.fromBase64()` now accept data URIs with a `data:image/<format>;base64,` prefix, matching the output format produced by `ImageWriteBase64()` and `ImageService.writeImageToBrowser()`.
 
@@ -115,7 +173,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.7.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.13.0...v1.14.0
+[1.13.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.12.0...v1.13.0
+[1.12.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.11.0...v1.12.0
+[1.11.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.10.0...v1.11.0
+[1.10.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.9.0...v1.10.0
+[1.9.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.8.0...v1.9.0
+[1.8.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.4.0...v1.5.0

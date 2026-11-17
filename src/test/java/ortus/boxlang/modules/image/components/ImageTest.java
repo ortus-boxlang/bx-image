@@ -163,4 +163,86 @@ public class ImageTest extends BaseIntegrationTest {
 
 		assertThat( variables.get( result ) ).isEqualTo( "ortus.boxlang.modules.image.BoxImage" );
 	}
+
+	@DisplayName( "It generates a QR code and reads it back" )
+	@Test
+	public void testQRCodeAndRead() {
+		// @formatter:off
+		runtime.executeSource( """
+			<bx:image action="qrcode" text="https://example.com/component" size="250" format="png" errorCorrection="H" foreground="##1a237e" background="white" name="qr" />
+			<bx:image action="qrread" source="#qr#" name="decoded" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( variables.get( Key.of( "decoded" ) ) ).isEqualTo( "https://example.com/component" );
+	}
+
+	@DisplayName( "It writes a QR code to a destination and reads it from a path" )
+	@Test
+	public void testQRCodeDestination() {
+		// @formatter:off
+		runtime.executeSource( """
+			<bx:image action="qrcode" text="to disk" destination="src/test/resources/generated/qr-component.png" overwrite=true />
+			<bx:image action="qrread" source="src/test/resources/generated/qr-component.png" name="decoded" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( variables.get( Key.of( "decoded" ) ) ).isEqualTo( "to disk" );
+	}
+
+	@DisplayName( "It draws a logo on a QR code" )
+	@Test
+	public void testQRCodeLogo() {
+		// @formatter:off
+		runtime.executeSource( """
+			<bx:image action="qrcode" text="https://example.com/logo-qr" size="400" logo="src/test/resources/logo.png" name="qr" />
+			<bx:image action="qrread" source="#qr#" name="decoded" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( variables.get( Key.of( "decoded" ) ) ).isEqualTo( "https://example.com/logo-qr" );
+	}
+
+	@DisplayName( "It will not overwrite an existing QR code file unless told to" )
+	@Test
+	public void testQRCodeOverwrite() {
+		// @formatter:off
+		runtime.executeSource( """
+			<bx:image action="qrcode" text="first" destination="src/test/resources/generated/qr-overwrite.png" overwrite=true />
+		""", context, BoxSourceType.BOXTEMPLATE );
+
+		assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( """
+			<bx:image action="qrcode" text="second" destination="src/test/resources/generated/qr-overwrite.png" />
+		""", context, BoxSourceType.BOXTEMPLATE ) );
+		// @formatter:on
+	}
+
+	@DisplayName( "It requires text for the qrcode action" )
+	@Test
+	public void testQRCodeRequiresText() {
+		assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( """
+		                                                                      	<bx:image action="qrcode" name="qr" />
+		                                                                      """, context, BoxSourceType.BOXTEMPLATE ) );
+	}
+
+	@DisplayName( "It requires a name for the qrread action" )
+	@Test
+	public void testQRReadRequiresName() {
+		assertThrows( BoxRuntimeException.class, () -> runtime.executeSource( """
+		                                                                      	<bx:image action="qrread" source="src/test/resources/logo.png" />
+		                                                                      """, context, BoxSourceType.BOXTEMPLATE ) );
+	}
+
+	@DisplayName( "It returns an empty string from qrread when there is no QR code" )
+	@Test
+	public void testQRReadNoCode() {
+		// @formatter:off
+		runtime.executeSource( """
+			<bx:image action="qrread" source="src/test/resources/logo.png" name="decoded" />
+		""", context, BoxSourceType.BOXTEMPLATE );
+		// @formatter:on
+
+		assertThat( variables.get( Key.of( "decoded" ) ) ).isEqualTo( "" );
+	}
+
 }

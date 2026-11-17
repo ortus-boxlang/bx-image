@@ -23,6 +23,8 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.LinearGradientPaint;
+import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
@@ -30,6 +32,7 @@ import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -57,16 +60,24 @@ import java.util.Map;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import com.drew.imaging.FileType;
 import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageProcessingException;
+import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 
 import javaxt.io.Image;
 import ortus.boxlang.modules.image.util.EnumConverterUtil;
+import ortus.boxlang.modules.image.util.ImageGuard;
 import ortus.boxlang.modules.image.util.ImageMetadataUtil;
+import ortus.boxlang.modules.image.util.ColorUtil;
+import ortus.boxlang.modules.image.util.FontUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
+import ortus.boxlang.modules.image.util.QRCodeUtil;
 import ortus.boxlang.modules.image.util.StrokeBuilder;
+import ortus.boxlang.modules.image.util.SvgUtil;
 import ortus.boxlang.runtime.dynamic.casters.ArrayCaster;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
 import ortus.boxlang.runtime.dynamic.casters.CastAttempt;
@@ -137,21 +148,25 @@ import ortus.boxlang.runtime.util.IBoxBinaryRepresentable;
 public class BoxImage implements IBoxBinaryRepresentable {
 
 	/** Map of named colors to java.awt.Color instances */
-	public static final Map<String, Color>	COLORS;
+	public static final Map<String, Color>			COLORS;
+
+	private static final java.util.regex.Pattern	WINDOWS_DRIVE_PATH		= java.util.regex.Pattern.compile( "^[A-Za-z]:[\\\\/]" );
+	private static final java.util.regex.Pattern	URI_SOURCE				= java.util.regex.Pattern.compile( "^(https?|file):",
+	    java.util.regex.Pattern.CASE_INSENSITIVE );
 
 	/** Default font family for text drawing operations */
-	public static final String				DEFAULT_FONT_FAMILY		= Font.SANS_SERIF;
+	public static final String						DEFAULT_FONT_FAMILY		= Font.SANS_SERIF;
 
 	/** Default font style (plain, not bold or italic) */
-	public static final int					DEFAULT_FONT_STYLE		= Font.PLAIN;
+	public static final int							DEFAULT_FONT_STYLE		= Font.PLAIN;
 
 	/** Default font size in points */
-	public static final int					DEFAULT_FONT_SIZE		= 10;
+	public static final int							DEFAULT_FONT_SIZE		= 10;
 
 	/** Default interpolation method for image scaling operations */
-	public static final String				DEFAULT_INTERPOLATION	= "bilinear";
+	public static final String						DEFAULT_INTERPOLATION	= "bilinear";
 
-	private static final String				DEFAULT_FORMAT			= "jpg";
+	private static final String						DEFAULT_FORMAT			= "jpg";
 
 	static {
 		COLORS = new HashMap<String, Color>();
@@ -168,6 +183,28 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		COLORS.put( "red", Color.red );
 		COLORS.put( "white", Color.white );
 		COLORS.put( "yellow", Color.yellow );
+
+		// Force ImageIO to rescan for plugins using THIS class's own
+		// classloader. BoxLang gives every module its own isolated
+		// ClassLoader for its bundled libs/ (see ModuleConfig.bx's own
+		// docblock: "Every Module will have it's own ClassLoader..."), but
+		// javax.imageio.ImageIO's static IIORegistry is built once, lazily,
+		// using whichever thread's context classloader happens to be active
+		// the very first time ANYTHING in the whole JVM process touches
+		// ImageIO - which may not be this module's own classloader at all,
+		// and is never rescanned automatically afterward. Without this, the
+		// WebP writer/reader plugins bundled in this module's own libs/
+		// (webp-imageio, imageio-webp) are never discovered, and
+		// ImageIO.write()/getImageWritersByFormatName("webp") silently
+		// report no suitable writer even though it's right there on this
+		// module's own classpath.
+		ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+		try {
+			Thread.currentThread().setContextClassLoader( BoxImage.class.getClassLoader() );
+			ImageIO.scanForPlugins();
+		} finally {
+			Thread.currentThread().setContextClassLoader( previousClassLoader );
+		}
 	}
 
 	/** Path or URL from which the image was loaded, if applicable */
@@ -182,6 +219,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	/** Current drawing color (default: white) */
 	private String		drawingColor	= "white";
 
+	/** Active gradient paint, or null when drawing with the solid drawing color */
+	private Paint		gradient;
+
 	/** Current background color (default: white) */
 	private String		backgroundColor	= "white";
 
@@ -193,6 +233,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 	/** Detected file type from metadata-extractor library */
 	private FileType	fileType;
+
+	/** Explicit output format for images generated in memory (e.g. QR codes), which have no source path to infer it from */
+	private String		formatOverride;
 
 	/**
 	 * Enumeration for specifying image dimensions in scaling operations.
@@ -221,7 +264,20 @@ public class BoxImage implements IBoxBinaryRepresentable {
 				base64String = base64String.substring( commaIndex + 1 );
 			}
 		}
-		return new BoxImage( ImageIO.read( new ByteArrayInputStream( Base64.getDecoder().decode( base64String ) ) ) );
+
+		ImageGuard.assertBase64Size( base64String, ImageGuard.getMaxBytes() );
+		byte[] data = Base64.getDecoder().decode( base64String );
+		if ( SvgUtil.hasSvgContent( data ) ) {
+			return fromSvg( data, null, null, "base64 data" );
+		}
+		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
+		FileType detectedType = FileTypeDetector.detectFileType( new ByteArrayInputStream( data ) );
+
+		try {
+			return new BoxImage( ImageIO.read( new ByteArrayInputStream( data ) ), detectedType );
+		} catch ( OutOfMemoryError e ) {
+			throw new BoxRuntimeException( "Not enough memory to decode the image.", e );
+		}
 	}
 
 	/**
@@ -264,6 +320,25 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	}
 
 	/**
+	 * Creates a BoxImage from a file path or URL string, at a target size.
+	 * An SVG is rendered straight at that size so it stays sharp; any other format is decoded and then resized.
+	 * With only one side given, the other keeps the image's aspect ratio. With neither, the image keeps its own size.
+	 *
+	 * @param imageURI The path or URL to the image file
+	 * @param width    Target width in pixels, or null
+	 * @param height   Target height in pixels, or null
+	 *
+	 * @throws MalformedURLException    If the URI is malformed
+	 * @throws IOException              If the image cannot be read
+	 * @throws ImageProcessingException If metadata extraction fails
+	 * @throws URISyntaxException       If the URI syntax is invalid
+	 */
+	public BoxImage( String imageURI, Integer width, Integer height )
+	    throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		this( stringToURI( imageURI ), width, height );
+	}
+
+	/**
 	 * Creates a BoxImage from a URI.
 	 * Automatically extracts EXIF and IPTC metadata during creation.
 	 *
@@ -275,14 +350,50 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws URISyntaxException       If the URI syntax is invalid
 	 */
 	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		this( imageURI, null, null );
+	}
+
+	/**
+	 * Creates a BoxImage from a URI, at a target size.
+	 * An SVG is rendered straight at that size so it stays sharp; any other format is decoded and then resized.
+	 * With only one side given, the other keeps the image's aspect ratio. With neither, the image keeps its own size.
+	 * Automatically extracts EXIF and IPTC metadata from raster images.
+	 *
+	 * @param imageURI The URI to the image file
+	 * @param width    Target width in pixels, or null
+	 * @param height   Target height in pixels, or null
+	 *
+	 * @throws MalformedURLException    If the URI is malformed
+	 * @throws IOException              If the image cannot be read
+	 * @throws ImageProcessingException If metadata extraction fails
+	 * @throws URISyntaxException       If the URI syntax is invalid
+	 */
+	public BoxImage( URI imageURI, Integer width, Integer height )
+	    throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		if ( ( width != null && width <= 0 ) || ( height != null && height <= 0 ) ) {
+			throw new BoxRuntimeException( "The image width and height must be greater than zero, got [" + width + "] x [" + height + "]." );
+		}
 		this.sourcePath = imageURI.toString();
 		byte[] data;
 
 		// Use try-with-resources to ensure the InputStream is properly closed
 		// This prevents file locking issues on Windows when attempting to delete the file
 		try ( InputStream dataStream = getInputStream( imageURI ) ) {
-			data = dataStream.readAllBytes();
+			data = ImageGuard.readBounded( dataStream, ImageGuard.getMaxBytes(), this.sourcePath );
 		}
+
+		if ( SvgUtil.isSvg( this.sourcePath, data ) ) {
+			try {
+				this.image = new Image( SvgUtil.render( data, width, height, this.sourcePath ) );
+			} catch ( OutOfMemoryError e ) {
+				throw new BoxRuntimeException( "Not enough memory to render the image [" + this.sourcePath + "].", e );
+			}
+			markAsSvg();
+			this.cacheGraphics();
+			return;
+		}
+
+		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
 
 		ByteArrayInputStream bas = new ByteArrayInputStream( data );
 		this.fileType = FileTypeDetector.detectFileType( bas );
@@ -291,9 +402,54 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		bas.reset();
 		iptcData = ImageMetadataUtil.readIPTCMetaData( bas );
 		bas.reset();
-		this.image = new Image( bas );
+		try {
+			this.image = this.fileType == FileType.WebP
+			    ? new Image( readWebP( data ) )
+			    : new Image( bas );
+		} catch ( OutOfMemoryError e ) {
+			throw new BoxRuntimeException( "Not enough memory to decode the image [" + this.sourcePath + "].", e );
+		}
 
 		this.cacheGraphics();
+
+		if ( width != null || height != null ) {
+			int	targetWidth		= width != null ? width
+			    : ( int ) Math.max( 1, Math.round( ( double ) height * getWidth() / getHeight() ) );
+			int	targetHeight	= height != null ? height
+			    : ( int ) Math.max( 1, Math.round( ( double ) width * getHeight() / getWidth() ) );
+			this.resize( targetWidth, targetHeight, DEFAULT_INTERPOLATION, 1 );
+		}
+	}
+
+	/**
+	 * Creates a BoxImage by rendering SVG data.
+	 *
+	 * @param data   The SVG bytes
+	 * @param width  Target width in pixels, or null for the intrinsic size
+	 * @param height Target height in pixels, or null for the intrinsic size
+	 * @param source A description of the source, for error messages
+	 *
+	 * @return A new BoxImage instance
+	 */
+	public static BoxImage fromSvg( byte[] data, Integer width, Integer height, String source ) {
+		BufferedImage rendered;
+		try {
+			rendered = SvgUtil.render( data, width, height, source );
+		} catch ( OutOfMemoryError e ) {
+			throw new BoxRuntimeException( "Not enough memory to render the image [" + source + "].", e );
+		}
+		BoxImage boxImage = new BoxImage( rendered );
+		boxImage.markAsSvg();
+		return boxImage;
+	}
+
+	/**
+	 * A rendered SVG has no raster file type and cannot be written back as SVG, so it encodes as PNG
+	 * (which keeps its transparency) unless a write names another format.
+	 */
+	private void markAsSvg() {
+		this.fileType		= FileType.Unknown;
+		this.formatOverride	= "png";
 	}
 
 	/**
@@ -303,6 +459,19 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 */
 	public BoxImage( BufferedImage imageData ) {
 		this.image = new Image( imageData );
+		this.cacheGraphics();
+	}
+
+	/**
+	 * Creates a BoxImage from an existing BufferedImage, along with the real file type
+	 * detected from the source bytes it was decoded from (e.g. via {@link #fromBase64(String)}).
+	 *
+	 * @param imageData The BufferedImage to wrap
+	 * @param fileType  The file type detected from the original encoded bytes, or {@link FileType#Unknown} if it could not be determined
+	 */
+	public BoxImage( BufferedImage imageData, FileType fileType ) {
+		this.image		= new Image( imageData );
+		this.fileType	= fileType;
 		this.cacheGraphics();
 	}
 
@@ -334,8 +503,13 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 		this.graphics = bufferedImage.createGraphics();
 
+		Paint activeGradient = this.gradient;
 		this.setDrawingColor( this.drawingColor );
 		this.setBackgroundColor( this.backgroundColor );
+		if ( activeGradient != null ) {
+			this.gradient = activeGradient;
+			this.graphics.setPaint( activeGradient );
+		}
 	}
 
 	/**
@@ -389,6 +563,19 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 	public String getFormat() {
 		return figureOutFormat();
+	}
+
+	/**
+	 * Sets the output format used by {@link #getFormat()}, {@link #toByteArray()} and {@link #toBase64String()}
+	 * for an image that has no source path to infer it from.
+	 *
+	 * @param format The image format (e.g., "png", "jpg", "gif"), or null to go back to inferring it
+	 *
+	 * @return This BoxImage instance for method chaining
+	 */
+	public BoxImage setFormat( String format ) {
+		this.formatOverride = format == null || format.isBlank() ? null : format.trim().toLowerCase();
+		return this;
 	}
 
 	/**
@@ -1090,6 +1277,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @param y          The y-coordinate of the baseline of the text
 	 * @param fontConfig A struct containing font properties:
 	 *                   - font: The font family name (string)
+	 *                   - file: Path to a .ttf or .otf font file (string). Used instead of font when present.
 	 *                   - style: The font style ("plain", "bold", "italic", "bolditalic")
 	 *                   - size: The font size in points (integer)
 	 *                   - strikeThrough: Whether to apply strikethrough (boolean)
@@ -1098,6 +1286,25 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage drawText( String str, int x, int y, IStruct fontConfig ) {
+		this.graphics.setFont( this.buildFont( fontConfig ) );
+
+		this.drawText( str, x, y );
+
+		this.graphics.setFont( null );
+
+		return this;
+	}
+
+	/**
+	 * Resolves a font attribute struct into a {@link Font}. Shared by drawing and measuring text so both always agree.
+	 *
+	 * @param fontConfig A struct with the keys font, style, size, strikeThrough and underline (see {@link #drawText(String, int, int, IStruct)})
+	 *
+	 * @return The resolved font
+	 *
+	 * @throws BoxRuntimeException If the style is not one of plain, bold, italic or bolditalic
+	 */
+	private Font buildFont( IStruct fontConfig ) {
 		Map<TextAttribute, Object> attr = new HashMap<TextAttribute, Object>();
 
 		attr.put( TextAttribute.FONT, DEFAULT_FONT_FAMILY );
@@ -1139,15 +1346,42 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			attr.put( TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON );
 		}
 
-		Font currentFont = new Font( attr );
+		String file = fontConfig.getAsString( KeyDictionary.file );
+		if ( file != null ) {
+			if ( file.isBlank() ) {
+				throw new BoxRuntimeException( "The font file path is empty." );
+			}
+			// A font file is used as is; deriving from it avoids depending on a family name lookup
+			attr.remove( TextAttribute.FAMILY );
+			attr.remove( TextAttribute.FONT );
+			attr.putIfAbsent( TextAttribute.SIZE, 12f );
+			return FontUtil.load( Path.of( file ) ).deriveFont( attr );
+		}
 
-		this.graphics.setFont( currentFont );
+		return new Font( attr );
+	}
 
-		this.drawText( str, x, y );
+	/**
+	 * Measures a single line of text as {@link #drawText(String, int, int, IStruct)} would render it.
+	 *
+	 * @param str        The text to measure
+	 * @param fontConfig Optional font attribute struct (font, style, size, strikeThrough, underline). Null uses the defaults.
+	 *
+	 * @return A struct with width (advance in pixels), height (ascent + descent), ascent, descent and leading
+	 */
+	public IStruct measureText( String str, IStruct fontConfig ) {
+		Font	font	= fontConfig == null ? this.graphics.getFont() : this.buildFont( fontConfig );
+		var		frc		= this.graphics.getFontRenderContext();
+		var		metrics	= font.getLineMetrics( str, frc );
+		double	width	= str.isEmpty() ? 0 : font.getStringBounds( str, frc ).getWidth();
 
-		this.graphics.setFont( null );
-
-		return this;
+		IStruct	result	= new Struct();
+		result.put( KeyDictionary.width, width );
+		result.put( KeyDictionary.height, ( double ) ( metrics.getAscent() + metrics.getDescent() ) );
+		result.put( KeyDictionary.ascent, ( double ) metrics.getAscent() );
+		result.put( KeyDictionary.descent, ( double ) metrics.getDescent() );
+		result.put( KeyDictionary.leading, ( double ) metrics.getLeading() );
+		return result;
 	}
 
 	/**
@@ -1403,7 +1637,7 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		BufferedImage	bfImage	= next.getBufferedImage();
 		Graphics2D		g		= bfImage.createGraphics();
 
-		g.setColor( COLORS.get( color.toLowerCase() ) );
+		g.setColor( ColorUtil.parse( color ) );
 		g.fillRect( 0, 0, bfImage.getWidth(), bfImage.getHeight() );
 
 		g.drawImage( this.image.getBufferedImage(), thickness, thickness, null );
@@ -1546,16 +1780,72 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	/**
 	 * Sets the color for subsequent drawing operations.
 	 *
-	 * @param color The color to set (color name like "red", "blue", or hex code like "#FF0000")
+	 * @param color The color to set (color name like "red", "blue", or hex code like "#FF0000", "#F00" or "#FF000080"; an unparseable value throws)
 	 *
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage setDrawingColor( String color ) {
+		Color parsed = ColorUtil.parse( color );
 		this.drawingColor = color;
 
-		if ( COLORS.containsKey( color.toLowerCase() ) ) {
-			graphics.setColor( COLORS.get( color.toLowerCase() ) );
+		// Leaving gradient mode: fall back to the last solid color before applying the new one
+		if ( this.gradient != null ) {
+			this.gradient = null;
+			graphics.setPaint( graphics.getColor() );
 		}
+
+		graphics.setColor( parsed );
+
+		return this;
+	}
+
+	/**
+	 * Sets a linear gradient as the paint for subsequent fill, stroke and text operations
+	 * until {@link #setDrawingColor(String)} is called.
+	 *
+	 * @param x1        The x-coordinate of the gradient start point
+	 * @param y1        The y-coordinate of the gradient start point
+	 * @param x2        The x-coordinate of the gradient end point
+	 * @param y2        The y-coordinate of the gradient end point
+	 * @param colors    Two or more color names or hex codes
+	 * @param fractions Optional positions (0 to 1, strictly increasing, one per color). Null spreads the colors evenly.
+	 *
+	 * @return This BoxImage instance for method chaining
+	 *
+	 * @throws BoxRuntimeException If the points coincide, fewer than two colors are given, a color is invalid or the fractions are invalid
+	 */
+	public BoxImage setDrawingGradient( float x1, float y1, float x2, float y2, Array colors, Array fractions ) {
+		if ( colors == null || colors.size() < 2 ) {
+			throw new BoxRuntimeException( "A gradient needs at least two colors." );
+		}
+		if ( x1 == x2 && y1 == y2 ) {
+			throw new BoxRuntimeException( "The gradient start and end points must be different." );
+		}
+
+		Color[] parsed = new Color[ colors.size() ];
+		for ( int i = 0; i < parsed.length; i++ ) {
+			parsed[ i ] = ColorUtil.parse( StringCaster.cast( colors.get( i ) ) );
+		}
+
+		float[] stops = new float[ parsed.length ];
+		if ( fractions == null || fractions.isEmpty() ) {
+			for ( int i = 0; i < stops.length; i++ ) {
+				stops[ i ] = ( float ) i / ( stops.length - 1 );
+			}
+		} else {
+			if ( fractions.size() != parsed.length ) {
+				throw new BoxRuntimeException( "fractions must have one entry per color (" + parsed.length + ") but had " + fractions.size() + "." );
+			}
+			for ( int i = 0; i < stops.length; i++ ) {
+				stops[ i ] = FloatCaster.cast( fractions.get( i ) );
+				if ( stops[ i ] < 0f || stops[ i ] > 1f || ( i > 0 && stops[ i ] <= stops[ i - 1 ] ) ) {
+					throw new BoxRuntimeException( "fractions must be between 0 and 1 and strictly increasing." );
+				}
+			}
+		}
+
+		this.gradient = new LinearGradientPaint( new Point2D.Float( x1, y1 ), new Point2D.Float( x2, y2 ), stops, parsed );
+		this.graphics.setPaint( this.gradient );
 
 		return this;
 	}
@@ -1568,11 +1858,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return This BoxImage instance for method chaining
 	 */
 	public BoxImage setBackgroundColor( String color ) {
+		Color parsed = ColorUtil.parse( color );
 		this.backgroundColor = color;
-
-		if ( COLORS.containsKey( color.toLowerCase() ) ) {
-			graphics.setBackground( COLORS.get( color.toLowerCase() ) );
-		}
+		graphics.setBackground( parsed );
 
 		return this;
 	}
@@ -1607,6 +1895,29 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		this.image.blur( radius.floatValue() );
 
 		return this;
+	}
+
+	/**
+	 * Reads WebP data with the bundled pure-Java reader. The native WebP reader does not
+	 * support Apple Silicon and may be selected first by ImageIO's global registry.
+	 *
+	 * @param data WebP image bytes
+	 *
+	 * @return The decoded image
+	 *
+	 * @throws IOException If the image cannot be decoded
+	 */
+	private static BufferedImage readWebP( byte[] data ) throws IOException {
+		ImageReader reader = new WebPImageReaderSpi().createReaderInstance( null );
+		try ( ImageInputStream input = ImageIO.createImageInputStream( new ByteArrayInputStream( data ) ) ) {
+			if ( input == null ) {
+				throw new IOException( "Unable to create an input stream for the WebP image" );
+			}
+			reader.setInput( input );
+			return reader.read( 0 );
+		} finally {
+			reader.dispose();
+		}
 	}
 
 	/**
@@ -1675,6 +1986,10 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @return The corresponding URI
 	 */
 	public static URI stringToURI( String input ) {
+		// Windows drive paths ("C:\x", "C:/x") must never be parsed as a URI: "C" would be taken as the scheme
+		if ( isWindowsDrivePath( input ) ) {
+			return windowsPathToURI( input );
+		}
 		try {
 			// Try to parse as a URL (e.g., http://, file://, etc.)
 			URI uri = URI.create( input );
@@ -1683,6 +1998,47 @@ public class BoxImage implements IBoxBinaryRepresentable {
 			// Not a valid URL? Treat as a local file path
 			Path path = Paths.get( input );
 			return path.toUri();  // Converts to file:// URI
+		}
+	}
+
+	/**
+	 * Is the string a Windows drive path such as <code>C:\x</code> or <code>C:/x</code>?
+	 *
+	 * @param input The input string
+	 *
+	 * @return true if it starts with a drive letter, a colon and a slash or backslash
+	 */
+	public static boolean isWindowsDrivePath( String input ) {
+		return input != null && WINDOWS_DRIVE_PATH.matcher( input ).find();
+	}
+
+	/**
+	 * Is the string an http, https or file URI, as opposed to a local path?
+	 *
+	 * @param input The input string
+	 *
+	 * @return true if it starts with <code>http:</code>, <code>https:</code> or <code>file:</code>, ignoring case
+	 */
+	public static boolean isURISource( String input ) {
+		return input != null && URI_SOURCE.matcher( input ).find();
+	}
+
+	/**
+	 * Converts a Windows drive path to a file URI. Uses <code>Paths.get()</code> on Windows and an
+	 * equivalent conversion elsewhere, so the result is the same on every platform.
+	 *
+	 * @param input A path such as <code>D:\a\x\card.png</code> or <code>C:/x/card.png</code>
+	 *
+	 * @return The file URI, such as <code>file:///D:/a/x/card.png</code>
+	 */
+	public static URI windowsPathToURI( String input ) {
+		if ( File.separatorChar == '\\' ) {
+			return Paths.get( input ).toUri();
+		}
+		try {
+			return new URI( "file", "", "/" + input.replace( '\\', '/' ), null );
+		} catch ( URISyntaxException e ) {
+			throw new BoxRuntimeException( "Unable to convert path to a URI: " + input, e );
 		}
 	}
 
@@ -1713,6 +2069,71 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Generates a QR code image.
+	 *
+	 * <p>
+	 * The module grid is scaled to the largest whole-pixel module size that fits {@code size}, then stretched to the exact
+	 * size with nearest-neighbour sampling so the code stays sharp and scannable.
+	 * </p>
+	 *
+	 * @param text            The text to encode. Must be non-empty.
+	 * @param size            Edge length in pixels. Clamped to 16 to 4096.
+	 * @param format          The output format, e.g. {@code png}. Must be a format {@code ImageIO} can write.
+	 * @param errorCorrection {@code L}, {@code M}, {@code Q} or {@code H}. Forced to {@code H} when a logo is supplied.
+	 * @param quietZone       Light margin around the code in modules. Clamped to 0 to 32. The QR specification calls for 4.
+	 * @param foreground      Color of the dark modules, a color name or hex code.
+	 * @param background      Color of the light modules, a color name or hex code.
+	 * @param logo            Optional image drawn in the center of the code. May be null.
+	 * @param logoScale       Fraction of the code's edge length the logo covers. Clamped to 0.3.
+	 *
+	 * @return A new {@link BoxImage} containing the QR code.
+	 */
+	public static BoxImage generateQRCode( String text, int size, String format, String errorCorrection, int quietZone, String foreground,
+	    String background, BoxImage logo, double logoScale ) {
+		String normalizedFormat = format == null || format.isBlank() ? "png" : format.trim().toLowerCase();
+		if ( !ImageIO.getImageWritersByFormatName( normalizedFormat ).hasNext() ) {
+			throw new BoxRuntimeException(
+			    "Unable to generate a QR code in format [" + format + "]. Use GetWriteableImageFormats() to see the supported formats." );
+		}
+
+		BufferedImage qr = QRCodeUtil.generate( text, size, errorCorrection, quietZone, foreground, background, logo, logoScale );
+
+		return new BoxImage( qr ).setFormat( normalizedFormat );
+	}
+
+	/**
+	 * Generates a QR code image with the default size, format, error correction, quiet zone and colors.
+	 *
+	 * @param text The text to encode. Must be non-empty.
+	 *
+	 * @return A new {@link BoxImage} containing the QR code.
+	 */
+	public static BoxImage generateQRCode( String text ) {
+		return generateQRCode( text, QRCodeUtil.DEFAULT_SIZE, "png", "M", QRCodeUtil.DEFAULT_QUIET_ZONE, "black", "white", null,
+		    QRCodeUtil.DEFAULT_LOGO_SCALE );
+	}
+
+	/**
+	 * Reads the QR code in this image.
+	 *
+	 * @return The decoded text, or an empty string if no QR code was found
+	 */
+	public String readQRCode() {
+		return readQRCode( true );
+	}
+
+	/**
+	 * Reads the QR code in this image.
+	 *
+	 * @param tryHarder When true, spends more effort finding the code and also tries light-on-dark codes
+	 *
+	 * @return The decoded text, or an empty string if no QR code was found
+	 */
+	public String readQRCode( boolean tryHarder ) {
+		return QRCodeUtil.decode( this.image.getBufferedImage(), tryHarder );
 	}
 
 	/**
@@ -1941,12 +2362,25 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	}
 
 	/**
-	 * Determines the image format based on the source path's file extension.
-	 * If the source path is not set or does not have a valid extension, returns a default format.
+	 * Determines the image format, preferring the real format detected from the image's
+	 * own bytes (via {@link FileTypeDetector}) over the source path's file extension.
+	 * If no format could be detected and the source path is not set or does not have a
+	 * valid extension, returns a default format.
 	 *
 	 * @return The determined image format (e.g., "png", "jpg") or a default format if undetermined
 	 */
 	private String figureOutFormat() {
+		if ( this.formatOverride != null ) {
+			return this.formatOverride;
+		}
+
+		if ( this.fileType != null && this.fileType != FileType.Unknown ) {
+			String detectedFormat = this.fileType.getCommonExtension();
+			if ( detectedFormat != null && !detectedFormat.isEmpty() ) {
+				return detectedFormat.toLowerCase();
+			}
+		}
+
 		if ( this.sourcePath == null || this.sourcePath.isEmpty() ) {
 			return DEFAULT_FORMAT;
 		}

@@ -23,13 +23,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.modules.image.ImageEvents;
+import ortus.boxlang.modules.image.bifs.ImageQRCodeGenerate;
 import ortus.boxlang.modules.image.services.ImageService;
 import ortus.boxlang.modules.image.util.KeyDictionary;
+import ortus.boxlang.modules.image.util.QRCodeUtil;
 import ortus.boxlang.runtime.components.Attribute;
 import ortus.boxlang.runtime.components.BoxComponent;
 import ortus.boxlang.runtime.components.Component;
 import ortus.boxlang.runtime.context.IBoxContext;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
+import ortus.boxlang.runtime.dynamic.casters.DoubleCaster;
 import ortus.boxlang.runtime.dynamic.casters.IntegerCaster;
 import ortus.boxlang.runtime.dynamic.casters.StringCaster;
 import ortus.boxlang.runtime.logging.BoxLangLogger;
@@ -67,6 +70,8 @@ public class Image extends Component {
 		        "captcha",
 		        "convert",
 		        "info",
+		        "qrcode",
+		        "qrread",
 		        "read",
 		        "resize",
 		        "rotate",
@@ -90,7 +95,15 @@ public class Image extends Component {
 		    new Attribute( KeyDictionary.thickness, "string" ),
 		    new Attribute( KeyDictionary.width, "numeric" ),
 		    new Attribute( KeyDictionary.fonts, "string" ),
-		    new Attribute( KeyDictionary.interpolation, "string" )
+		    new Attribute( KeyDictionary.interpolation, "string" ),
+		    new Attribute( KeyDictionary.size, "numeric" ),
+		    new Attribute( KeyDictionary.errorCorrection, "string" ),
+		    new Attribute( KeyDictionary.quietZone, "numeric" ),
+		    new Attribute( KeyDictionary.foreground, "string" ),
+		    new Attribute( KeyDictionary.background, "string" ),
+		    new Attribute( KeyDictionary.logo, "any" ),
+		    new Attribute( KeyDictionary.logoScale, "numeric" ),
+		    new Attribute( KeyDictionary.tryHarder, "boolean", true )
 		};
 
 		logger				= imageService.getLogger();
@@ -100,7 +113,7 @@ public class Image extends Component {
 	 * Performs image operations based on the {@code action} attribute.
 	 *
 	 * <p>
-	 * Supported actions: {@code border}, {@code captcha}, {@code convert}, {@code info},
+	 * Supported actions: {@code border}, {@code captcha}, {@code convert}, {@code info}, {@code qrcode}, {@code qrread},
 	 * {@code read}, {@code resize}, {@code rotate}, {@code write}, {@code writeToBrowser}.
 	 * </p>
 	 *
@@ -110,7 +123,7 @@ public class Image extends Component {
 	 * @param executionState The execution state of the Component
 	 *
 	 * @attribute.action The image operation to perform. Required. One of:
-	 *                   {@code border}, {@code captcha}, {@code convert}, {@code info},
+	 *                   {@code border}, {@code captcha}, {@code convert}, {@code info}, {@code qrcode}, {@code qrread},
 	 *                   {@code read}, {@code resize}, {@code rotate}, {@code write}, {@code writeToBrowser}.
 	 *
 	 * @attribute.source The image variable, file path, or URL to operate on.
@@ -162,6 +175,27 @@ public class Image extends Component {
 	 * @attribute.interpolation Interpolation algorithm for resizing.
 	 *                          One of {@code bilinear}, {@code bicubic}, {@code nearestNeighbor}.
 	 *                          Defaults to {@code bilinear}. Used by {@code resize}.
+	 *
+	 * @attribute.size Edge length in pixels of the square QR code, 16 to 4096. Defaults to 125. Used by {@code qrcode}.
+	 *
+	 * @attribute.errorCorrection QR code error correction level: {@code L}, {@code M}, {@code Q} or {@code H}.
+	 *                            Defaults to {@code M}. Always {@code H} when a logo is used. Used by {@code qrcode}.
+	 *
+	 * @attribute.quietZone Light margin around the QR code in modules, 0 to 32. Defaults to 4. Used by {@code qrcode}.
+	 *
+	 * @attribute.foreground Color of the dark QR code modules, as a color name or hex code. Defaults to {@code black}.
+	 *                       Used by {@code qrcode}.
+	 *
+	 * @attribute.background Color of the light QR code modules, as a color name or hex code. Defaults to {@code white}.
+	 *                       Used by {@code qrcode}.
+	 *
+	 * @attribute.logo Image to draw in the center of the QR code. A BoxImage, file path or URL. Used by {@code qrcode}.
+	 *
+	 * @attribute.logoScale Fraction of the QR code's edge length the logo covers, up to 0.3. Defaults to 0.2.
+	 *                      Used by {@code qrcode}.
+	 *
+	 * @attribute.tryHarder When {@code true} (the default), spends more effort finding the QR code and reads
+	 *                      light-on-dark codes. Used by {@code qrread}.
 	 *
 	 */
 	public BodyResult _invoke( IBoxContext context, IStruct attributes, ComponentBody body, IStruct executionState ) {
@@ -241,6 +275,61 @@ public class Image extends Component {
 				    } );
 
 				break;
+			case "qrcode" : {
+				String qrText = attributes.getAsString( KeyDictionary.text );
+				if ( qrText == null || qrText.isEmpty() ) {
+					throw new BoxRuntimeException( "The text attribute is required for the qrcode action" );
+				}
+
+				String	qrFormat	= attributes.getAsString( KeyDictionary.format );
+				String	qrCorrect	= attributes.getAsString( KeyDictionary.errorCorrection );
+				String	qrFore		= attributes.getAsString( KeyDictionary.foreground );
+				String	qrBack		= attributes.getAsString( KeyDictionary.background );
+
+				image = BoxImage.generateQRCode(
+				    qrText,
+				    attributes.get( KeyDictionary.size ) != null ? IntegerCaster.cast( attributes.get( KeyDictionary.size ) ) : QRCodeUtil.DEFAULT_SIZE,
+				    qrFormat == null || qrFormat.isEmpty() ? "png" : qrFormat,
+				    qrCorrect == null || qrCorrect.isEmpty() ? "M" : qrCorrect,
+				    attributes.get( KeyDictionary.quietZone ) != null ? IntegerCaster.cast( attributes.get( KeyDictionary.quietZone ) )
+				        : QRCodeUtil.DEFAULT_QUIET_ZONE,
+				    qrFore == null || qrFore.isEmpty() ? "black" : qrFore,
+				    qrBack == null || qrBack.isEmpty() ? "white" : qrBack,
+				    ImageQRCodeGenerate.resolveLogo( context, attributes.get( KeyDictionary.logo ) ),
+				    attributes.get( KeyDictionary.logoScale ) != null ? DoubleCaster.cast( attributes.get( KeyDictionary.logoScale ) )
+				        : QRCodeUtil.DEFAULT_LOGO_SCALE
+				);
+
+				String qrDest = attributes.getAsString( KeyDictionary.destination );
+				if ( qrDest != null && !qrDest.isEmpty() ) {
+					boolean qrOverwrite = BooleanCaster.cast( attributes.get( KeyDictionary.overwrite ) );
+					if ( !qrOverwrite && FileSystemUtil.exists( qrDest ) ) {
+						throw new BoxRuntimeException( "Unable to write QR code image, destination exists: " + qrDest );
+					}
+					image.write( qrDest );
+				}
+
+				putImageInContext( image, context, attributes );
+
+				// When no destination or name is given, stream directly to browser (matches the captcha action)
+				String	qrName		= attributes.getAsString( KeyDictionary.name );
+				boolean	hasQrOutput	= ( qrDest != null && !qrDest.isEmpty() ) || ( qrName != null && !qrName.isEmpty() );
+				if ( !hasQrOutput ) {
+					imageService.writeToBrowser( context, image, attributes );
+				}
+				break;
+			}
+			case "qrread" : {
+				String qrReadName = attributes.getAsString( KeyDictionary.name );
+				if ( qrReadName == null || qrReadName.isEmpty() ) {
+					throw new BoxRuntimeException( "The name attribute is required for the qrread action, it receives the decoded text" );
+				}
+
+				image = getImageFromContext( context, attributes );
+				String decoded = image.readQRCode( BooleanCaster.cast( attributes.get( KeyDictionary.tryHarder ) ) );
+				context.getDefaultAssignmentScope().assign( context, Key.of( qrReadName ), decoded );
+				break;
+			}
 			case "read" :
 				// Handle read action
 				image = getImageFromContext( context, attributes );

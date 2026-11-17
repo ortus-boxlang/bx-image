@@ -13,6 +13,8 @@ const IMAGE: &str = "bx-image.image.v1";
 const METHODS: &str = r#"{"info":"imageInfo","resize":"imageResize","grayScale":"imageGrayScale","greyScale":"imageGrayScale","getPixels":"imageGetPixels"}"#;
 /// Largest side accepted for blank images and SVG rendering.
 const MAX_SIDE: u32 = 16384;
+/// Size of both sides of an SVG that declares neither a viewBox nor a width and height.
+const SVG_DEFAULT_SIZE: u32 = 512;
 /// Largest pixel count accepted for any image (256 megapixels, 1 GiB of RGBA).
 const MAX_PIXELS: u64 = 1 << 28;
 /// Formats this backend reads, as reported by `getReadableImageFormats()`.
@@ -165,15 +167,49 @@ fn font_database() -> Arc<usvg::fontdb::Database> {
         .clone()
 }
 
-fn render_svg(tree: &usvg::Tree, width: u32, height: u32) -> Result<Vec<u8>, String> {
+/// Size an SVG renders at when no size is asked for, the same rule as the JVM backend: its own size
+/// when the root declares a viewBox or an absolute width and height, otherwise 512 x 512.
+fn svg_intrinsic_size(data: &[u8], tree: &usvg::Tree) -> (u32, u32) {
+    let declared = std::str::from_utf8(data)
+        .ok()
+        .and_then(|text| usvg::roxmltree::Document::parse(text.trim_start_matches('\u{feff}')).ok())
+        .map(|doc| {
+            let root = doc.root_element();
+            let absolute = |name| {
+                root.attribute(name)
+                    .is_some_and(|v: &str| !v.is_empty() && !v.contains('%'))
+            };
+            root.attribute("viewBox").is_some() || (absolute("width") && absolute("height"))
+        })
+        // Compressed or unusual documents: trust the parsed size
+        .unwrap_or(true);
+    if !declared {
+        return (SVG_DEFAULT_SIZE, SVG_DEFAULT_SIZE);
+    }
+    let size = tree.size();
+    (
+        (size.width().ceil() as u32).max(1),
+        (size.height().ceil() as u32).max(1),
+    )
+}
+
+/// Draws the SVG at `width` x `height`. `fit` keeps its aspect ratio, centred in the box;
+/// otherwise it is stretched to fill it.
+fn render_svg(tree: &usvg::Tree, width: u32, height: u32, fit: bool) -> Result<Vec<u8>, String> {
     check_size(width, height)?;
     let mut pixmap =
         tiny_skia::Pixmap::new(width, height).ok_or("Unable to allocate image pixels")?;
     let size = tree.size();
-    let transform = tiny_skia::Transform::from_scale(
-        width as f32 / size.width(),
-        height as f32 / size.height(),
-    );
+    let (sx, sy) = (width as f32 / size.width(), height as f32 / size.height());
+    let transform = if fit {
+        let scale = sx.min(sy);
+        tiny_skia::Transform::from_scale(scale, scale).post_translate(
+            (width as f32 - size.width() * scale) / 2.0,
+            (height as f32 - size.height() * scale) / 2.0,
+        )
+    } else {
+        tiny_skia::Transform::from_scale(sx, sy)
+    };
     resvg::render(tree, transform, &mut pixmap.as_mut());
     let mut pixels = Vec::new();
     pixels
@@ -194,9 +230,8 @@ fn decode(path: &str, data: &[u8]) -> Result<Image, String> {
         };
         let tree =
             usvg::Tree::from_data(data, &options).map_err(|e| format!("invalid SVG: {e}"))?;
-        let size = tree.size().to_int_size();
-        let (width, height) = (size.width(), size.height());
-        let pixels = render_svg(&tree, width, height)?;
+        let (width, height) = svg_intrinsic_size(data, &tree);
+        let pixels = render_svg(&tree, width, height, false)?;
         return Ok(Image {
             width,
             height,
@@ -242,6 +277,26 @@ fn read(path: &str) -> Result<Image, String> {
     decode(path, &data).map_err(fail)
 }
 
+/// `imageRead( path, [width], [height] )`: an SVG is drawn straight at the asked size (fitted and
+/// centred when both are given), other formats are decoded and then resized.
+fn read_sized(path: &str, width: Option<u32>, height: Option<u32>) -> Result<Image, String> {
+    let mut image = read(path)?;
+    if width.is_none() && height.is_none() {
+        return Ok(image);
+    }
+    let fail = |reason: String| format!("Unable to load image: {path}: {reason}");
+    match (&image.svg, width, height) {
+        (Some(tree), Some(w), Some(h)) => {
+            let pixels = render_svg(tree, w, h, true).map_err(fail)?;
+            image.width = w;
+            image.height = h;
+            image.pixels = pixels;
+        }
+        _ => resize(&mut image, width, height, "bilinear").map_err(fail)?,
+    }
+    Ok(image)
+}
+
 /// Resolves the target size; `None` keeps the aspect ratio from the other side.
 fn target_size(
     image: &Image,
@@ -268,7 +323,7 @@ fn resize(
     let (width, height) = target_size(image, width, height)?;
     check_size(width, height)?;
     let pixels = if let Some(tree) = &image.svg {
-        let mut pixels = render_svg(tree, width, height)?;
+        let mut pixels = render_svg(tree, width, height, false)?;
         if image.gray {
             gray_in_place(&mut pixels);
         }
@@ -420,7 +475,9 @@ macro_rules! bif {
 
 bif!(image_read, |call| {
     let path = call.string(call.argument(0)?)?;
-    new_object(&call, read(&path)?)
+    let width = optional_dimension(&call, call.argument(1)?)?;
+    let height = optional_dimension(&call, call.argument(2)?)?;
+    new_object(&call, read_sized(&path, width, height)?)
 });
 
 bif!(image_new, |call| {
@@ -522,7 +579,7 @@ pub unsafe extern "C" fn matchbox_plugin_init_v1(host: *const HostV1, ctx: Conte
     let host = unsafe { &*host };
     let functions = [
         (
-            r#"{"name":"imageRead","arguments":[{"name":"path","required":true}]}"#,
+            r#"{"name":"imageRead","arguments":[{"name":"path","required":true},{"name":"width","default":null},{"name":"height","default":null}]}"#,
             image_read as Invoke,
         ),
         (
@@ -677,6 +734,54 @@ mod tests {
         // Redrawn, not upscaled: the edge between the halves stays sharp.
         assert_eq!(px(&svg, 199, 100), [77, 77, 77, 255]);
         assert_eq!(px(&svg, 200, 100), [29, 29, 29, 255]);
+    }
+
+    #[test]
+    fn svg_sizes_follow_the_jvm_rules() {
+        let no_size = decode(
+            "n.svg",
+            br#"<svg xmlns="http://www.w3.org/2000/svg"><rect width="5" height="5"/></svg>"#,
+        )
+        .unwrap();
+        assert_eq!((no_size.width, no_size.height), (512, 512));
+        let percent = decode(
+            "p.svg",
+            br#"<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="50"/>"#,
+        )
+        .unwrap();
+        assert_eq!((percent.width, percent.height), (512, 512));
+        let view_box = decode(
+            "v.svg",
+            br#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 10"/>"#,
+        )
+        .unwrap();
+        assert_eq!((view_box.width, view_box.height), (30, 10));
+        let fractional = decode(
+            "f.svg",
+            br#"<svg xmlns="http://www.w3.org/2000/svg" width="10.2" height="4.5"/>"#,
+        )
+        .unwrap();
+        assert_eq!((fractional.width, fractional.height), (11, 5));
+    }
+
+    #[test]
+    fn read_sized_draws_svg_at_the_asked_size() {
+        let dir = std::env::temp_dir().join(format!("bx-image-native-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("halves.svg");
+        std::fs::write(&path, SVG).unwrap();
+        let path = path.to_str().unwrap();
+        let wide = read_sized(path, Some(400), None).unwrap();
+        assert_eq!((wide.width, wide.height), (400, 200));
+        assert_eq!(px(&wide, 199, 100), [255, 0, 0, 255]);
+        assert_eq!(px(&wide, 200, 100), [0, 0, 255, 255]);
+        // Both sides: fitted and centred, transparent around it
+        let boxed = read_sized(path, Some(40), Some(40)).unwrap();
+        assert_eq!((boxed.width, boxed.height), (40, 40));
+        assert_eq!(px(&boxed, 0, 0)[3], 0);
+        assert_eq!(px(&boxed, 0, 20), [255, 0, 0, 255]);
+        assert_eq!(px(&boxed, 39, 20), [0, 0, 255, 255]);
+        std::fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]

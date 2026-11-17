@@ -103,12 +103,18 @@ if ( arrayFindNoCase( getReadableImageFormats(), "svg" ) ) {
 	assert svg.info().height == 10;
 	assertPixel( svg, 0, 0, RED, "svg" );
 	assertPixel( svg, 19, 9, BLUE, "svg" );
-	// Redrawn at the new size, so the edge between the halves stays sharp
+	// Read straight at a size: drawn there, so the edge between the halves stays sharp
+	sharp = imageRead( fixtures & "halves.svg", 40 );
+	assert sharp.info().width == 40;
+	assert sharp.info().height == 20;
+	assertPixel( sharp, 19, 10, RED, "svg read at size" );
+	assertPixel( sharp, 20, 10, BLUE, "svg read at size" );
+	// Resized after reading (MatchBox redraws it; the JVM scales the raster)
 	svg.resize( 40, "" );
 	assert svg.info().width == 40;
 	assert svg.info().height == 20;
-	assertPixel( svg, 19, 10, RED, "svg resized" );
-	assertPixel( svg, 20, 10, BLUE, "svg resized" );
+	assertPixel( svg, 2, 10, RED, "svg resized" );
+	assertPixel( svg, 37, 10, BLUE, "svg resized" );
 	assert imageNew( fixtures & "halves.svg" ).info().height == 10;
 	println( "bx-image native contract: SVG checked" );
 } else {
