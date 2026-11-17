@@ -36,6 +36,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+import java.awt.image.Raster;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -706,6 +707,65 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		this.setBackgroundColor( this.backgroundColor );
 
 		return this;
+	}
+
+	/**
+	 * Reads every pixel of the image, as rows from top to bottom.
+	 * <ul>
+	 * <li><code>luma</code>: each pixel is a number from 0 to 255, computed as
+	 * <code>(77r + 150g + 29b + 128) &gt;&gt; 8</code>, the weights Java2D uses for grayscale images.
+	 * Alpha is ignored.</li>
+	 * <li><code>rgba</code>: each pixel is an array <code>[r, g, b, a]</code> of numbers from 0 to 255.</li>
+	 * </ul>
+	 * Grayscale images report their stored gray level, so <code>r == g == b</code>.
+	 * The MatchBox backend returns the same values.
+	 *
+	 * @param mode "luma" (default) or "rgba"
+	 *
+	 * @return An array of rows, each an array of pixels
+	 */
+	public Array getPixels( String mode ) {
+		String normalized = mode == null || mode.isBlank() ? "luma" : mode.trim().toLowerCase();
+		if ( !normalized.equals( "luma" ) && !normalized.equals( "rgba" ) ) {
+			throw new BoxRuntimeException( "Unsupported pixel mode '" + mode + "': use luma or rgba" );
+		}
+		boolean			rgba			= normalized.equals( "rgba" );
+		BufferedImage	bufferedImage	= this.image.getBufferedImage();
+		int				width			= bufferedImage.getWidth();
+		int				height			= bufferedImage.getHeight();
+		// getRGB() on TYPE_BYTE_GRAY applies a gamma conversion; read the stored gray level instead
+		Raster			grayRaster		= bufferedImage.getType() == BufferedImage.TYPE_BYTE_GRAY ? bufferedImage.getRaster() : null;
+		Array			rows			= new Array( height );
+		int[]			argbRow			= new int[ width ];
+		int[]			grayRow			= new int[ width ];
+		for ( int y = 0; y < height; y++ ) {
+			if ( grayRaster != null ) {
+				grayRaster.getSamples( 0, y, width, 1, 0, grayRow );
+			} else {
+				bufferedImage.getRGB( 0, y, width, 1, argbRow, 0, width );
+			}
+			Array row = new Array( width );
+			for ( int x = 0; x < width; x++ ) {
+				int a, r, g, b;
+				if ( grayRaster != null ) {
+					a	= 255;
+					r	= g = b = grayRow[ x ];
+				} else {
+					int argb = argbRow[ x ];
+					a	= ( argb >>> 24 ) & 0xFF;
+					r	= ( argb >> 16 ) & 0xFF;
+					g	= ( argb >> 8 ) & 0xFF;
+					b	= argb & 0xFF;
+				}
+				if ( rgba ) {
+					row.add( Array.of( r, g, b, a ) );
+				} else {
+					row.add( ( 77 * r + 150 * g + 29 * b + 128 ) >> 8 );
+				}
+			}
+			rows.add( row );
+		}
+		return rows;
 	}
 
 	/**

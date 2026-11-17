@@ -84,12 +84,19 @@ jobs:
           changelogPath: ./changelog.md
           tag: v${{ env.VERSION }}
 
+      # Builds the MatchBox native plugin that ships in the same bx-image zip
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
       - name: Build it!
         run: |
           npm install -g markdownlint-cli
           markdownlint changelog.md --fix
           ./gradlew downloadBoxLang
-          ./gradlew build -x test --stacktrace --console=plain
+          # One module, one zip, one version: the JVM jar plus the native plugin under matchbox.artifacts
+          ./gradlew build -x test --stacktrace --console=plain -PmatchboxTargets=x86_64-unknown-linux-gnu
 
       - name: Commit Changelog [unreleased] with latest version
         uses: EndBug/add-and-commit@v10.0.0

@@ -9,7 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- MatchBox native backend: the bx-image package now also runs on MatchBox without a JVM. It reads PNG, JPEG, GIF, WebP and SVG (`imageRead`, `imageNew`), and supports `imageResize`, `imageGrayScale`, `imageInfo`, `imageGetPixels` and `getReadableImageFormats`, with the `resize()`, `grayScale()`, `info()` and `getPixels()` member functions. SVG images are redrawn when resized. The release zip carries the native plugin for `x86_64-unknown-linux-gnu` alongside the JVM jar.
+- `ImageGetPixels( name, [mode] )` and `img.getPixels( [mode] )` on both backends: the pixels as an array of rows, as luma values (`luma`, the default) or `[r, g, b, a]` arrays (`rgba`).
+
+### Changed
+
+- `ImageResize()` and `img.resize()` accept a blank or `0` width or height and keep the aspect ratio from the other dimension.
+
 ### Fixed
+
+- `ImageNew( path )` reported `Unable to load image: null` when the file could not be read; the message now names the path.
 
 - `ImageReadBase64()` and `BoxImage.fromBase64()` now accept data URIs with a `data:image/<format>;base64,` prefix, matching the output format produced by `ImageWriteBase64()` and `ImageService.writeImageToBrowser()`.
 

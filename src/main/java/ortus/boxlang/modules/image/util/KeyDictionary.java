@@ -63,6 +63,7 @@ public class KeyDictionary {
 	public static final Key	isPolygon			= Key.of( "isPolygon" );
 	public static final Key	lineJoins			= Key.of( "lineJoins" );
 	public static final Key	miterLimit			= Key.of( "miterLimit" );
+	public static final Key	mode				= Key.of( "mode" );
 	public static final Key	name				= Key.of( "name" );
 	public static final Key	overwrite			= Key.of( "overwrite" );
 	public static final Key	percent				= Key.of( "percent" );

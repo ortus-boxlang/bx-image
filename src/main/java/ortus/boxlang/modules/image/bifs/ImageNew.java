@@ -96,7 +96,7 @@ public class ImageNew extends BIF {
 			try {
 				return new BoxImage( URI.create( sourceString ) );
 			} catch ( Exception e ) {
-				throw new BoxRuntimeException( "Unable to load image: " + arguments.getAsString( Key.path ), e );
+				throw new BoxRuntimeException( "Unable to load image: " + sourceString, e );
 			}
 		}
 

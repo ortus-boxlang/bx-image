@@ -48,4 +48,26 @@ public class ImageResizeTest extends BaseIntegrationTest {
 		assertThat( Arrays.equals( actual, expected ) ).isTrue();
 	}
 
+	@DisplayName( "A blank or 0 dimension keeps the aspect ratio" )
+	@Test
+	public void testResizeKeepsAspectRatio() {
+		runtime.executeSource( """
+		                       wide = imageNew( "", 40, 20, "rgb", "black" );
+		                       imageResize( wide, 10, "" );
+		                       tall = imageNew( "", 40, 20, "rgb", "black" ).resize( 0, 5 );
+		                       result = [ wide.getWidth(), wide.getHeight(), tall.getWidth(), tall.getHeight() ];
+		                       """, context );
+
+		assertThat( variables.getAsArray( result ).toArray() ).asList().containsExactly( 10, 5, 10, 5 ).inOrder();
+	}
+
+	@DisplayName( "Resizing with neither a width nor a height fails" )
+	@Test
+	public void testResizeNeedsADimension() {
+		org.junit.jupiter.api.Assertions.assertThrows( Exception.class, () -> runtime.executeSource( """
+		                                                                                             img = imageNew( "", 4, 4, "rgb", "black" );
+		                                                                                             imageResize( img, "", 0 );
+		                                                                                             """, context ) );
+	}
+
 }

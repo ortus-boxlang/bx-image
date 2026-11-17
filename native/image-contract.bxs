@@ -1,9 +1,118 @@
-// Shared portable API contract. Run against the same bx-image package in either runtime.
-image = imageNew(source="", width=32, height=16, imageType="rgb", color="black");
-info = imageInfo(image);
+// Shared portable API contract. Run against the same bx-image package in either runtime:
+// MatchBox (interpreted or a native binary) and the JVM (native/ImageContract.java).
+// Fixtures: BX_IMAGE_FIXTURES, or src/test/resources/native next to this script's folder.
+fixtures = getSystemSetting( "BX_IMAGE_FIXTURES", "" );
+if ( !len( fixtures ) ) {
+	// The JVM harness runs the script as source, with no template path: set BX_IMAGE_FIXTURES there
+	if ( !len( getCurrentTemplatePath() ) ) {
+		throw( message = "Set BX_IMAGE_FIXTURES to the absolute path of src/test/resources/native" );
+	}
+	fixtures = getDirectoryFromPath( getCurrentTemplatePath() ) & "../src/test/resources/native/";
+}
+if ( right( fixtures, 1 ) != "/" ) {
+	fixtures &= "/";
+}
+
+function px( image, x, y ) {
+	return imageGetPixels( image, "rgba" )[ y + 1 ][ x + 1 ];
+}
+function assertPixel( image, x, y, expected, label ) {
+	var actual = px( image, x, y );
+	for ( var i = 1; i <= 4; i++ ) {
+		if ( actual[ i ] != expected[ i ] ) {
+			throw( message = label & ": pixel (" & x & "," & y & ") is [" & arrayToList( actual ) & "], expected [" & arrayToList( expected ) & "]" );
+		}
+	}
+}
+function assertFailsToLoad( path, label ) {
+	var failed = false;
+	try {
+		imageRead( path );
+	} catch ( any e ) {
+		failed = true;
+		if ( !findNoCase( "Unable to load image", e.message ) ) {
+			throw( message = label & ": unclear error: " & e.message );
+		}
+	}
+	if ( !failed ) {
+		throw( message = label & ": expected imageRead to fail" );
+	}
+}
+
+RED   = [ 255, 0, 0, 255 ];
+GREEN = [ 0, 255, 0, 255 ];
+BLUE  = [ 0, 0, 255, 255 ];
+WHITE = [ 255, 255, 255, 255 ];
+
+// Blank images
+image = imageNew( source = "", width = 32, height = 16, imageType = "rgb", color = "black" );
+info = imageInfo( image );
 assert info.width == 32;
 assert info.height == 16;
 memberInfo = image.info();
 assert memberInfo.width == info.width;
 assert memberInfo.height == info.height;
-println("bx-image native contract: OK");
+assert imageGetPixels( image )[ 16 ][ 32 ] == 0;
+
+// PNG: 8x8 quadrants, red | green over blue | white
+png = imageRead( fixtures & "quadrants.png" );
+assert png.info().width == 8;
+assert png.info().height == 8;
+assertPixel( png, 0, 0, RED, "png" );
+assertPixel( png, 7, 0, GREEN, "png" );
+assertPixel( png, 0, 7, BLUE, "png" );
+assertPixel( png, 7, 7, WHITE, "png" );
+luma = png.getPixels();
+assert arrayLen( luma ) == 8;
+assert arrayLen( luma[ 1 ] ) == 8;
+assert luma[ 1 ][ 1 ] == 77;
+assert luma[ 1 ][ 8 ] == 149;
+assert luma[ 8 ][ 1 ] == 29;
+assert luma[ 8 ][ 8 ] == 255;
+assert imageNew( fixtures & "quadrants.png" ).info().width == 8;
+
+// Resize: a blank dimension keeps the aspect ratio
+imageResize( png, 4, "" );
+assert imageInfo( png ).width == 4;
+assert imageInfo( png ).height == 4;
+assertPixel( png, 0, 0, RED, "resized" );
+assertPixel( png, 3, 0, GREEN, "resized" );
+assertPixel( png, 0, 3, BLUE, "resized" );
+assertPixel( png, 3, 3, WHITE, "resized" );
+tall = imageRead( fixtures & "quadrants.png" ).resize( 0, 16 );
+assert tall.info().width == 16;
+assert tall.info().height == 16;
+
+// Grayscale (member form), same weights on both backends
+png.grayScale();
+assertPixel( png, 0, 0, [ 77, 77, 77, 255 ], "gray" );
+assertPixel( png, 3, 3, WHITE, "gray" );
+gray = imageGetPixels( png, "luma" );
+assert gray[ 1 ][ 4 ] == 149;
+assert gray[ 4 ][ 1 ] == 29;
+imageGrayScale( imageRead( fixtures & "quadrants.png" ) );
+
+// Errors
+assertFailsToLoad( fixtures & "does-not-exist.png", "missing file" );
+assertFailsToLoad( fixtures & "broken.svg", "malformed SVG" );
+
+// SVG: 20x10, red left half, blue right half. Checked where the backend reads SVG.
+if ( arrayFindNoCase( getReadableImageFormats(), "svg" ) ) {
+	svg = imageRead( fixtures & "halves.svg" );
+	assert svg.info().width == 20;
+	assert svg.info().height == 10;
+	assertPixel( svg, 0, 0, RED, "svg" );
+	assertPixel( svg, 19, 9, BLUE, "svg" );
+	// Redrawn at the new size, so the edge between the halves stays sharp
+	svg.resize( 40, "" );
+	assert svg.info().width == 40;
+	assert svg.info().height == 20;
+	assertPixel( svg, 19, 10, RED, "svg resized" );
+	assertPixel( svg, 20, 10, BLUE, "svg resized" );
+	assert imageNew( fixtures & "halves.svg" ).info().height == 10;
+	println( "bx-image native contract: SVG checked" );
+} else {
+	println( "bx-image native contract: this backend does not read SVG; skipped SVG checks" );
+}
+
+println( "bx-image native contract: OK" );

@@ -236,6 +236,7 @@ eachTile = grid[2][1];  // second row, first column
 width = img.getWidth()                       // Get width in pixels
 height = img.getHeight()                     // Get height in pixels
 info = imageInfo(img)                        // Full image info struct
+pixels = img.getPixels()                     // Rows of luma values (0-255); "rgba" for [r,g,b,a]
 exif = imageGetExifMetadata(img)             // EXIF metadata
 tag = imageGetExifTag(img, tagName)          // Specific EXIF tag
 iptc = imageGetIPTCMetadata(img)             // IPTC metadata
@@ -333,6 +334,7 @@ This module contributes the following BIFs:
 - [ImageGetHeight](https://cfdocs.org/ImageGetHeight)
 - [ImageGetIPTCMetadata](https://cfdocs.org/ImageGetIPTCMetadata)
 - [ImageGetIPTCTag](https://cfdocs.org/ImageGetIPTCTag)
+- `ImageGetPixels( name, [mode="luma"] )` - the pixels as an array of rows. `luma` gives a number from 0 to 255 per pixel, `rgba` gives `[r, g, b, a]`. Member: `img.getPixels( mode )`
 - [ImageGetWidth](https://cfdocs.org/ImageGetWidth)
 - [ImageGrayScale](https://cfdocs.org/ImageGrayScale) - also aliased as [`ImageGreyScale()`](https://cfdocs.org/ImageGrayScale) for you brits
 - [ImageInfo](https://cfdocs.org/ImageInfo)
@@ -342,7 +344,7 @@ This module contributes the following BIFs:
 - [ImagePaste](https://cfdocs.org/ImagePaste) - aliased as [`imagePaste()`](https://cfdocs.org/imagePaste)
 - [ImageRead](https://cfdocs.org/ImageRead)
 - [ImageReadBase64](https://cfdocs.org/ImageReadBase64)
-- [ImageResize](https://cfdocs.org/ImageResize)
+- [ImageResize](https://cfdocs.org/ImageResize) - a blank or `0` width or height keeps the aspect ratio
 - [ImageRotate](https://cfdocs.org/ImageRotate)
 - [ImageRotateDrawingAxis](https://cfdocs.org/ImageRotateDrawingAxis)
 - [ImageScaleToFit](https://cfdocs.org/ImageScaleToFit)
@@ -461,6 +463,17 @@ img.write("photo.tiff");  // → TIFF
 ### Alpha Channel Handling
 
 When writing to formats that do not support transparency (JPEG, BMP), images with alpha channels are automatically composited onto a white background. This prevents write failures and produces visually correct output.
+
+### MatchBox (native) backend
+
+The same bx-image package also runs on [MatchBox](https://github.com/ortus-boxlang/matchbox), with no JVM. The release zip carries a native plugin next to the JVM jar, and MatchBox picks it up from `matchbox.artifacts` in `box.json`. It covers a portable subset of the API:
+
+- `imageRead( path )` and `imageNew( path )`: PNG, JPEG, GIF, WebP and SVG (detected by extension or by content)
+- `imageNew( "", width, height, [imageType], [color] )`: blank images
+- `imageResize()` / `img.resize()`: SVG images are redrawn at the new size, so they stay sharp
+- `imageGrayScale()` / `img.grayScale()`, `imageInfo()` / `img.info()`, `imageGetPixels()` / `img.getPixels()`, `getReadableImageFormats()`
+
+Anything else fails with a clear error on MatchBox. See [`native/README.md`](native/README.md) for details and for building the plugin.
 
 ## Examples
 
