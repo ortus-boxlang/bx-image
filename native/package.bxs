@@ -1,0 +1,68 @@
+/**
+ * Adds a prebuilt MatchBox artifact to the Gradle-generated module package.
+ *
+ * Usage: boxlang native/package.bxs [packageDir] [targetTriple]
+ *   packageDir   defaults to build/module
+ *   targetTriple defaults to this machine's Rust host triple
+ *
+ * Builds native/ with cargo, copies the library into <packageDir>/native/<target>/
+ * and records its path and SHA-256 under matchbox.artifacts in <packageDir>/box.json.
+ */
+root       = expandPath( getDirectoryFromPath( getCurrentTemplatePath() ) & ".." );
+args       = cliGetArgs().positionals;
+packageDir = args.len() >= 1 ? args[ 1 ] : root & "/build/module";
+target     = args.len() >= 2 ? args[ 2 ] : hostTarget();
+
+function run( required string name, required array commandArgs ) {
+	var result = systemExecute( name = name, arguments = commandArgs, timeout = 1800 );
+	if ( result.exitCode != 0 ) {
+		throw( message = name & " failed with exit code " & result.exitCode & ": " & result.error & result.output );
+	}
+	return result.output;
+}
+
+function hostTarget() {
+	var line = run( "rustc", [ "-vV" ] ).listToArray( char( 10 ) ).filter( ( l ) => l.startsWith( "host: " ) );
+	if ( !line.len() ) {
+		throw( message = "Unable to find the Rust host triple in rustc -vV" );
+	}
+	return line[ 1 ].listRest( " " ).trim();
+}
+
+function sha256( required string path ) {
+	var bytes  = createObject( "java", "java.nio.file.Files" ).readAllBytes( createObject( "java", "java.io.File" ).init( path ).toPath() );
+	var digest = createObject( "java", "java.security.MessageDigest" ).getInstance( "SHA-256" );
+	return lCase( binaryEncode( digest.digest( bytes ), "hex" ) );
+}
+
+run( "cargo", [
+	"build", "--release",
+	"--target", target,
+	"--target-dir", root & "/native/target",
+	"--manifest-path", root & "/native/Cargo.toml"
+] );
+
+filename    = target.findNoCase( "windows" ) ? "bx_image_native.dll" : target.findNoCase( "apple" ) ? "libbx_image_native.dylib" : "libbx_image_native.so";
+source      = root & "/native/target/" & target & "/release/" & filename;
+relative    = "native/" & target & "/" & filename;
+destination = packageDir & "/" & relative;
+if ( !directoryExists( getDirectoryFromPath( destination ) ) ) {
+	directoryCreate( getDirectoryFromPath( destination ), true );
+}
+fileCopy( source, destination );
+
+manifest = packageDir & "/box.json";
+metadata = jsonDeserialize( fileRead( manifest ) );
+if ( !metadata.keyExists( "matchbox" ) ) {
+	metadata.matchbox = [:];
+}
+if ( !metadata.matchbox.keyExists( "artifacts" ) ) {
+	metadata.matchbox.artifacts = [:];
+}
+metadata.matchbox.artifacts[ target ] = [
+	"path"   : relative,
+	"sha256" : sha256( destination ),
+	"abi"    : 1
+];
+fileWrite( manifest, jsonSerialize( data = metadata, pretty = true ) & char( 10 ) );
+println( "Added #target# native artifact to #packageDir#" );

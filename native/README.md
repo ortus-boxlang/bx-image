@@ -40,11 +40,11 @@ Build the JVM package with the native plugin added (use `build`, not just `shado
 
 ```bash
 ./gradlew build -x test -PmatchboxTargets=x86_64-unknown-linux-gnu
-# Or add a target to an already-built package:
-python3 native/package.py build/module x86_64-unknown-linux-gnu
+# Or add a target to an already-built package (BoxLang runtime jar from ./gradlew downloadBoxLang):
+java -jar src/test/resources/libs/boxlang-1.13.0-snapshot.jar native/package.bxs build/module x86_64-unknown-linux-gnu
 ```
 
-`package.py` runs `cargo build --release`, copies the library into `build/module/native/<target>/` and records its path and SHA-256 in `build/module/box.json`. Several targets can be passed comma-separated; you supply the cross-compilation toolchains. CI builds `x86_64-unknown-linux-gnu` for releases.
+`native/package.bxs`, a BoxLang script, runs `cargo build --release`, copies the library into `build/module/native/<target>/` and records its path and SHA-256 in `build/module/box.json`. Several targets can be passed comma-separated; you supply the cross-compilation toolchains. CI builds `x86_64-unknown-linux-gnu` for releases.
 
 ## Tests
 
