@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- MatchBox native backend: the bx-image package now also runs on MatchBox without a JVM. It reads PNG, JPEG, GIF, WebP and SVG (`imageRead` with its optional `width` and `height`, `imageNew`), and supports `imageResize`, `imageGrayScale`, `imageInfo`, `imageGetPixels` and `getReadableImageFormats`, with the `resize()`, `grayScale()`, `info()` and `getPixels()` member functions. SVG images are redrawn when resized. The release zip carries the native plugin for `x86_64-unknown-linux-gnu` alongside the JVM jar.
+- `ImageGetPixels( name, [mode] )` and `img.getPixels( [mode] )` on both backends: the pixels as an array of rows, as luma values (`luma`, the default) or `[r, g, b, a]` arrays (`rgba`).
+- SVG read support. `imageRead()`, `imageNew()`, `imageReadBase64()` and the `image` component render SVG files to an ARGB raster image, so every other image function (`resize`, `grayScale`, `write`, ...) works on them. SVG is detected by the `.svg` extension or by content (an `<svg` root after an optional XML prolog). The image uses the SVG's intrinsic size from its width and height or viewBox, or 512 x 512 when it declares neither, and encodes as PNG by default.
+- `imageRead()` takes optional `width` and `height` arguments. An SVG is rendered straight at that size so it stays sharp; other formats are decoded and then resized. With one side given, the other keeps the aspect ratio.
+- `GetReadableImageFormats()` includes `svg`.
+- `BoxImage( String, Integer, Integer )`, `BoxImage( URI, Integer, Integer )` and `BoxImage.fromSvg()` on the Java API.
+- [JSVG](https://github.com/weisJ/jsvg) (`com.github.weisj:jsvg`, MIT, no dependencies) is now bundled for SVG rendering. External resources are never loaded and the rendered size is checked against `maxPixels`.
+
+### Changed
+
+- `ImageResize()` and `img.resize()` accept a blank or `0` width or height and keep the aspect ratio from the other dimension.
+- `imageGetExifMetaData()` and `imageGetExifTag()` report `Exposure Time` as a fraction, such as `1/100 sec` instead of `0.01 sec`, following the metadata-extractor 2.22.0 update.
+
 ## [1.14.0] - 2026-10-30
 
 ### Fixed

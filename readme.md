@@ -23,7 +23,7 @@ The **BoxLang** Image module provides comprehensive image manipulation functiona
 **Key Features:**
 
 - 📸 Read/write images from files, URLs, or Base64
-- 🖼️ Broad format support: PNG, JPEG, WebP, GIF, BMP, TIFF
+- 🖼️ Broad format support: PNG, JPEG, WebP, GIF, BMP, TIFF, and SVG (read only, rendered to a raster image)
 - ✂️ Crop, resize, rotate, flip, scale, split, and shear images
 - 🎨 Draw shapes, text, lines, bezier curves, and points
 - 🎭 Apply filters: blur, sharpen, grayscale, negative
@@ -120,6 +120,8 @@ The `BoxImage` class provides a fluent interface where most methods return `this
 ```javascript
 img = imageRead("path/to/file.jpg")          // Load from file
 img = imageRead("https://example.com/img")   // Load from URL
+img = imageRead("logo.svg")                  // Render an SVG at its intrinsic size
+img = imageRead("logo.svg", 800)             // Render an SVG straight at 800px wide
 img = imageReadBase64(base64String)          // Load from Base64
 img = imageNew("", 800, 600, "rgb", "white") // Create blank canvas
 
@@ -237,6 +239,7 @@ eachTile = grid[2][1];  // second row, first column
 width = img.getWidth()                       // Get width in pixels
 height = img.getHeight()                     // Get height in pixels
 info = imageInfo(img)                        // Full image info struct
+pixels = img.getPixels()                     // Rows of luma values (0-255); "rgba" for [r,g,b,a]
 exif = imageGetExifMetadata(img)             // EXIF metadata
 tag = imageGetExifTag(img, tagName)          // Specific EXIF tag
 iptc = imageGetIPTCMetadata(img)             // IPTC metadata
@@ -259,6 +262,29 @@ img = imageReadBase64(base64String);
 // New blank canvas
 img = imageNew("", 800, 600, "rgb", "white");
 ```
+
+### Reading SVG
+
+`imageRead()`, `imageNew()`, `imageReadBase64()` and the `image` component read SVG files and return a regular raster image, so every other image function works on it. SVG is detected by the `.svg` extension or by content (an `<svg` root element after an optional XML prolog, comments or doctype).
+
+```javascript
+// Intrinsic size: the SVG's width and height, else its viewBox, else 512 x 512
+logo = imageRead( "logo.svg" );
+
+// Render straight at a target size so it stays sharp. One side keeps the aspect ratio.
+logo = imageRead( path = "logo.svg", width = 800 );
+logo = imageRead( path = "logo.svg", height = 200 );
+logo = imageRead( "logo.svg", 256, 256 ); // fitted into the box per the SVG's preserveAspectRatio
+
+logo.grayScale().write( "logo.png" );
+```
+
+- The image is ARGB, so transparency is kept. It encodes as PNG by default, since SVG cannot be written back.
+- `width` and `height` on `imageRead()` also work for other formats, which are decoded and then resized.
+- The rendered size is checked against `maxPixels` before any pixels are allocated.
+- External resources (linked images, fonts, `file:` or `http:` references) are never loaded. Only embedded `data:` resources render. DTDs and external XML entities are disabled.
+- A malformed SVG throws `Unable to load image: <source>`, caused by `Unable to read SVG image [...]: the content is not a well-formed SVG document.`
+- Rendering uses [JSVG](https://github.com/weisJ/jsvg). SVG animation and scripting are not supported.
 
 ### CAPTCHA Generation
 
@@ -384,6 +410,7 @@ This module contributes the following BIFs:
 - [ImageGetHeight](https://cfdocs.org/ImageGetHeight)
 - [ImageGetIPTCMetadata](https://cfdocs.org/ImageGetIPTCMetadata)
 - [ImageGetIPTCTag](https://cfdocs.org/ImageGetIPTCTag)
+- `ImageGetPixels( name, [mode="luma"] )` - the pixels as an array of rows. `luma` gives a number from 0 to 255 per pixel, `rgba` gives `[r, g, b, a]`. Member: `img.getPixels( mode )`
 - [ImageGetWidth](https://cfdocs.org/ImageGetWidth)
 - [ImageGrayScale](https://cfdocs.org/ImageGrayScale) - also aliased as [`ImageGreyScale()`](https://cfdocs.org/ImageGrayScale) for you brits
 - [ImageInfo](https://cfdocs.org/ImageInfo)
@@ -395,7 +422,7 @@ This module contributes the following BIFs:
 - `ImageQRCodeRead` - Read the text from a QR code in an image, or an empty string if there is none. Args: `name [, tryHarder]`. Also available as the member function `readQRCode()`
 - [ImageRead](https://cfdocs.org/ImageRead)
 - [ImageReadBase64](https://cfdocs.org/ImageReadBase64)
-- [ImageResize](https://cfdocs.org/ImageResize)
+- [ImageResize](https://cfdocs.org/ImageResize) - a blank or `0` width or height keeps the aspect ratio
 - [ImageRotate](https://cfdocs.org/ImageRotate)
 - [ImageRotateDrawingAxis](https://cfdocs.org/ImageRotateDrawingAxis)
 - [ImageScaleToFit](https://cfdocs.org/ImageScaleToFit)
@@ -538,6 +565,17 @@ img.write("photo.tiff");  // → TIFF
 ### Alpha Channel Handling
 
 When writing to formats that do not support transparency (JPEG, BMP), images with alpha channels are automatically composited onto a white background. This prevents write failures and produces visually correct output.
+
+### MatchBox (native) backend
+
+The same bx-image package also runs on [MatchBox](https://github.com/ortus-boxlang/matchbox), with no JVM. The release zip carries a native plugin next to the JVM jar, and MatchBox picks it up from `matchbox.artifacts` in `box.json`. It covers a portable subset of the API:
+
+- `imageRead( path, [width], [height] )` and `imageNew( path )`: PNG, JPEG, GIF, WebP and SVG (detected by extension or by content)
+- `imageNew( "", width, height, [imageType], [color] )`: blank images
+- `imageResize()` / `img.resize()`: SVG images are redrawn at the new size, so they stay sharp
+- `imageGrayScale()` / `img.grayScale()`, `imageInfo()` / `img.info()`, `imageGetPixels()` / `img.getPixels()`, `getReadableImageFormats()`
+
+Anything else fails with a clear error on MatchBox. See [`native/README.md`](native/README.md) for details and for building the plugin.
 
 ## Examples
 

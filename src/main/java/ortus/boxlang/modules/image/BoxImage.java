@@ -39,6 +39,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+import java.awt.image.Raster;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -76,6 +77,7 @@ import ortus.boxlang.modules.image.util.FontUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.modules.image.util.QRCodeUtil;
 import ortus.boxlang.modules.image.util.StrokeBuilder;
+import ortus.boxlang.modules.image.util.SvgUtil;
 import ortus.boxlang.runtime.dynamic.casters.ArrayCaster;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
 import ortus.boxlang.runtime.dynamic.casters.CastAttempt;
@@ -265,6 +267,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 		ImageGuard.assertBase64Size( base64String, ImageGuard.getMaxBytes() );
 		byte[] data = Base64.getDecoder().decode( base64String );
+		if ( SvgUtil.hasSvgContent( data ) ) {
+			return fromSvg( data, null, null, "base64 data" );
+		}
 		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
 		FileType detectedType = FileTypeDetector.detectFileType( new ByteArrayInputStream( data ) );
 
@@ -315,6 +320,25 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	}
 
 	/**
+	 * Creates a BoxImage from a file path or URL string, at a target size.
+	 * An SVG is rendered straight at that size so it stays sharp; any other format is decoded and then resized.
+	 * With only one side given, the other keeps the image's aspect ratio. With neither, the image keeps its own size.
+	 *
+	 * @param imageURI The path or URL to the image file
+	 * @param width    Target width in pixels, or null
+	 * @param height   Target height in pixels, or null
+	 *
+	 * @throws MalformedURLException    If the URI is malformed
+	 * @throws IOException              If the image cannot be read
+	 * @throws ImageProcessingException If metadata extraction fails
+	 * @throws URISyntaxException       If the URI syntax is invalid
+	 */
+	public BoxImage( String imageURI, Integer width, Integer height )
+	    throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		this( stringToURI( imageURI ), width, height );
+	}
+
+	/**
 	 * Creates a BoxImage from a URI.
 	 * Automatically extracts EXIF and IPTC metadata during creation.
 	 *
@@ -326,6 +350,29 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws URISyntaxException       If the URI syntax is invalid
 	 */
 	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		this( imageURI, null, null );
+	}
+
+	/**
+	 * Creates a BoxImage from a URI, at a target size.
+	 * An SVG is rendered straight at that size so it stays sharp; any other format is decoded and then resized.
+	 * With only one side given, the other keeps the image's aspect ratio. With neither, the image keeps its own size.
+	 * Automatically extracts EXIF and IPTC metadata from raster images.
+	 *
+	 * @param imageURI The URI to the image file
+	 * @param width    Target width in pixels, or null
+	 * @param height   Target height in pixels, or null
+	 *
+	 * @throws MalformedURLException    If the URI is malformed
+	 * @throws IOException              If the image cannot be read
+	 * @throws ImageProcessingException If metadata extraction fails
+	 * @throws URISyntaxException       If the URI syntax is invalid
+	 */
+	public BoxImage( URI imageURI, Integer width, Integer height )
+	    throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		if ( ( width != null && width <= 0 ) || ( height != null && height <= 0 ) ) {
+			throw new BoxRuntimeException( "The image width and height must be greater than zero, got [" + width + "] x [" + height + "]." );
+		}
 		this.sourcePath = imageURI.toString();
 		byte[] data;
 
@@ -334,6 +381,18 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		try ( InputStream dataStream = getInputStream( imageURI ) ) {
 			data = ImageGuard.readBounded( dataStream, ImageGuard.getMaxBytes(), this.sourcePath );
 		}
+
+		if ( SvgUtil.isSvg( this.sourcePath, data ) ) {
+			try {
+				this.image = new Image( SvgUtil.render( data, width, height, this.sourcePath ) );
+			} catch ( OutOfMemoryError e ) {
+				throw new BoxRuntimeException( "Not enough memory to render the image [" + this.sourcePath + "].", e );
+			}
+			markAsSvg();
+			this.cacheGraphics();
+			return;
+		}
+
 		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
 
 		ByteArrayInputStream bas = new ByteArrayInputStream( data );
@@ -352,6 +411,45 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		}
 
 		this.cacheGraphics();
+
+		if ( width != null || height != null ) {
+			int	targetWidth		= width != null ? width
+			    : ( int ) Math.max( 1, Math.round( ( double ) height * getWidth() / getHeight() ) );
+			int	targetHeight	= height != null ? height
+			    : ( int ) Math.max( 1, Math.round( ( double ) width * getHeight() / getWidth() ) );
+			this.resize( targetWidth, targetHeight, DEFAULT_INTERPOLATION, 1 );
+		}
+	}
+
+	/**
+	 * Creates a BoxImage by rendering SVG data.
+	 *
+	 * @param data   The SVG bytes
+	 * @param width  Target width in pixels, or null for the intrinsic size
+	 * @param height Target height in pixels, or null for the intrinsic size
+	 * @param source A description of the source, for error messages
+	 *
+	 * @return A new BoxImage instance
+	 */
+	public static BoxImage fromSvg( byte[] data, Integer width, Integer height, String source ) {
+		BufferedImage rendered;
+		try {
+			rendered = SvgUtil.render( data, width, height, source );
+		} catch ( OutOfMemoryError e ) {
+			throw new BoxRuntimeException( "Not enough memory to render the image [" + source + "].", e );
+		}
+		BoxImage boxImage = new BoxImage( rendered );
+		boxImage.markAsSvg();
+		return boxImage;
+	}
+
+	/**
+	 * A rendered SVG has no raster file type and cannot be written back as SVG, so it encodes as PNG
+	 * (which keeps its transparency) unless a write names another format.
+	 */
+	private void markAsSvg() {
+		this.fileType		= FileType.Unknown;
+		this.formatOverride	= "png";
 	}
 
 	/**
@@ -796,6 +894,65 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		this.setBackgroundColor( this.backgroundColor );
 
 		return this;
+	}
+
+	/**
+	 * Reads every pixel of the image, as rows from top to bottom.
+	 * <ul>
+	 * <li><code>luma</code>: each pixel is a number from 0 to 255, computed as
+	 * <code>(77r + 150g + 29b + 128) &gt;&gt; 8</code>, the weights Java2D uses for grayscale images.
+	 * Alpha is ignored.</li>
+	 * <li><code>rgba</code>: each pixel is an array <code>[r, g, b, a]</code> of numbers from 0 to 255.</li>
+	 * </ul>
+	 * Grayscale images report their stored gray level, so <code>r == g == b</code>.
+	 * The MatchBox backend returns the same values.
+	 *
+	 * @param mode "luma" (default) or "rgba"
+	 *
+	 * @return An array of rows, each an array of pixels
+	 */
+	public Array getPixels( String mode ) {
+		String normalized = mode == null || mode.isBlank() ? "luma" : mode.trim().toLowerCase();
+		if ( !normalized.equals( "luma" ) && !normalized.equals( "rgba" ) ) {
+			throw new BoxRuntimeException( "Unsupported pixel mode '" + mode + "': use luma or rgba" );
+		}
+		boolean			rgba			= normalized.equals( "rgba" );
+		BufferedImage	bufferedImage	= this.image.getBufferedImage();
+		int				width			= bufferedImage.getWidth();
+		int				height			= bufferedImage.getHeight();
+		// getRGB() on TYPE_BYTE_GRAY applies a gamma conversion; read the stored gray level instead
+		Raster			grayRaster		= bufferedImage.getType() == BufferedImage.TYPE_BYTE_GRAY ? bufferedImage.getRaster() : null;
+		Array			rows			= new Array( height );
+		int[]			argbRow			= new int[ width ];
+		int[]			grayRow			= new int[ width ];
+		for ( int y = 0; y < height; y++ ) {
+			if ( grayRaster != null ) {
+				grayRaster.getSamples( 0, y, width, 1, 0, grayRow );
+			} else {
+				bufferedImage.getRGB( 0, y, width, 1, argbRow, 0, width );
+			}
+			Array row = new Array( width );
+			for ( int x = 0; x < width; x++ ) {
+				int a, r, g, b;
+				if ( grayRaster != null ) {
+					a	= 255;
+					r	= g = b = grayRow[ x ];
+				} else {
+					int argb = argbRow[ x ];
+					a	= ( argb >>> 24 ) & 0xFF;
+					r	= ( argb >> 16 ) & 0xFF;
+					g	= ( argb >> 8 ) & 0xFF;
+					b	= argb & 0xFF;
+				}
+				if ( rgba ) {
+					row.add( Array.of( r, g, b, a ) );
+				} else {
+					row.add( ( 77 * r + 150 * g + 29 * b + 128 ) >> 8 );
+				}
+			}
+			rows.add( row );
+		}
+		return rows;
 	}
 
 	/**

@@ -66,7 +66,7 @@ public class ImageGetExifMetaDataTest extends BaseIntegrationTest {
 		assertThat( exifData.get( "Exposure Bias Value" ) ).isEqualTo( "0 EV" );
 		assertThat( exifData.get( "Exposure Mode" ) ).isEqualTo( "Auto exposure" );
 		assertThat( exifData.get( "Exposure Program" ) ).isEqualTo( "Program normal" );
-		assertThat( exifData.get( "Exposure Time" ) ).isEqualTo( "0.01 sec" );
+		assertThat( exifData.get( "Exposure Time" ) ).isEqualTo( "1/100 sec" );
 		assertThat( exifData.get( "F-Number" ) ).isEqualTo( "f/1.9" );
 		assertThat( exifData.get( "Flash" ) ).isEqualTo( "Flash did not fire" );
 		assertThat( exifData.get( "FlashPix Version" ) ).isEqualTo( "1.00" );
@@ -143,7 +143,7 @@ public class ImageGetExifMetaDataTest extends BaseIntegrationTest {
 		assertThat( exifData.get( "Exposure Bias Value" ) ).isEqualTo( "0 EV" );
 		assertThat( exifData.get( "Exposure Mode" ) ).isEqualTo( "Auto exposure" );
 		assertThat( exifData.get( "Exposure Program" ) ).isEqualTo( "Program normal" );
-		assertThat( exifData.get( "Exposure Time" ) ).isEqualTo( "0.01 sec" );
+		assertThat( exifData.get( "Exposure Time" ) ).isEqualTo( "1/100 sec" );
 		assertThat( exifData.get( "F-Number" ) ).isEqualTo( "f/1.9" );
 		assertThat( exifData.get( "Flash" ) ).isEqualTo( "Flash did not fire" );
 		assertThat( exifData.get( "FlashPix Version" ) ).isEqualTo( "1.00" );
