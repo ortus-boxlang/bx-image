@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test fixture: 120 x 60 logo with a transparent background -->
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="60" viewBox="0 0 120 60">
+	<rect x="10" y="10" width="100" height="40" rx="8" fill="#e63946"/>
+	<circle cx="60" cy="30" r="12" fill="#1d3557"/>
+</svg>

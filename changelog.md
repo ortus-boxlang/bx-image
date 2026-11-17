@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- SVG read support. `imageRead()`, `imageNew()`, `imageReadBase64()` and the `image` component render SVG files to an ARGB raster image, so every other image function (`resize`, `grayScale`, `write`, ...) works on them. SVG is detected by the `.svg` extension or by content (an `<svg` root after an optional XML prolog). The image uses the SVG's intrinsic size from its width and height or viewBox, or 512 x 512 when it declares neither, and encodes as PNG by default.
+- `imageRead()` takes optional `width` and `height` arguments. An SVG is rendered straight at that size so it stays sharp; other formats are decoded and then resized. With one side given, the other keeps the aspect ratio.
+- `GetReadableImageFormats()` includes `svg`.
+- `BoxImage( String, Integer, Integer )`, `BoxImage( URI, Integer, Integer )` and `BoxImage.fromSvg()` on the Java API.
+- [JSVG](https://github.com/weisJ/jsvg) (`com.github.weisj:jsvg`, MIT, no dependencies) is now bundled for SVG rendering. External resources are never loaded and the rendered size is checked against `maxPixels`.
+
 ## [1.14.0] - 2026-10-30
 
 ### Fixed
