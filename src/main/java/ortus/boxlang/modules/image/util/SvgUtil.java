@@ -24,8 +24,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.github.weisj.jsvg.SVGDocument;
 import com.github.weisj.jsvg.parser.LoaderContext;
@@ -45,27 +43,16 @@ import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
 public final class SvgUtil {
 
 	/** Format name reported by {@code GetReadableImageFormats()} */
-	public static final String			FORMAT				= "svg";
+	public static final String			FORMAT			= "svg";
 
 	/** Size in pixels used for both sides when an SVG declares neither a viewBox nor a width and height */
-	public static final int				DEFAULT_SIZE		= 512;
+	public static final int				DEFAULT_SIZE	= 512;
 
 	/** How many leading bytes are inspected when sniffing for an SVG root element */
-	private static final int			SNIFF_BYTES			= 4096;
-
-	/** An optional XML prolog, comments, processing instructions and a doctype, then the svg root element */
-	private static final Pattern		SVG_ROOT			= Pattern.compile(
-	    "\\A\\s*(?:(?:<\\?.*?\\?>|<!--.*?-->|<!DOCTYPE[^>]*>)\\s*)*(<svg(?=[\\s>/])[^>]*>?)",
-	    Pattern.CASE_INSENSITIVE | Pattern.DOTALL );
-
-	private static final Pattern		VIEWBOX_ATTRIBUTE	= Pattern.compile( "\\sviewBox\\s*=", Pattern.CASE_INSENSITIVE );
-	private static final Pattern		WIDTH_ATTRIBUTE		= Pattern.compile( "\\swidth\\s*=\\s*[\"']\\s*([^\"'%]+)[\"']",
-	    Pattern.CASE_INSENSITIVE );
-	private static final Pattern		HEIGHT_ATTRIBUTE	= Pattern.compile( "\\sheight\\s*=\\s*[\"']\\s*([^\"'%]+)[\"']",
-	    Pattern.CASE_INSENSITIVE );
+	private static final int			SNIFF_BYTES		= 4096;
 
 	/** Shared, thread-safe loader context that never loads external resources */
-	private static final LoaderContext	LOADER_CONTEXT		= LoaderContext.builder()
+	private static final LoaderContext	LOADER_CONTEXT	= LoaderContext.builder()
 	    .externalResourcePolicy( ResourcePolicy.DENY_EXTERNAL )
 	    .build();
 
@@ -196,8 +183,8 @@ public final class SvgUtil {
 	 * otherwise {@link #DEFAULT_SIZE} square.
 	 */
 	private static double[] intrinsicSize( SVGDocument document, String rootTag ) {
-		boolean	hasViewBox	= VIEWBOX_ATTRIBUTE.matcher( rootTag ).find();
-		boolean	hasSize		= WIDTH_ATTRIBUTE.matcher( rootTag ).find() && HEIGHT_ATTRIBUTE.matcher( rootTag ).find();
+		boolean	hasViewBox	= attributeValue( rootTag, "viewBox" ) != null;
+		boolean	hasSize		= isAbsoluteLength( attributeValue( rootTag, "width" ) ) && isAbsoluteLength( attributeValue( rootTag, "height" ) );
 		if ( hasViewBox || hasSize ) {
 			FloatSize size = document.size();
 			if ( size.width > 0 && size.height > 0 ) {
@@ -208,11 +195,13 @@ public final class SvgUtil {
 	}
 
 	/**
-	 * Finds the opening svg root tag in the first bytes of the data.
+	 * Finds the opening svg root tag in the first bytes of the data. Leading whitespace, processing instructions
+	 * (including the XML prolog), comments and a doctype are skipped. This is a single linear scan rather than a
+	 * regular expression, so crafted input cannot cause backtracking.
 	 *
 	 * @return The opening tag text, or null if the data does not start with an svg root element
 	 */
-	private static String findRootTag( byte[] data ) {
+	static String findRootTag( byte[] data ) {
 		if ( data == null || data.length == 0 ) {
 			return null;
 		}
@@ -220,8 +209,104 @@ public final class SvgUtil {
 		if ( head.startsWith( "\uFEFF" ) ) {
 			head = head.substring( 1 );
 		}
-		Matcher matcher = SVG_ROOT.matcher( head );
-		return matcher.find() ? matcher.group( 1 ) : null;
+
+		int	length	= head.length();
+		int	index	= 0;
+		while ( true ) {
+			while ( index < length && Character.isWhitespace( head.charAt( index ) ) ) {
+				index++;
+			}
+			int end;
+			if ( head.startsWith( "<?", index ) ) {
+				end = head.indexOf( "?>", index + 2 );
+				if ( end == -1 ) {
+					return null;
+				}
+				index = end + 2;
+			} else if ( head.startsWith( "<!--", index ) ) {
+				end = head.indexOf( "-->", index + 4 );
+				if ( end == -1 ) {
+					return null;
+				}
+				index = end + 3;
+			} else if ( head.regionMatches( true, index, "<!DOCTYPE", 0, 9 ) ) {
+				end = head.indexOf( '>', index + 9 );
+				if ( end == -1 ) {
+					return null;
+				}
+				index = end + 1;
+			} else {
+				break;
+			}
+		}
+
+		if ( !head.regionMatches( true, index, "<svg", 0, 4 ) ) {
+			return null;
+		}
+		int after = index + 4;
+		if ( after < length ) {
+			char next = head.charAt( after );
+			if ( !Character.isWhitespace( next ) && next != '>' && next != '/' ) {
+				return null;
+			}
+		}
+		int close = head.indexOf( '>', after );
+		return head.substring( index, close == -1 ? length : close + 1 );
+	}
+
+	/**
+	 * Reads an attribute's value from an opening tag, matching the name case-insensitively.
+	 *
+	 * @param tag  The opening tag text
+	 * @param name The attribute name
+	 *
+	 * @return The trimmed value, or null if the tag has no such quoted attribute
+	 */
+	static String attributeValue( String tag, String name ) {
+		String	lowerTag	= tag.toLowerCase( Locale.ROOT );
+		String	lowerName	= name.toLowerCase( Locale.ROOT );
+		int		from		= 0;
+		while ( true ) {
+			int at = lowerTag.indexOf( lowerName, from );
+			if ( at == -1 ) {
+				return null;
+			}
+			from = at + lowerName.length();
+			// The name must start after whitespace, so stroke-width does not count as width
+			if ( at == 0 || !Character.isWhitespace( lowerTag.charAt( at - 1 ) ) ) {
+				continue;
+			}
+			int index = from;
+			while ( index < tag.length() && Character.isWhitespace( tag.charAt( index ) ) ) {
+				index++;
+			}
+			if ( index >= tag.length() || tag.charAt( index ) != '=' ) {
+				continue;
+			}
+			index++;
+			while ( index < tag.length() && Character.isWhitespace( tag.charAt( index ) ) ) {
+				index++;
+			}
+			if ( index >= tag.length() ) {
+				return null;
+			}
+			char quote = tag.charAt( index );
+			if ( quote != '"' && quote != '\'' ) {
+				continue;
+			}
+			int end = tag.indexOf( quote, index + 1 );
+			if ( end == -1 ) {
+				return null;
+			}
+			return tag.substring( index + 1, end ).trim();
+		}
+	}
+
+	/**
+	 * Whether an SVG length is present and absolute, i.e. not empty and not a percentage.
+	 */
+	private static boolean isAbsoluteLength( String value ) {
+		return value != null && !value.isEmpty() && value.indexOf( '%' ) == -1;
 	}
 
 }

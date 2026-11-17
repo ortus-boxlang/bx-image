@@ -296,6 +296,24 @@ public class ImageSvgTest extends BaseIntegrationTest {
 		assertThat( SvgUtil.hasSvgContent( "<svgfoo/>".getBytes() ) ).isFalse();
 		assertThat( SvgUtil.hasSvgContent( "<html><svg/></html>".getBytes() ) ).isFalse();
 		assertThat( SvgUtil.hasSvgContent( new byte[] { ( byte ) 0x89, 'P', 'N', 'G' } ) ).isFalse();
+		assertThat( SvgUtil.hasSvgContent( "<?pi a?><?pi b?>\n<svg/>".getBytes() ) ).isTrue();
+		assertThat( SvgUtil.hasSvgContent( "<!-- a --><!-- b --><SVG width='1'>".getBytes() ) ).isTrue();
+		assertThat( SvgUtil.hasSvgContent( "<!-- never closed <svg>".getBytes() ) ).isFalse();
+		assertThat( SvgUtil.hasSvgContent( "<?xml version='1.0'".getBytes() ) ).isFalse();
+		// Crafted heads that made the old regular expressions backtrack are rejected in a single scan
+		assertThat( SvgUtil.hasSvgContent( ( "<?" + "?><?".repeat( 1000 ) + "x" ).getBytes() ) ).isFalse();
+		assertThat( SvgUtil.hasSvgContent( ( "<!--" + "--><!--".repeat( 500 ) + "x" ).getBytes() ) ).isFalse();
+		assertThat( SvgUtil.hasSvgContent( ( "<svg width=\"" + " ".repeat( 4000 ) ).getBytes() ) ).isTrue();
+	}
+
+	@DisplayName( "It should not take stroke-width as the SVG width when sizing" )
+	@Test
+	public void testStrokeWidthIsNotWidth() {
+		BufferedImage image = SvgUtil.render(
+		    "<svg xmlns='http://www.w3.org/2000/svg' stroke-width='3' stroke-height='4'><rect width='5' height='5'/></svg>".getBytes(),
+		    null, null, "inline" );
+		assertThat( image.getWidth() ).isEqualTo( SvgUtil.DEFAULT_SIZE );
+		assertThat( image.getHeight() ).isEqualTo( SvgUtil.DEFAULT_SIZE );
 	}
 
 }
