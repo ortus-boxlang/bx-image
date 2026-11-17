@@ -56,6 +56,8 @@ dependencies {
 	implementation 'io.github.darkxanter:webp-imageio:0.3.3'
 	// WebP read support - pure Java, cross-platform (including macOS ARM64)
 	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.15.2'
+	// SVG read support - pure Java rasteriser, MIT, no runtime dependencies
+	implementation 'com.github.weisj:jsvg:2.2.0'
 
 	// QR code encoding and decoding
 	implementation 'com.google.zxing:core:3.5.3'

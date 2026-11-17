@@ -76,6 +76,7 @@ import ortus.boxlang.modules.image.util.FontUtil;
 import ortus.boxlang.modules.image.util.KeyDictionary;
 import ortus.boxlang.modules.image.util.QRCodeUtil;
 import ortus.boxlang.modules.image.util.StrokeBuilder;
+import ortus.boxlang.modules.image.util.SvgUtil;
 import ortus.boxlang.runtime.dynamic.casters.ArrayCaster;
 import ortus.boxlang.runtime.dynamic.casters.BooleanCaster;
 import ortus.boxlang.runtime.dynamic.casters.CastAttempt;
@@ -265,6 +266,9 @@ public class BoxImage implements IBoxBinaryRepresentable {
 
 		ImageGuard.assertBase64Size( base64String, ImageGuard.getMaxBytes() );
 		byte[] data = Base64.getDecoder().decode( base64String );
+		if ( SvgUtil.hasSvgContent( data ) ) {
+			return fromSvg( data, null, null, "base64 data" );
+		}
 		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
 		FileType detectedType = FileTypeDetector.detectFileType( new ByteArrayInputStream( data ) );
 
@@ -315,6 +319,25 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	}
 
 	/**
+	 * Creates a BoxImage from a file path or URL string, at a target size.
+	 * An SVG is rendered straight at that size so it stays sharp; any other format is decoded and then resized.
+	 * With only one side given, the other keeps the image's aspect ratio. With neither, the image keeps its own size.
+	 *
+	 * @param imageURI The path or URL to the image file
+	 * @param width    Target width in pixels, or null
+	 * @param height   Target height in pixels, or null
+	 *
+	 * @throws MalformedURLException    If the URI is malformed
+	 * @throws IOException              If the image cannot be read
+	 * @throws ImageProcessingException If metadata extraction fails
+	 * @throws URISyntaxException       If the URI syntax is invalid
+	 */
+	public BoxImage( String imageURI, Integer width, Integer height )
+	    throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		this( stringToURI( imageURI ), width, height );
+	}
+
+	/**
 	 * Creates a BoxImage from a URI.
 	 * Automatically extracts EXIF and IPTC metadata during creation.
 	 *
@@ -326,6 +349,29 @@ public class BoxImage implements IBoxBinaryRepresentable {
 	 * @throws URISyntaxException       If the URI syntax is invalid
 	 */
 	public BoxImage( URI imageURI ) throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		this( imageURI, null, null );
+	}
+
+	/**
+	 * Creates a BoxImage from a URI, at a target size.
+	 * An SVG is rendered straight at that size so it stays sharp; any other format is decoded and then resized.
+	 * With only one side given, the other keeps the image's aspect ratio. With neither, the image keeps its own size.
+	 * Automatically extracts EXIF and IPTC metadata from raster images.
+	 *
+	 * @param imageURI The URI to the image file
+	 * @param width    Target width in pixels, or null
+	 * @param height   Target height in pixels, or null
+	 *
+	 * @throws MalformedURLException    If the URI is malformed
+	 * @throws IOException              If the image cannot be read
+	 * @throws ImageProcessingException If metadata extraction fails
+	 * @throws URISyntaxException       If the URI syntax is invalid
+	 */
+	public BoxImage( URI imageURI, Integer width, Integer height )
+	    throws MalformedURLException, IOException, ImageProcessingException, URISyntaxException {
+		if ( ( width != null && width <= 0 ) || ( height != null && height <= 0 ) ) {
+			throw new BoxRuntimeException( "The image width and height must be greater than zero, got [" + width + "] x [" + height + "]." );
+		}
 		this.sourcePath = imageURI.toString();
 		byte[] data;
 
@@ -334,6 +380,18 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		try ( InputStream dataStream = getInputStream( imageURI ) ) {
 			data = ImageGuard.readBounded( dataStream, ImageGuard.getMaxBytes(), this.sourcePath );
 		}
+
+		if ( SvgUtil.isSvg( this.sourcePath, data ) ) {
+			try {
+				this.image = new Image( SvgUtil.render( data, width, height, this.sourcePath ) );
+			} catch ( OutOfMemoryError e ) {
+				throw new BoxRuntimeException( "Not enough memory to render the image [" + this.sourcePath + "].", e );
+			}
+			markAsSvg();
+			this.cacheGraphics();
+			return;
+		}
+
 		ImageGuard.assertWithinLimit( data, ImageGuard.getMaxPixels() );
 
 		ByteArrayInputStream bas = new ByteArrayInputStream( data );
@@ -352,6 +410,45 @@ public class BoxImage implements IBoxBinaryRepresentable {
 		}
 
 		this.cacheGraphics();
+
+		if ( width != null || height != null ) {
+			int	targetWidth		= width != null ? width
+			    : ( int ) Math.max( 1, Math.round( ( double ) height * getWidth() / getHeight() ) );
+			int	targetHeight	= height != null ? height
+			    : ( int ) Math.max( 1, Math.round( ( double ) width * getHeight() / getWidth() ) );
+			this.resize( targetWidth, targetHeight, DEFAULT_INTERPOLATION, 1 );
+		}
+	}
+
+	/**
+	 * Creates a BoxImage by rendering SVG data.
+	 *
+	 * @param data   The SVG bytes
+	 * @param width  Target width in pixels, or null for the intrinsic size
+	 * @param height Target height in pixels, or null for the intrinsic size
+	 * @param source A description of the source, for error messages
+	 *
+	 * @return A new BoxImage instance
+	 */
+	public static BoxImage fromSvg( byte[] data, Integer width, Integer height, String source ) {
+		BufferedImage rendered;
+		try {
+			rendered = SvgUtil.render( data, width, height, source );
+		} catch ( OutOfMemoryError e ) {
+			throw new BoxRuntimeException( "Not enough memory to render the image [" + source + "].", e );
+		}
+		BoxImage boxImage = new BoxImage( rendered );
+		boxImage.markAsSvg();
+		return boxImage;
+	}
+
+	/**
+	 * A rendered SVG has no raster file type and cannot be written back as SVG, so it encodes as PNG
+	 * (which keeps its transparency) unless a write names another format.
+	 */
+	private void markAsSvg() {
+		this.fileType		= FileType.Unknown;
+		this.formatOverride	= "png";
 	}
 
 	/**
