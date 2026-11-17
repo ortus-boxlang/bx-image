@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `ImageResize()` and `img.resize()` accept a blank or `0` width or height and keep the aspect ratio from the other dimension.
+- `imageGetExifMetaData()` and `imageGetExifTag()` report `Exposure Time` as a fraction, such as `1/100 sec` instead of `0.01 sec`, following the metadata-extractor 2.22.0 update.
 
 ## [1.14.0] - 2026-10-30
 
