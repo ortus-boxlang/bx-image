@@ -10,7 +10,11 @@
  */
 root       = expandPath( getDirectoryFromPath( getCurrentTemplatePath() ) & ".." );
 args       = cliGetArgs().positionals;
-packageDir = args.len() >= 1 ? args[ 1 ] : root & "/build/module";
+// A relative packageDir is taken from the current directory, as a shell user expects;
+// BoxLang's own file functions would resolve it against this script's folder instead.
+packageDir = args.len() >= 1
+	? createObject( "java", "java.io.File" ).init( args[ 1 ] ).getAbsolutePath()
+	: root & "/build/module";
 target     = args.len() >= 2 ? args[ 2 ] : hostTarget();
 
 function run( required string name, required array commandArgs ) {
