@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The MatchBox native plugin in the release zip needed glibc 2.43 (it was built on Ubuntu 26.04), so it would not load on older Linux systems. It is now built with `cargo zigbuild` against glibc 2.28, and CI fails if the library needs anything newer. Set `MATCHBOX_GLIBC` to choose the baseline when packaging.
+
 ## [1.15.0] - 2026-11-17
 
 ### Added
