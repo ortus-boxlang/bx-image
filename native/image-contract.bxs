@@ -92,6 +92,20 @@ assert gray[ 1 ][ 4 ] == 149;
 assert gray[ 4 ][ 1 ] == 29;
 imageGrayScale( imageRead( fixtures & "quadrants.png" ) );
 
+// PNG writing preserves decoded pixels, including when overwriting the source by default.
+output = getTempDirectory() & "bx-image-write-" & createUUID() & ".png";
+try {
+    original = imageRead(fixtures & "quadrants.png");
+    assert imageWrite(name=original, path=output).info().width == 8;
+    saved = imageRead(output);
+    assertPixel(saved, 0, 0, RED, "written PNG");
+    saved.grayScale();
+    saved.write();
+    assertPixel(imageRead(output), 0, 0, [77, 77, 77, 255], "default write path");
+} finally {
+    if (fileExists(output)) { fileDelete(output); }
+}
+
 // Errors
 assertFailsToLoad( fixtures & "does-not-exist.png", "missing file" );
 assertFailsToLoad( fixtures & "broken.svg", "malformed SVG" );

@@ -15,5 +15,8 @@ matchbox-plugin-sdk = { git = "https://github.com/ortus-boxlang/matchbox", rev =
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
 resvg = "0.50"
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 [profile.release]
 panic = "unwind"

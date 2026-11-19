@@ -8,6 +8,7 @@ use matchbox_plugin_sdk::*;
 use resvg::{tiny_skia, usvg};
 use std::{
     ffi::c_void,
+    io::{Read, Write},
     path::Path,
     sync::{Arc, OnceLock},
 };
@@ -15,7 +16,7 @@ use std::{
 /// Type identifier of the native image object, checked by the host on every `object_data` call.
 const IMAGE: &str = "bx-image.image.v1";
 /// Member functions of the image object, mapped to the BoxLang functions that implement them.
-const METHODS: &str = r#"{"info":"imageInfo","resize":"imageResize","grayScale":"imageGrayScale","greyScale":"imageGrayScale","getPixels":"imageGetPixels"}"#;
+const METHODS: &str = r#"{"info":"imageInfo","resize":"imageResize","grayScale":"imageGrayScale","greyScale":"imageGrayScale","getPixels":"imageGetPixels","write":"imageWrite"}"#;
 /// Largest side accepted for blank images and SVG rendering.
 const MAX_SIDE: u32 = 16384;
 /// Size of both sides of an SVG that declares neither a viewBox nor a width and height.
@@ -40,6 +41,8 @@ struct Image {
     gray: bool,
     /// The path the image was read from, reported by `imageInfo().source`; `None` for blank images.
     source: Option<String>,
+    /// Detected raster format, absent for blank images and SVG.
+    format: Option<image::ImageFormat>,
 }
 impl std::fmt::Debug for Image {
     /// Summarises the image without dumping its pixels, for test failure messages.
@@ -216,6 +219,7 @@ fn blank(width: u32, height: u32, image_type: &str, color: &str) -> Result<Image
         svg: None,
         gray,
         source: None,
+        format: None,
     })
 }
 
@@ -347,8 +351,26 @@ fn render_svg(tree: &usvg::Tree, width: u32, height: u32, fit: bool) -> Result<V
 ///
 /// # Errors
 /// When the SVG is malformed, the format is not recognised, decoding fails, or the size is too large.
+#[cfg(test)]
 fn decode(path: &str, data: &[u8]) -> Result<Image, String> {
+    decode_limited(path, data, MAX_PIXELS, &[])
+}
+
+/// Decodes with a pixel ceiling and optional format allowlist, checking dimensions before decoding.
+///
+/// # Errors
+/// Returns format, size, allocation or decoding errors before publishing any pixels.
+fn decode_limited(
+    path: &str,
+    data: &[u8],
+    max_pixels: u64,
+    formats: &[String],
+) -> Result<Image, String> {
+    let allowed = |format: &str| formats.is_empty() || formats.iter().any(|s| s == format);
     if looks_like_svg(path, data) {
+        if !allowed("SVG") {
+            return Err("SVG is not an allowed input format".into());
+        }
         let options = usvg::Options {
             fontdb: font_database(),
             ..usvg::Options::default()
@@ -356,6 +378,9 @@ fn decode(path: &str, data: &[u8]) -> Result<Image, String> {
         let tree =
             usvg::Tree::from_data(data, &options).map_err(|e| format!("invalid SVG: {e}"))?;
         let (width, height) = svg_intrinsic_size(data, &tree);
+        if width as u64 * height as u64 > max_pixels {
+            return Err("Image exceeds pixel limit".into());
+        }
         let pixels = render_svg(&tree, width, height, false)?;
         return Ok(Image {
             width,
@@ -364,14 +389,30 @@ fn decode(path: &str, data: &[u8]) -> Result<Image, String> {
             svg: Some(Arc::new(tree)),
             gray: false,
             source: Some(path.into()),
+            format: None,
         });
     }
     let format = image::guess_format(data)
         .map_err(|_| "unrecognized or unsupported image format".to_string())?;
+    if !allowed(format_name(format)) {
+        return Err("Image format is not allowed".into());
+    }
+    let (width, height) = image::ImageReader::with_format(std::io::Cursor::new(data), format)
+        .into_dimensions()
+        .map_err(|e| e.to_string())?;
+    check_size(width, height)?;
+    if width as u64 * height as u64 > max_pixels {
+        return Err("Image exceeds pixel limit".into());
+    }
     let mut reader = image::ImageReader::with_format(std::io::Cursor::new(data), format);
     let mut limits = image::Limits::default();
     limits.max_image_width = Some(MAX_SIDE);
     limits.max_image_height = Some(MAX_SIDE);
+    limits.max_alloc = Some(
+        max_pixels
+            .saturating_mul(8)
+            .saturating_add(16 * 1024 * 1024),
+    );
     reader.limits(limits);
     let rgba = reader.decode().map_err(|e| e.to_string())?.to_rgba8();
     let (width, height) = rgba.dimensions();
@@ -383,7 +424,91 @@ fn decode(path: &str, data: &[u8]) -> Result<Image, String> {
         svg: None,
         gray: false,
         source: Some(path.into()),
+        format: Some(format),
     })
+}
+
+/// Returns a stable name for a detected raster format.
+fn format_name(format: image::ImageFormat) -> &'static str {
+    match format {
+        image::ImageFormat::Png => "PNG",
+        image::ImageFormat::Jpeg => "JPEG",
+        image::ImageFormat::Gif => "GIF",
+        image::ImageFormat::WebP => "WEBP",
+        _ => "OTHER",
+    }
+}
+
+/// Reads a positive integer environment limit, failing closed for invalid configuration.
+///
+/// # Errors
+/// Returns an error for non-Unicode, zero or non-integer settings.
+fn read_limit(name: &str, default: u64) -> Result<u64, String> {
+    match std::env::var(name) {
+        Ok(text) => text
+            .parse::<u64>()
+            .ok()
+            .filter(|n| *n > 0)
+            .ok_or_else(|| format!("{name} must be a positive integer")),
+        Err(std::env::VarError::NotPresent) => Ok(default),
+        Err(_) => Err(format!("{name} must be a positive integer")),
+    }
+}
+
+/// Makes Unix file opens nonblocking and optionally refuses final-component symlinks.
+///
+/// `BX_IMAGE_NO_SYMLINKS=1` is intended for services publishing untrusted artifacts.
+/// It does not prevent ancestor-directory replacement or constitute a filesystem sandbox.
+///
+/// # Errors
+/// Returns an error for invalid settings or an unsupported requested no-follow policy.
+fn safe_open_options(options: &mut std::fs::OpenOptions) -> Result<(), String> {
+    let no_symlinks = match std::env::var("BX_IMAGE_NO_SYMLINKS").as_deref() {
+        Ok("1" | "true") => true,
+        Ok("0" | "false") | Err(std::env::VarError::NotPresent) => false,
+        _ => return Err("BX_IMAGE_NO_SYMLINKS must be 0, 1, false or true".into()),
+    };
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.custom_flags(libc::O_NONBLOCK | if no_symlinks { libc::O_NOFOLLOW } else { 0 });
+    }
+    #[cfg(not(unix))]
+    if no_symlinks {
+        return Err("BX_IMAGE_NO_SYMLINKS requires Unix".into());
+    }
+    Ok(())
+}
+
+/// Writes straight RGBA pixels as PNG without copying source metadata or SVG data.
+///
+/// # Errors
+/// Returns an error for unsupported paths, non-regular output or encoder/I/O failure.
+fn write_png(image: &Image, path: &str) -> Result<(), String> {
+    use image::ImageEncoder;
+    if !Path::new(path)
+        .extension()
+        .is_some_and(|e| e.eq_ignore_ascii_case("png"))
+    {
+        return Err("The MatchBox backend writes PNG only; use a .png destination".into());
+    }
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create(true);
+    safe_open_options(&mut options)?;
+    let mut output = options.open(path).map_err(|e| e.to_string())?;
+    if !output.metadata().map_err(|e| e.to_string())?.is_file() {
+        return Err("Output must be a regular file".into());
+    }
+    output.set_len(0).map_err(|e| e.to_string())?;
+    image::codecs::png::PngEncoder::new(&mut output)
+        .write_image(
+            &image.pixels,
+            image.width,
+            image.height,
+            image::ExtendedColorType::Rgba8,
+        )
+        .map_err(|e| e.to_string())?;
+    output.flush().map_err(|e| e.to_string())
 }
 
 /// Reads and decodes a local image file for `imageRead( path )` and `imageNew( path )`.
@@ -410,8 +535,33 @@ fn read(path: &str) -> Result<Image, String> {
         ));
     }
     let file = path.strip_prefix("file://").unwrap_or(path);
-    let data = std::fs::read(file).map_err(|e| fail(e.to_string()))?;
-    decode(path, &data).map_err(fail)
+    let max_bytes = read_limit("BX_IMAGE_MAX_BYTES", 64 * 1024 * 1024)?;
+    let max_pixels = read_limit("BX_IMAGE_MAX_PIXELS", MAX_PIXELS)?.min(MAX_PIXELS);
+    let formats = std::env::var("BX_IMAGE_READ_FORMATS")
+        .unwrap_or_default()
+        .split(',')
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.trim().to_ascii_uppercase())
+        .collect::<Vec<_>>();
+    let mut options = std::fs::OpenOptions::new();
+    options.read(true);
+    safe_open_options(&mut options)?;
+    let input = options.open(file).map_err(|e| fail(e.to_string()))?;
+    let metadata = input.metadata().map_err(|e| fail(e.to_string()))?;
+    if !metadata.is_file() || metadata.len() == 0 || metadata.len() > max_bytes {
+        return Err(fail(
+            "Input must be a regular image file within the byte limit".into(),
+        ));
+    }
+    let mut data = Vec::new();
+    input
+        .take(max_bytes.saturating_add(1))
+        .read_to_end(&mut data)
+        .map_err(|e| fail(e.to_string()))?;
+    if data.len() as u64 > max_bytes {
+        return Err(fail("Image exceeds byte limit".into()));
+    }
+    decode_limited(path, &data, max_pixels, &formats).map_err(fail)
 }
 
 /// `imageRead( path, [width], [height] )`: an SVG is drawn straight at the asked size (fitted and
@@ -868,6 +1018,10 @@ bif!(
         None => call.null_new()?,
     };
     call.struct_set(info, "source", source)?;
+    let format = if image.svg.is_some() { call.string_new("SVG")? }
+        else if let Some(format) = image.format { call.string_new(format_name(format))? }
+        else { call.null_new()? };
+    call.struct_set(info, "format", format)?;
     Ok(info)
 });
 
@@ -904,6 +1058,20 @@ bif!(
         call.array_push(api, rows, values)?;
     }
     Ok(rows)
+});
+
+bif!(
+    /// `imageWrite(name, [path])` and `.write()`: writes pixel-only PNG and returns the image.
+    /// An omitted path uses the source path; other output formats fail explicitly.
+    ///
+    /// # Errors
+    /// Returns an error for missing paths, unsupported extensions or write failures.
+    image_write, |call| {
+    let image = image_arg(&call, 0)?;
+    let path = string_or_default(&call, call.argument(1)?, "")?;
+    let path = if path.is_empty() { image.source.as_deref().ok_or("Cannot write image: no source path available. Use write(path) to specify a destination.")? } else { &path };
+    write_png(image, path)?;
+    call.argument(0)
 });
 
 bif!(
@@ -944,6 +1112,10 @@ pub unsafe extern "C" fn matchbox_plugin_init_v1(host: *const HostV1, ctx: Conte
     let _ = COLLECTIONS.set(collections);
     let host = unsafe { &*host };
     let functions = [
+        (
+            r#"{"name":"imageWrite","arguments":[{"name":"name","required":true},{"name":"path","default":null}]}"#,
+            image_write as Invoke,
+        ),
         (
             r#"{"name":"imageRead","arguments":[{"name":"path","required":true},{"name":"width","default":null},{"name":"height","default":null}]}"#,
             image_read as Invoke,
@@ -1096,8 +1268,30 @@ mod tests {
         );
     }
 
+    /// Header dimensions and allowed formats are checked before full raster decoding.
     #[test]
+    fn bounded_decode_rejects_size_and_format() {
+        let data = png(8, 8, |_, _| [0, 0, 255, 255]);
+        assert!(
+            decode_limited("a.png", &data, 32, &[])
+                .unwrap_err()
+                .contains("pixel limit")
+        );
+        assert!(
+            decode_limited("a.png", &data, 64, &["JPEG".into()])
+                .unwrap_err()
+                .contains("not allowed")
+        );
+        assert_eq!(
+            decode_limited("a.png", &data, 64, &["PNG".into()])
+                .unwrap()
+                .width,
+            8
+        );
+    }
+
     /// A missing side keeps the aspect ratio, bad input fails, and SVG is redrawn sharply, staying gray.
+    #[test]
     fn resize_keeps_aspect_ratio_and_redraws_svg() {
         let mut img = decode(
             "a.png",

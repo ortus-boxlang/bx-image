@@ -12,7 +12,8 @@ Same names and arguments as the JVM backend:
 | `imageNew( source, [width], [height], [imageType], [color] )` | | A path reads the file. `""` makes a blank image: `imageType` is `rgb`, `argb` or `grayscale`; `color` is `#RRGGBB` or black, white, red, green, blue, gray, yellow, cyan, magenta. An image source is copied. |
 | `imageResize( name, width, height, [interpolation] )` | `resize()` | A blank or `0` width or height keeps the aspect ratio. `interpolation` is `bilinear` (default), `bicubic`, `nearest` or `lanczos`. An image read from SVG is redrawn at the new size, so it stays sharp. `blurFactor` is accepted and ignored, as on the JVM. |
 | `imageGrayScale( name )`, `imageGreyScale( name )` | `grayScale()`, `greyScale()` | Like the JVM's `TYPE_BYTE_GRAY` image: composited onto black and opaque. |
-| `imageInfo( name )` | `info()` | `width`, `height` and `source` (the path, or null). No `colormodel`. |
+| `imageInfo( name )` | `info()` | `width`, `height`, `source` (the path, or null), and native `format` (detected input format, or null for blank images). No `colormodel`. |
+| `imageWrite( name, [path] )` | `write()` | Writes PNG from decoded RGBA pixels, without source metadata. Returns the same image. An omitted path uses the source path. Other output formats fail explicitly. |
 | `imageGetPixels( name, [mode="luma"] )` | `getPixels()` | An array of rows, top to bottom. `luma`: a number from 0 to 255 per pixel, `(77r + 150g + 29b + 128) >> 8`, alpha ignored. `rgba`: `[r, g, b, a]` per pixel. |
 | `getReadableImageFormats()` | | `PNG`, `JPEG`, `JPG`, `GIF`, `WEBP`, `SVG`. |
 
@@ -20,9 +21,28 @@ Differences from the JVM:
 
 - `resize()` on an image read from SVG redraws it on MatchBox; the JVM scales the raster. Read at the size you want (`imageRead( path, width )`) for the same sharp result on both.
 - `name` must be the image itself; looking an image up by variable name is JVM-only.
-- URLs, writing, drawing, metadata and the other bx-image functions are not implemented, and fail with a clear error.
+- URLs, non-PNG writing, drawing, metadata and the other bx-image functions are not implemented, and fail with a clear error.
 - SVG text uses the system fonts found when the first SVG is read.
 - Images are capped at 16384 pixels per side and 256 megapixels.
+
+### Native input policy
+
+The native backend supports process-wide limits through environment variables. These are
+native-host policy, distinct from the JVM backend's `settings.maxBytes` / `settings.maxPixels`:
+
+- `BX_IMAGE_MAX_BYTES`: positive encoded-file byte limit, default 67108864 (64 MiB).
+- `BX_IMAGE_MAX_PIXELS`: positive pixel limit, default 268435456; cannot exceed the hard ceiling.
+- `BX_IMAGE_READ_FORMATS`: optional comma-separated allowlist, for example `PNG,JPEG,WEBP`.
+  Empty means all supported input formats. Detection uses file contents, not the filename.
+- `BX_IMAGE_NO_SYMLINKS=1`: refuse final-component symlinks on reads and writes (Unix only).
+  Default is `0`; invalid policy values fail closed.
+
+Only regular nonempty files are read. The byte limit is checked before buffering, and raster
+header dimensions are checked before decoding. Decoder allocation limits also apply; ceilings
+are not guarantees that every image below them can be decoded. No-follow opens do not protect
+against ancestor-directory replacement and are not a filesystem sandbox. PNG writing replaces
+an existing regular destination; callers needing exclusive publication must use a private
+staging file and an atomic no-overwrite publication operation.
 
 Pixels are kept as straight (not premultiplied) RGBA. The luma weights are the integers Java2D uses for grayscale images, so `imageGetPixels` returns the same numbers on both backends.
 
