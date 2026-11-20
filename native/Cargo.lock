@@ -43,6 +43,7 @@ name = "bx-image-native"
 version = "0.1.0"
 dependencies = [
  "image",
+ "libc",
  "matchbox-plugin-sdk",
  "resvg",
 ]
