@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-11-20
+
 ### Fixed
 
 - The MatchBox native plugin in the release zip needed glibc 2.43 (it was built on Ubuntu 26.04), so it would not load on older Linux systems. It is now built with `cargo zigbuild` against glibc 2.28, and CI fails if the library needs anything newer. Set `MATCHBOX_GLIBC` to choose the baseline when packaging.
@@ -180,7 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.15.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.16.0...HEAD
+[1.16.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.15.0...v1.16.0
 [1.15.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.12.0...v1.13.0
