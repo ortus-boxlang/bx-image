@@ -76,11 +76,7 @@ jobs:
         uses: mikepenz/action-junit-report@v6.5.0
         if: always()
         with:
-          report_paths: |
-            **/build/test-results/test/*.xml
-            **/build/test-results/isolationTest/*.xml
-            **/surefire-reports/*.xml
-            **/failsafe-reports/*.xml
+          report_paths: "**/build/test-results/**/*.xml"
           check_name: "Tests Report ${{ matrix.os }}-${{ matrix.jdkVersion }}"
           include_passed: false
           fail_on_failure: true
@@ -96,7 +92,8 @@ jobs:
             **/build/test-results/**
 
       - name: Inform Slack
-        if: ${{ failure() && github.ref == 'refs/heads/development' }}
+        # This Docker-based action cannot run on the Windows matrix runner.
+        if: ${{ failure() && github.ref == 'refs/heads/development' && runner.os == 'Linux' }}
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_CHANNEL: coding

@@ -29,7 +29,7 @@ The **BoxLang** Image module provides comprehensive image manipulation functiona
 - 🎭 Apply filters: blur, sharpen, grayscale, negative
 - 🤖 Generate CAPTCHA images with configurable difficulty
 - 🔳 Generate and read QR codes, with custom colors and an optional logo
-- 📊 Extract EXIF and IPTC metadata
+- 📊 Read, write and strip EXIF, IPTC and XMP metadata without re-encoding
 - ⚡ Fluent API with method chaining
 - 🔧 50+ built-in functions and member methods
 
@@ -244,6 +244,13 @@ exif = imageGetExifMetadata(img)             // EXIF metadata
 tag = imageGetExifTag(img, tagName)          // Specific EXIF tag
 iptc = imageGetIPTCMetadata(img)             // IPTC metadata
 tag = imageGetIPTCTag(img, tagName)          // Specific IPTC tag
+xmp = imageGetXMP(img)                       // XMP packet
+img.setExifTag("Artist", "Jane")             // Written with the image
+img.setIPTCTag("Keywords", ["a", "b"])
+img.setXMP(xmpString)
+meta = imageReadMetadata("photo.jpg")        // Edit a file's metadata without decoding it
+meta.setExifTag("Copyright", "(c) 2026").write()
+imageStripMetadata("upload.jpg")             // Remove all metadata in place
 buffered = imageGetBufferedImage(img)        // Java BufferedImage
 ```
 
@@ -410,6 +417,13 @@ This module contributes the following BIFs:
 - [ImageGetHeight](https://cfdocs.org/ImageGetHeight)
 - [ImageGetIPTCMetadata](https://cfdocs.org/ImageGetIPTCMetadata)
 - [ImageGetIPTCTag](https://cfdocs.org/ImageGetIPTCTag)
+- ImageGetXMP - Get the XMP packet of an image, handle or file
+- ImageReadMetadata - Metadata handle for a file or URL: read and write EXIF, IPTC, XMP and ICC without decoding the image
+- ImageRemoveMetadata - Remove metadata types from an image, handle or file
+- ImageSetExifTag / ImageSetExifMetaData - Set EXIF tags on an image, handle or file
+- ImageSetIPTCTag / ImageSetIPTCMetaData - Set IPTC tags on an image, handle or file
+- ImageSetXMP - Set the XMP packet
+- ImageStripMetadata - Remove all or some metadata from a file without re-encoding it
 - `ImageGetPixels( name, [mode="luma"] )` - the pixels as an array of rows. `luma` gives a number from 0 to 255 per pixel, `rgba` gives `[r, g, b, a]`. Member: `img.getPixels( mode )`
 - [ImageGetWidth](https://cfdocs.org/ImageGetWidth)
 - [ImageGrayScale](https://cfdocs.org/ImageGrayScale) - also aliased as [`ImageGreyScale()`](https://cfdocs.org/ImageGrayScale) for you brits
@@ -588,6 +602,12 @@ var updatedLogo = ImageRead( "src/test/resources/logo.png" )
     .grayScale();
 imageWrite( updatedLogo, "src/test/resources/logoNew.png" );
 ```
+
+## Third-Party Licenses
+
+Metadata writing is provided by [pixymeta](https://github.com/akitogo/pixymeta), licensed under the Eclipse Public License 1.0. The licence text is shipped in `licenses/pixymeta-EPL-1.0.txt`; the library is bundled unmodified.
+
+The source code for the bundled pixymeta 1.4.0 is available at [https://github.com/akitogo/pixymeta/tree/v1.4.0](https://github.com/akitogo/pixymeta/tree/v1.4.0).
 
 ## Ortus Sponsors
 

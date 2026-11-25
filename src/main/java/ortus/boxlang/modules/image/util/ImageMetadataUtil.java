@@ -17,12 +17,13 @@
  */
 package ortus.boxlang.modules.image.util;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -36,6 +37,7 @@ import com.drew.metadata.exif.ExifThumbnailDirectory;
 import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.iptc.IptcDirectory;
 
+import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.Struct;
 
@@ -81,7 +83,9 @@ public class ImageMetadataUtil {
 	 * @throws IOException              If an I/O error occurs while reading the image
 	 */
 	public static IStruct readExifMetaData( String inputStream ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readExifMetaData( getInputStream( inputStream ) );
+		try ( InputStream stream = getInputStream( inputStream ) ) {
+			return readExifMetaData( stream );
+		}
 	}
 
 	/**
@@ -150,7 +154,9 @@ public class ImageMetadataUtil {
 	 * @throws IOException              If an I/O error occurs while reading the image
 	 */
 	public static IStruct readIPTCMetaData( String inputStream ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readIPTCMetaData( getInputStream( inputStream ) );
+		try ( InputStream stream = getInputStream( inputStream ) ) {
+			return readIPTCMetaData( stream );
+		}
 	}
 
 	/**
@@ -212,7 +218,7 @@ public class ImageMetadataUtil {
 	 * @throws IOException              If an I/O error occurs while reading the image
 	 */
 	public static Object getExifMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readExifMetaData( getInputStream( path ) ).get( tagName );
+		return readExifMetaData( path ).get( tagName );
 	}
 
 	/**
@@ -232,7 +238,7 @@ public class ImageMetadataUtil {
 	 * @throws IOException              If an I/O error occurs while reading the image
 	 */
 	public static Object getIPTCMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readIPTCMetaData( getInputStream( path ) ).get( tagName );
+		return readIPTCMetaData( path ).get( tagName );
 	}
 
 	/**
@@ -249,7 +255,7 @@ public class ImageMetadataUtil {
 	 */
 	private static InputStream getInputStream( String imageInput ) throws MalformedURLException, IOException {
 
-		return getInputStream( URI.create( imageInput ) );
+		return getInputStream( BoxImage.stringToURI( imageInput ) );
 	}
 
 	/**
@@ -276,6 +282,6 @@ public class ImageMetadataUtil {
 
 		}
 
-		return new FileInputStream( imageInput.toString() );
+		return Files.newInputStream( imageInput.getScheme() == null ? Path.of( imageInput.toString() ) : Path.of( imageInput ) );
 	}
 }
