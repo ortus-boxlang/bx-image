@@ -172,6 +172,7 @@ public class ImageReadMetadataTest extends BaseIntegrationTest {
 	@DisplayName( "Path-based metadata getters release the file before it is replaced" )
 	@Test
 	public void testReadersReleaseFiles( @TempDir Path directory ) throws IOException {
+		directory = Files.createDirectories( directory.resolve( "metadata readers" ) );
 		String[] calls = {
 		    "ImageGetExifMetaData( metadataPath )",
 		    "ImageGetIPTCMetadata( metadataPath )",
@@ -182,6 +183,8 @@ public class ImageReadMetadataTest extends BaseIntegrationTest {
 			Path file = directory.resolve( "reader-" + i + ".jpg" );
 			Files.copy( Paths.get( SOURCE ), file );
 			variables.put( Key.of( "metadataPath" ), file.toString() );
+			runtime.executeSource( calls[ i ] + ";", context );
+			variables.put( Key.of( "metadataPath" ), file.toUri().toString() );
 			runtime.executeSource( calls[ i ] + ";", context );
 
 			// Linux permits replacing open files, so check its descriptor table as well.

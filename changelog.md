@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Path-based EXIF and IPTC metadata getters now close their input streams before returning, so files can be replaced or have metadata removed in place on Windows without an `AccessDeniedException`.
+- Path-based EXIF and IPTC metadata getters now close their input streams before returning, so files can be replaced or have metadata removed in place on Windows without an `AccessDeniedException`. They also handle Windows absolute paths, paths containing spaces and `file:` URIs correctly.
 
 ## [1.16.0] - 2026-11-20
 

@@ -17,12 +17,13 @@
  */
 package ortus.boxlang.modules.image.util;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -36,6 +37,7 @@ import com.drew.metadata.exif.ExifThumbnailDirectory;
 import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.iptc.IptcDirectory;
 
+import ortus.boxlang.modules.image.BoxImage;
 import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.Struct;
 
@@ -253,7 +255,7 @@ public class ImageMetadataUtil {
 	 */
 	private static InputStream getInputStream( String imageInput ) throws MalformedURLException, IOException {
 
-		return getInputStream( URI.create( imageInput ) );
+		return getInputStream( BoxImage.stringToURI( imageInput ) );
 	}
 
 	/**
@@ -280,6 +282,6 @@ public class ImageMetadataUtil {
 
 		}
 
-		return new FileInputStream( imageInput.toString() );
+		return Files.newInputStream( imageInput.getScheme() == null ? Path.of( imageInput.toString() ) : Path.of( imageInput ) );
 	}
 }
