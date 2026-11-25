@@ -463,6 +463,20 @@ camera = img.getExifTag("Model");
 keywords = img.getIPTCTag("Keywords");
 ```
 
+### setExifTag(tag, value) / setIPTCTag(tag, value) / setXMP(xml)
+
+Set metadata to be written with the image. The tags are applied to the encoded bytes in `write()`, `toByteArray()` and `toBase64String()`; the pixels are not touched. `setExifMetaData(struct)` and `setIPTCMetaData(struct)` set several tags at once, `removeMetadata(types)` undoes earlier setters, `getXMP()` returns the packet set.
+
+```boxlang
+img.resize(800, 600)
+   .setExifTag("Artist", "Jane Doe")
+   .setIPTCTag("Keywords", ["garden", "spring"])
+   .setXMP(xmpString)
+   .write("thumb.jpg");
+```
+
+Source metadata is not carried through pixel edits. To edit the metadata of an existing file without decoding it, use `ImageReadMetadata(path)`, see [Metadata](../../metadata.md#writing-metadata).
+
 ### getBlob()
 
 Get the image as a byte array.

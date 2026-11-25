@@ -134,7 +134,7 @@ base.overlay(overlay, "normal", 0.8)
 - **[Transformations](transformations.md)** - Resize, rotate, crop, flip, shear operations
 - **[Filters & Effects](filters-effects.md)** - Blur, sharpen, grayscale, negative, overlay
 - **[Drawing Operations](drawing.md)** - Shapes, lines, curves, text with styling
-- **[Metadata](metadata.md)** - EXIF, IPTC metadata reading and tag access
+- **[Metadata](metadata.md)** - Read, write and strip EXIF, IPTC and XMP metadata
 - **[Utilities](utilities.md)** - Format support, validation, color reference
 - **[Advanced Examples](advanced-examples.md)** - Watermarking, thumbnails, batch processing
 - **[BIF Reference](bif-reference.md)** - Complete alphabetical BIF listing
@@ -172,6 +172,15 @@ base.overlay(overlay, "normal", 0.8)
 | `ImageGetHeight()` | `image.getHeight()` | Utility | Returns image height in pixels |
 | `ImageGetIPTCMetadata()` | `image.getIPTCMetadata()` | Metadata | Returns IPTC metadata struct |
 | `ImageGetIPTCTag()` | `image.getIPTCTag()` | Metadata | Returns specific IPTC tag value |
+| `ImageGetXMP()` | `image.getXMP()` | Metadata | Returns the XMP packet |
+| `ImageReadMetadata()` | - | Metadata | Metadata handle for a file, edit without decoding |
+| `ImageRemoveMetadata()` | `image.removeMetadata()` | Metadata | Removes metadata types |
+| `ImageSetExifMetaData()` | `image.setExifMetaData()` | Metadata | Sets several EXIF tags |
+| `ImageSetExifTag()` | `image.setExifTag()` | Metadata | Sets an EXIF tag |
+| `ImageSetIPTCMetaData()` | `image.setIPTCMetaData()` | Metadata | Sets several IPTC tags |
+| `ImageSetIPTCTag()` | `image.setIPTCTag()` | Metadata | Sets an IPTC tag |
+| `ImageSetXMP()` | `image.setXMP()` | Metadata | Sets the XMP packet |
+| `ImageStripMetadata()` | - | Metadata | Removes metadata from a file, no decoding |
 | `ImageGetWidth()` | `image.getWidth()` | Utility | Returns image width in pixels |
 | `ImageGrayScale()` / `ImageGreyScale()` | `image.grayScale()` | Filter | Converts image to grayscale |
 | `ImageInfo()` | `image.info()` | Utility | Returns comprehensive image information |
