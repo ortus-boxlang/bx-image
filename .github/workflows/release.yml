@@ -28,11 +28,25 @@ env:
   SNAPSHOT: ${{ inputs.snapshot || false }}
 
 jobs:
+  # Snapshots are already gated by the tests job in snapshot.yml.
+  tests:
+    if: inputs.snapshot != true
+    uses: ./.github/workflows/tests.yml
+    secrets: inherit
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: read
+      issues: read
+
   #############################################
   # Build Snapshot or Final Release
   #############################################
   build:
     name: Build & Publish Release
+    needs: [tests]
+    # A skipped test job is allowed only for snapshots, whose caller ran the tests.
+    if: ${{ !cancelled() && (needs.tests.result == 'success' || (inputs.snapshot == true && needs.tests.result == 'skipped')) }}
     runs-on: ubuntu-latest
     permissions:
       checks: write
