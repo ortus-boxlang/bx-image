@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-11-25
+
 ### Added
 
 - **Metadata writing.** EXIF, IPTC and XMP can now be written, backed by the [pixymeta](https://github.com/akitogo/pixymeta) library (EPL-1.0, see `licenses/`). Two entry points:
@@ -197,7 +199,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.16.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.17.0...HEAD
+[1.17.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.16.0...v1.17.0
 [1.16.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.15.0...v1.16.0
 [1.15.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.13.0...v1.14.0
