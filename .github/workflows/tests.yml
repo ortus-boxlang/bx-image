@@ -107,3 +107,62 @@ jobs:
           SLACK_USERNAME: CI
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           MSG_MINIMAL: true
+
+  native:
+    name: MatchBox native backend
+    runs-on: ubuntu-latest
+    env:
+      # Keep in step with the matchbox-plugin-sdk rev in native/Cargo.toml
+      MATCHBOX_REV: fe1503d8672a
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache MatchBox CLI
+        id: matchbox-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.matchbox-cli
+          key: matchbox-cli-${{ runner.os }}-${{ env.MATCHBOX_REV }}
+
+      - name: Install MatchBox CLI
+        if: steps.matchbox-cache.outputs.cache-hit != 'true'
+        run: cargo install --locked --git https://github.com/ortus-boxlang/matchbox --rev ${{ env.MATCHBOX_REV }} --root ~/.matchbox-cli matchbox
+
+      - name: Cargo tests
+        run: cargo test --manifest-path native/Cargo.toml
+
+      - name: Setup cargo-zigbuild
+        run: |
+          pip install ziglang
+          cargo install --locked cargo-zigbuild
+
+      - name: Build the module with the native plugin
+        env:
+          MATCHBOX_GLIBC: "2.28"
+        run: |
+          ./gradlew downloadBoxLang
+          ./gradlew build -x test --stacktrace --console=plain -PmatchboxTargets=x86_64-unknown-linux-gnu
+          ./.github/scripts/check-glibc.sh build/module/native/x86_64-unknown-linux-gnu/libbx_image_native.so "$MATCHBOX_GLIBC"
+
+      - name: Shared contract on MatchBox
+        run: ~/.matchbox-cli/bin/matchbox --module build/module native/image-contract.bxs
+
+      - name: Shared contract on MatchBox (native binary)
+        run: |
+          ~/.matchbox-cli/bin/matchbox --target native --module build/module --output "$RUNNER_TEMP/image-app" native/image-contract.bxs
+          cd "$RUNNER_TEMP" && BX_IMAGE_FIXTURES="$GITHUB_WORKSPACE/src/test/resources/native" ./image-app
+
+      - name: Shared contract on the JVM
+        run: |
+          BOXLANG_JAR=$(ls src/test/resources/libs/boxlang-*.jar | head -1)
+          BX_IMAGE_FIXTURES="$GITHUB_WORKSPACE/src/test/resources/native" java -cp "$BOXLANG_JAR" native/ImageContract.java build/module native/image-contract.bxs

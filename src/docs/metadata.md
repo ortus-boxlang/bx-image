@@ -354,7 +354,7 @@ if (structCount(exif) > 0) {
         <p><strong>Camera:</strong> #exif['Make']# #exif['Model']#</p>
         <p><strong>Date:</strong> #exif['Date/Time Original']#</p>
         <p><strong>Settings:</strong> ISO #exif['ISO Speed Ratings']#,
-           f/#exif['F-Number']#, #exif['Exposure Time']#s</p>
+           #exif['F-Number']#, #exif['Exposure Time']#</p>
         <p><strong>Lens:</strong> #exif['Focal Length']#</p>
     ");
 }

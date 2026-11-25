@@ -84,12 +84,28 @@ jobs:
           changelogPath: ./changelog.md
           tag: v${{ env.VERSION }}
 
+      # Builds the MatchBox native plugin that ships in the same bx-image zip
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      # Build the plugin against glibc 2.28, not the runner's own (Ubuntu 26.04 has 2.43), so it loads on older systems too
+      - name: Setup cargo-zigbuild
+        run: |
+          pip install ziglang
+          cargo install --locked cargo-zigbuild
+
       - name: Build it!
+        env:
+          MATCHBOX_GLIBC: "2.28"
         run: |
           npm install -g markdownlint-cli
           markdownlint changelog.md --fix
           ./gradlew downloadBoxLang
-          ./gradlew build -x test --stacktrace --console=plain
+          # One module, one zip, one version: the JVM jar plus the native plugin under matchbox.artifacts
+          ./gradlew build -x test --stacktrace --console=plain -PmatchboxTargets=x86_64-unknown-linux-gnu
+          ./.github/scripts/check-glibc.sh build/module/native/x86_64-unknown-linux-gnu/libbx_image_native.so "$MATCHBOX_GLIBC"
 
       - name: Commit Changelog [unreleased] with latest version
         uses: EndBug/add-and-commit@v11.1.1

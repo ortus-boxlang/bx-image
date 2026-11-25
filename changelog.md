@@ -19,6 +19,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - JPEG and TIFF take EXIF, IPTC, XMP and ICC; WebP takes EXIF, XMP and ICC; PNG takes XMP and ICC; GIF takes XMP. An unsupported combination such as EXIF in a PNG throws a clear error instead of silently writing nothing.
   - `ImageGetExifTag()`, `ImageGetExifMetaData()`, `ImageGetIPTCTag()` and `ImageGetIPTCMetadata()` also accept a metadata handle.
 - `ImageReadBase64()` now exposes the EXIF and IPTC metadata embedded in the Base64 data, like images read from a file.
+## [1.16.0] - 2026-11-20
+
+### Fixed
+
+- The MatchBox native plugin in the release zip needed glibc 2.43 (it was built on Ubuntu 26.04), so it would not load on older Linux systems. It is now built with `cargo zigbuild` against glibc 2.28, and CI fails if the library needs anything newer. Set `MATCHBOX_GLIBC` to choose the baseline when packaging.
+
+## [1.15.0] - 2026-11-17
+
+### Added
+
+- MatchBox native backend: the bx-image package now also runs on MatchBox without a JVM. It reads PNG, JPEG, GIF, WebP and SVG (`imageRead` with its optional `width` and `height`, `imageNew`), and supports `imageResize`, `imageGrayScale`, `imageInfo`, `imageGetPixels` and `getReadableImageFormats`, with the `resize()`, `grayScale()`, `info()` and `getPixels()` member functions. SVG images are redrawn when resized. The release zip carries the native plugin for `x86_64-unknown-linux-gnu` alongside the JVM jar.
+- `ImageGetPixels( name, [mode] )` and `img.getPixels( [mode] )` on both backends: the pixels as an array of rows, as luma values (`luma`, the default) or `[r, g, b, a]` arrays (`rgba`).
+- SVG read support. `imageRead()`, `imageNew()`, `imageReadBase64()` and the `image` component render SVG files to an ARGB raster image, so every other image function (`resize`, `grayScale`, `write`, ...) works on them. SVG is detected by the `.svg` extension or by content (an `<svg` root after an optional XML prolog). The image uses the SVG's intrinsic size from its width and height or viewBox, or 512 x 512 when it declares neither, and encodes as PNG by default.
+- `imageRead()` takes optional `width` and `height` arguments. An SVG is rendered straight at that size so it stays sharp; other formats are decoded and then resized. With one side given, the other keeps the aspect ratio.
+- `GetReadableImageFormats()` includes `svg`.
+- `BoxImage( String, Integer, Integer )`, `BoxImage( URI, Integer, Integer )` and `BoxImage.fromSvg()` on the Java API.
+- [JSVG](https://github.com/weisJ/jsvg) (`com.github.weisj:jsvg`, MIT, no dependencies) is now bundled for SVG rendering. External resources are never loaded and the rendered size is checked against `maxPixels`.
+
+### Changed
+
+- `ImageResize()` and `img.resize()` accept a blank or `0` width or height and keep the aspect ratio from the other dimension.
+- `imageGetExifMetaData()` and `imageGetExifTag()` report `Exposure Time` as a fraction, such as `1/100 sec` instead of `0.01 sec`, following the metadata-extractor 2.22.0 update.
 
 ## [1.14.0] - 2026-10-30
 
@@ -170,7 +192,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First iteration of this module
 
-[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.14.0...HEAD
+[unreleased]: https://github.com/ortus-boxlang/bx-image/compare/v1.16.0...HEAD
+[1.16.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.15.0...v1.16.0
+[1.15.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/ortus-boxlang/bx-image/compare/v1.11.0...v1.12.0

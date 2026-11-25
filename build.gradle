@@ -2,7 +2,7 @@
 plugins {
     id 'java'
     // For source code formatting
-    id "com.diffplug.spotless" version "8.10.3"
+    id "com.diffplug.spotless" version "8.10.4"
 	// https://github.com/harbby/gradle-serviceloader
     id "com.github.harbby.gradle.serviceloader" version "1.1.9"
 	// Shadow
@@ -51,7 +51,7 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-imaging
 	implementation 'org.apache.commons:commons-imaging:1.0.0-alpha6'
-	implementation "com.drewnoakes:metadata-extractor:2.21.0"
+	implementation "com.drewnoakes:metadata-extractor:2.22.0"
 	// Metadata writing (EXIF, IPTC, XMP, ICC) without re-encoding the image. EPL-1.0, see licenses/
 	// Pinned on purpose: before bumping, re-check pixymeta's licence and update licenses/ and the
 	// source link in readme.md (Third-Party Licenses) to the new tag.
@@ -62,10 +62,12 @@ dependencies {
 	// WebP write support via native library (Windows, Linux, Intel macOS, and Apple Silicon)
 	implementation 'io.github.darkxanter:webp-imageio:0.3.3'
 	// WebP read support - pure Java, cross-platform (including macOS ARM64)
-	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.15.2'
+	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.15.3'
+	// SVG read support - pure Java rasteriser, MIT, no runtime dependencies
+	implementation 'com.github.weisj:jsvg:2.2.0'
 
 	// QR code encoding and decoding
-	implementation 'com.google.zxing:core:3.5.3'
+	implementation 'com.google.zxing:core:3.5.4'
 	// Only BufferedImageLuminanceSource is used, so skip javase's CLI and JAI ImageIO transitive deps
 	implementation( 'com.google.zxing:javase:3.5.3' ) { transitive = false }
 
@@ -230,6 +232,33 @@ task zipModuleStructure( type: Zip ) {
     from createModuleStructure.destinationDir
     archiveFileName = "${project.name}-${version}.zip"
     destinationDirectory = file( "$buildDir/distributions" )
+    // Optional author-side native prebuilds, in the same published bx-image ZIP.
+    // Consumers do not need Cargo. Example: -PmatchboxTargets=x86_64-unknown-linux-gnu
+    // native/package.bxs runs on the full BoxLang runtime jar from `./gradlew downloadBoxLang`.
+    // The artifacts are added in doFirst, after Gradle's up-to-date check, so never skip the task when
+    // targets are given: otherwise a zip without them can be reused. Cargo's own build stays incremental.
+    inputs.property( 'matchboxTargets', project.findProperty( 'matchboxTargets' )?.toString() ?: '' )
+    outputs.upToDateWhen { !project.hasProperty( 'matchboxTargets' ) }
+    doFirst {
+        if ( project.hasProperty( 'matchboxTargets' ) ) {
+            def boxlangJar = file( 'src/test/resources/libs/boxlang-' + boxlangVersion + '.jar' )
+            if ( !boxlangJar.exists() ) {
+                throw new GradleException( "Packaging MatchBox targets needs ${boxlangJar}: run ./gradlew downloadBoxLang first" )
+            }
+            project.property( 'matchboxTargets' ).toString().split( ',' ).each { target ->
+                def packaging = providers.javaexec {
+                    classpath = files( boxlangJar )
+                    mainClass = 'ortus.boxlang.runtime.BoxRunner'
+                    args 'native/package.bxs', createModuleStructure.destinationDir.toString(), target.trim()
+                    ignoreExitValue = true
+                }
+                println packaging.standardOutput.asText.get().trim()
+                if ( packaging.result.get().exitValue != 0 ) {
+                    throw new GradleException( "Packaging the ${target.trim()} MatchBox artifact failed:\n" + packaging.standardError.asText.get() )
+                }
+            }
+        }
+    }
     // Output that the module has been zippped
     doLast {
         println "+ Module has been zipped to the distribution folder"

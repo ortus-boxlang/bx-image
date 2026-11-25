@@ -1,0 +1,22 @@
+[package]
+name = "bx-image-native"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Not published on crates.io: pinned to the MatchBox commit that adds the
+# types and collections capabilities (ortus-boxlang/matchbox#180).
+matchbox-plugin-sdk = { git = "https://github.com/ortus-boxlang/matchbox", rev = "fe1503d8672a" }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
+resvg = "0.50"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[profile.release]
+panic = "unwind"
