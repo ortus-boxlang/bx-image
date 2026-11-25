@@ -53,6 +53,8 @@ dependencies {
 	implementation 'org.apache.commons:commons-imaging:1.0.0-alpha6'
 	implementation "com.drewnoakes:metadata-extractor:2.21.0"
 	// Metadata writing (EXIF, IPTC, XMP, ICC) without re-encoding the image. EPL-1.0, see licenses/
+	// Pinned on purpose: before bumping, re-check pixymeta's licence and update licenses/ and the
+	// source link in readme.md (Third-Party Licenses) to the new tag.
 	implementation( 'com.akitogo:pixymeta:1.4.0' ) {
 		// BoxLang ships the SLF4J API
 		exclude group: 'org.slf4j'

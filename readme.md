@@ -569,6 +569,8 @@ imageWrite( updatedLogo, "src/test/resources/logoNew.png" );
 
 Metadata writing is provided by [pixymeta](https://github.com/akitogo/pixymeta), licensed under the Eclipse Public License 1.0. The licence text is shipped in `licenses/pixymeta-EPL-1.0.txt`; the library is bundled unmodified.
 
+The source code for the bundled pixymeta 1.4.0 is available at [https://github.com/akitogo/pixymeta/tree/v1.4.0](https://github.com/akitogo/pixymeta/tree/v1.4.0).
+
 ## Ortus Sponsors
 
 BoxLang is a professional open-source project and it is completely funded by the [community](https://patreon.com/ortussolutions) and [Ortus Solutions, Corp](https://www.ortussolutions.com).  Ortus Patreons get many benefits like a cfcasts account, a FORGEBOX Pro account and so much more.  If you are interested in becoming a sponsor, please visit our patronage page: [https://patreon.com/ortussolutions](https://patreon.com/ortussolutions)
