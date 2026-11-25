@@ -81,7 +81,9 @@ public class ImageMetadataUtil {
 	 * @throws IOException              If an I/O error occurs while reading the image
 	 */
 	public static IStruct readExifMetaData( String inputStream ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readExifMetaData( getInputStream( inputStream ) );
+		try ( InputStream stream = getInputStream( inputStream ) ) {
+			return readExifMetaData( stream );
+		}
 	}
 
 	/**
@@ -150,7 +152,9 @@ public class ImageMetadataUtil {
 	 * @throws IOException              If an I/O error occurs while reading the image
 	 */
 	public static IStruct readIPTCMetaData( String inputStream ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readIPTCMetaData( getInputStream( inputStream ) );
+		try ( InputStream stream = getInputStream( inputStream ) ) {
+			return readIPTCMetaData( stream );
+		}
 	}
 
 	/**
@@ -212,7 +216,7 @@ public class ImageMetadataUtil {
 	 * @throws IOException              If an I/O error occurs while reading the image
 	 */
 	public static Object getExifMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readExifMetaData( getInputStream( path ) ).get( tagName );
+		return readExifMetaData( path ).get( tagName );
 	}
 
 	/**
@@ -232,7 +236,7 @@ public class ImageMetadataUtil {
 	 * @throws IOException              If an I/O error occurs while reading the image
 	 */
 	public static Object getIPTCMetaDataTag( String path, String tagName ) throws ImageProcessingException, FileNotFoundException, IOException {
-		return readIPTCMetaData( getInputStream( path ) ).get( tagName );
+		return readIPTCMetaData( path ).get( tagName );
 	}
 
 	/**

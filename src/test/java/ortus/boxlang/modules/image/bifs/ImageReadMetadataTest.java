@@ -5,11 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import ortus.boxlang.modules.image.BaseIntegrationTest;
 import ortus.boxlang.runtime.scopes.Key;
@@ -165,6 +167,37 @@ public class ImageReadMetadataTest extends BaseIntegrationTest {
 		Array types = ( Array ) variables.get( Key.of( "typesAfter" ) );
 		assertThat( types ).contains( "exif" );
 		assertThat( types ).doesNotContain( "iptc" );
+	}
+
+	@DisplayName( "Path-based metadata getters release the file before it is replaced" )
+	@Test
+	public void testReadersReleaseFiles( @TempDir Path directory ) throws IOException {
+		String[] calls = {
+		    "ImageGetExifMetaData( metadataPath )",
+		    "ImageGetIPTCMetadata( metadataPath )",
+		    "ImageGetExifTag( metadataPath, 'Software' )",
+		    "ImageGetIPTCTag( metadataPath, 'Keywords' )"
+		};
+		for ( int i = 0; i < calls.length; i++ ) {
+			Path file = directory.resolve( "reader-" + i + ".jpg" );
+			Files.copy( Paths.get( SOURCE ), file );
+			variables.put( Key.of( "metadataPath" ), file.toString() );
+			runtime.executeSource( calls[ i ] + ";", context );
+
+			// Linux permits replacing open files, so check its descriptor table as well.
+			Path descriptors = Paths.get( "/proc/self/fd" );
+			if ( Files.isDirectory( descriptors ) ) {
+				try ( var handles = Files.list( descriptors ) ) {
+					for ( Path handle : handles.toList() ) {
+						if ( Files.exists( handle ) ) {
+							assertThat( Files.isSameFile( handle, file ) ).isFalse();
+						}
+					}
+				}
+			}
+			// Windows refuses this operation if a metadata getter still holds the file open.
+			Files.move( file, directory.resolve( "moved-" + i + ".jpg" ) );
+		}
 	}
 
 	@DisplayName( "It rejects unknown tags, bad values and unsupported formats with clear errors" )

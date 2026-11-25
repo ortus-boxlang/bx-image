@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - JPEG and TIFF take EXIF, IPTC, XMP and ICC; WebP takes EXIF, XMP and ICC; PNG takes XMP and ICC; GIF takes XMP. An unsupported combination such as EXIF in a PNG throws a clear error instead of silently writing nothing.
   - `ImageGetExifTag()`, `ImageGetExifMetaData()`, `ImageGetIPTCTag()` and `ImageGetIPTCMetadata()` also accept a metadata handle.
 - `ImageReadBase64()` now exposes the EXIF and IPTC metadata embedded in the Base64 data, like images read from a file.
+
+### Fixed
+
+- Path-based EXIF and IPTC metadata getters now close their input streams before returning, so files can be replaced or have metadata removed in place on Windows without an `AccessDeniedException`.
+
 ## [1.16.0] - 2026-11-20
 
 ### Fixed
