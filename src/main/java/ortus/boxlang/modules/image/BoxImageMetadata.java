@@ -43,6 +43,7 @@ import ortus.boxlang.runtime.types.Array;
 import ortus.boxlang.runtime.types.IStruct;
 import ortus.boxlang.runtime.types.Struct;
 import ortus.boxlang.runtime.types.exceptions.BoxRuntimeException;
+import ortus.boxlang.runtime.util.FileSystemUtil;
 import pixy.image.ImageType;
 import pixy.image.tiff.Tag;
 import pixy.meta.MetadataType;
@@ -58,8 +59,9 @@ import pixy.meta.iptc.IPTCApplicationTag;
  * <ul>
  * <li>{@link #read(String)} opens an image file or URL and reads its metadata. Setters change a
  * working copy, {@link #write()} / {@link #write(String)} / {@link #toBinary()} write the image
- * with the new metadata, image data copied byte for byte. This is what {@code imageReadMetadata()}
- * returns.</li>
+ * with the new metadata, image data copied byte for byte. A local file is streamed, never held in
+ * memory, so its size is not limited by {@code maxBytes}; a URL is read into memory within that
+ * limit. This is what {@code imageReadMetadata()} returns.</li>
  * <li>{@link #empty()} holds metadata to stamp onto an image that is encoded later. {@link BoxImage}
  * keeps one for the {@code setExifTag()} family and applies it to the bytes ImageIO produces in
  * {@code write()}, {@code toByteArray()} and {@code toBase64String()}.</li>
@@ -91,21 +93,30 @@ public class BoxImageMetadata {
 	/** File path or URL the metadata was read from, or null */
 	private final String					source;
 
-	/** The source image, retained so edits can be written out; null for an empty editor */
+	/** The source image read from a URL or bytes, retained so edits can be written out; null for a local file or an empty editor */
 	private final byte[]					sourceBytes;
+
+	/** The local source file, streamed whenever it is needed instead of held in memory; null for URLs, bytes and empty editors */
+	private final Path						sourceFile;
 
 	/** metadata-extractor structs for the current state, recomputed after a change */
 	private IStruct							exifCache;
 	private IStruct							iptcCache;
 
-	private BoxImageMetadata( MetadataEditor editor, String source, byte[] sourceBytes ) {
+	private BoxImageMetadata( MetadataEditor editor, String source, byte[] sourceBytes, Path sourceFile ) {
 		this.editor			= editor;
 		this.source			= source;
 		this.sourceBytes	= sourceBytes;
+		this.sourceFile		= sourceFile;
 	}
 
 	/**
 	 * Reads the metadata of an image file or URL. The image is not decoded.
+	 * <p>
+	 * A local file is read as a stream: pixymeta reads a JPEG only up to the image data (other
+	 * formats to the end of the file) and the image data is copied from the file again when it is
+	 * written, so the file is never held in memory and {@code maxBytes} does not apply. A URL is read
+	 * into memory, at most {@code maxBytes}.
 	 *
 	 * @param source An absolute file path, a file: URI or an http(s) URL
 	 *
@@ -115,8 +126,12 @@ public class BoxImageMetadata {
 	 */
 	public static BoxImageMetadata read( String source ) {
 		try {
-			URI		uri	= BoxImage.stringToURI( source );
-			byte[]	data;
+			URI		uri		= BoxImage.stringToURI( source );
+			Path	local	= localFile( uri );
+			if ( local != null ) {
+				return new BoxImageMetadata( MetadataEditor.read( local ), uri.toString(), null, local );
+			}
+			byte[] data;
 			try ( InputStream in = BoxImage.getInputStream( uri ) ) {
 				data = ImageGuard.readBounded( in, ImageGuard.getMaxBytes(), source );
 			}
@@ -138,7 +153,7 @@ public class BoxImageMetadata {
 	 */
 	public static BoxImageMetadata fromBytes( byte[] data, String source ) {
 		try {
-			return new BoxImageMetadata( MetadataEditor.read( data ), source, data );
+			return new BoxImageMetadata( MetadataEditor.read( data ), source, data, null );
 		} catch ( IOException e ) {
 			throw new BoxRuntimeException( "Unable to read image metadata" + ( source == null ? "" : " from [" + source + "]" ) + ": " + e.getMessage(), e );
 		}
@@ -150,7 +165,7 @@ public class BoxImageMetadata {
 	 * @return The metadata handle
 	 */
 	public static BoxImageMetadata empty() {
-		return new BoxImageMetadata( MetadataEditor.create(), null, null );
+		return new BoxImageMetadata( MetadataEditor.create(), null, null, null );
 	}
 
 	// ---------------------------------------------------------------- information
@@ -222,7 +237,7 @@ public class BoxImageMetadata {
 	 */
 	public IStruct getExif() {
 		if ( exifCache == null ) {
-			exifCache = sourceBytes != null ? readStruct( true ) : structFromEditorExif();
+			exifCache = hasImage() ? readStruct( true ) : structFromEditorExif();
 		}
 		return exifCache;
 	}
@@ -235,7 +250,7 @@ public class BoxImageMetadata {
 	 */
 	public IStruct getIPTC() {
 		if ( iptcCache == null ) {
-			iptcCache = sourceBytes != null ? readStruct( false ) : structFromEditorIptc();
+			iptcCache = hasImage() ? readStruct( false ) : structFromEditorIptc();
 		}
 		return iptcCache;
 	}
@@ -267,7 +282,9 @@ public class BoxImageMetadata {
 	}
 
 	/**
-	 * One IPTC tag. Repeatable tags with several values (Keywords) come back as an array.
+	 * One IPTC tag. Several values of a repeatable tag (Keywords) come back as one string joined with
+	 * {@code ;}, the same as {@code imageGetIPTCTag()}; a tag only the editor knows comes back as an
+	 * array of its values.
 	 *
 	 * @param tagName The tag
 	 *
@@ -444,7 +461,7 @@ public class BoxImageMetadata {
 	 * @throws BoxRuntimeException If the handle was not read from a local file
 	 */
 	public BoxImageMetadata write() {
-		Path path = sourcePath();
+		Path path = sourceFile != null ? sourceFile : sourcePath();
 		if ( path == null ) {
 			throw new BoxRuntimeException( "Cannot write metadata: the source is not a local file. Use write( destination )." );
 		}
@@ -459,7 +476,7 @@ public class BoxImageMetadata {
 	 * @return This handle, for chaining
 	 */
 	public BoxImageMetadata write( String destination ) {
-		if ( sourceBytes == null ) {
+		if ( !hasImage() ) {
 			throw new BoxRuntimeException( "Cannot write metadata: this editor was not read from an image." );
 		}
 		Path target = Paths.get( destination );
@@ -467,7 +484,7 @@ public class BoxImageMetadata {
 			if ( target.getParent() != null ) {
 				Files.createDirectories( target.getParent() );
 			}
-			Path path = sourcePath();
+			Path path = sourceFile != null ? sourceFile : sourcePath();
 			if ( path != null ) {
 				editor.apply( path, target );
 			} else {
@@ -477,13 +494,23 @@ public class BoxImageMetadata {
 	}
 
 	/**
+	 * The source image with the current metadata, in memory: a local source file is read for it, at
+	 * most {@code maxBytes}.
+	 *
 	 * @return The source image with the current metadata, as bytes
 	 */
 	public byte[] toBinary() {
-		if ( sourceBytes == null ) {
+		if ( !hasImage() ) {
 			throw new BoxRuntimeException( "Cannot produce an image: this editor was not read from an image." );
 		}
-		return applyTo( sourceBytes );
+		if ( sourceFile == null ) {
+			return applyTo( sourceBytes );
+		}
+		try ( InputStream in = Files.newInputStream( sourceFile ) ) {
+			return applyTo( ImageGuard.readBounded( in, ImageGuard.getMaxBytes(), source ) );
+		} catch ( IOException e ) {
+			throw new BoxRuntimeException( "Unable to read image [" + source + "]: " + e.getMessage(), e );
+		}
 	}
 
 	/**
@@ -533,6 +560,24 @@ public class BoxImageMetadata {
 		return this;
 	}
 
+	/** True when the handle was read from an image (a local file, a URL or bytes), not created empty. */
+	private boolean hasImage() {
+		return sourceBytes != null || sourceFile != null;
+	}
+
+	/**
+	 * The local file behind a source URI, resolved the way {@link BoxImage#getInputStream(URI)} opens
+	 * it (everything that is not http(s) is a file).
+	 *
+	 * @return The path, or null for a URL
+	 */
+	private static Path localFile( URI uri ) {
+		if ( uri.toString().toLowerCase( Locale.ROOT ).startsWith( "http" ) ) {
+			return null;
+		}
+		return Path.of( FileSystemUtil.createFileUri( uri.toString() ).getPath() );
+	}
+
 	private Path sourcePath() {
 		if ( source == null || source.toLowerCase( Locale.ROOT ).startsWith( "http" ) ) {
 			return null;
@@ -560,6 +605,9 @@ public class BoxImageMetadata {
 
 	private IStruct readStruct( boolean exif ) {
 		try {
+			if ( sourceFile != null ) {
+				return readStructFromFile( exif );
+			}
 			byte[] current = editor.hasChanges() ? editor.apply( sourceBytes ) : sourceBytes;
 			return exif ? ImageMetadataUtil.readExifMetaData( new ByteArrayInputStream( current ) )
 			    : ImageMetadataUtil.readIPTCMetaData( new ByteArrayInputStream( current ) );
@@ -568,6 +616,30 @@ public class BoxImageMetadata {
 			return exif ? structFromEditorExif() : structFromEditorIptc();
 		} catch ( ImageProcessingException | IOException e ) {
 			throw new BoxRuntimeException( "Unable to read image metadata: " + e.getMessage(), e );
+		}
+	}
+
+	/**
+	 * Reads the struct from the source file as a stream. With pending changes it reads a temporary
+	 * copy that has them applied (also streamed), so the struct reflects them as for an image in
+	 * memory.
+	 */
+	private IStruct readStructFromFile( boolean exif ) throws IOException, ImageProcessingException {
+		Path	file		= sourceFile;
+		Path	temporary	= null;
+		try {
+			if ( editor.hasChanges() ) {
+				temporary = Files.createTempFile( "bx-image-metadata-", "." + getFormat() );
+				editor.apply( sourceFile, temporary );
+				file = temporary;
+			}
+			try ( InputStream in = Files.newInputStream( file ) ) {
+				return exif ? ImageMetadataUtil.readExifMetaData( in ) : ImageMetadataUtil.readIPTCMetaData( in );
+			}
+		} finally {
+			if ( temporary != null ) {
+				Files.deleteIfExists( temporary );
+			}
 		}
 	}
 
