@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `ImageReadMetadata()` streams local files instead of loading them into memory: pixymeta reads a JPEG only up to the image data (other formats to the end of the file), `getExif()` and `getIPTC()` read the file as a stream (with pending changes through a temporary copy), and `write()` copies the image data from the file. `maxBytes` therefore no longer limits local files here, nor the functions that open a handle on a path (`ImageGetXMP()`, `ImageSetExifTag()`, `ImageSetIPTCTag()`, `ImageSetXMP()`, `ImageRemoveMetadata()`, `ImageStripMetadata()` and the `MetaData` variants). It still applies to URLs and to `toBinary()` / `toBase64()`, which hold the whole image in memory.
+
+### Fixed
+
+- The documentation of `getIPTCTag()` on a metadata handle: several values of a repeatable tag such as `Keywords` come back joined with `;`, the same as `ImageGetIPTCTag()`.
+
 ## [1.17.0] - 2026-11-25
 
 ### Added
